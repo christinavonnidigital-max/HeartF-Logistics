@@ -1,0 +1,7 @@
+{
+  "name": "Copy of LogiPro Fleet Manager",
+  "description": "An intelligent logistics management system dashboard for fleet monitoring, maintenance tracking, and operational analysis, powered by Gemini.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
