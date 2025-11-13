@@ -904,39 +904,6 @@ export interface LoyaltyRedemption {
 }
 
 
-// --- FINANCIAL REPORTS CACHE ---
-
-export enum SummaryType {
-    DAILY = 'daily',
-    WEEKLY = 'weekly',
-    MONTHLY = 'monthly',
-    QUARTERLY = 'quarterly',
-    YEARLY = 'yearly',
-}
-
-export interface FinancialSummary {
-    id: number;
-    summary_type: SummaryType;
-    period_start: string;
-    period_end: string;
-    total_revenue: number; // decimal
-    total_expenses: number; // decimal
-    net_profit: number; // decimal
-    profit_margin: number; // decimal
-    total_bookings: number;
-    completed_bookings: number;
-    total_km_travelled: number;
-    average_km_per_booking: number; // decimal
-    fuel_cost: number; // decimal
-    maintenance_cost: number; // decimal
-    salaries_cost: number; // decimal
-    revenue_by_cargo_type: Record<string, any>; // JSON
-    revenue_by_route: Record<string, any>; // JSON
-    revenue_by_customer: Record<string, any>; // JSON
-    generated_at: string;
-}
-
-
 // --- CURRENCY EXCHANGE ---
 
 export enum ExchangeRateSource {
@@ -2798,26 +2765,1664 @@ export interface TollPayment {
     created_at: string;
 }
 
-// --- ROUTE ANALYTICS ---
+// --- REPORTS, ANALYTICS & DASHBOARD DATA ---
 
-export interface RoutePerformance {
+// --- SAVED REPORTS ---
+
+export enum ReportType {
+    FINANCIAL = 'financial',
+    OPERATIONAL = 'operational',
+    FLEET = 'fleet',
+    SALES = 'sales',
+    CUSTOMER = 'customer',
+    DRIVER = 'driver',
+    CUSTOM = 'custom',
+}
+
+export enum ReportCategory {
+    DAILY = 'daily',
+    WEEKLY = 'weekly',
+    MONTHLY = 'monthly',
+    QUARTERLY = 'quarterly',
+    YEARLY = 'yearly',
+    CUSTOM = 'custom',
+}
+
+export enum ChartType {
+    TABLE = 'table',
+    BAR = 'bar',
+    LINE = 'line',
+    PIE = 'pie',
+    AREA = 'area',
+    COMBO = 'combo',
+    NONE = 'none',
+}
+
+export enum ScheduleFrequency {
+    DAILY = 'daily',
+    WEEKLY = 'weekly',
+    MONTHLY = 'monthly',
+}
+
+export interface SavedReport {
+    id: number;
+    report_name: string;
+    report_type: ReportType;
+    report_category: ReportCategory;
+    filters: Record<string, any>; // JSON
+    columns: string[]; // JSON array
+    sorting: { column: string; direction: 'asc' | 'desc' }; // JSON
+    grouping: { group_by: string; aggregate_functions: any }; // JSON
+    chart_type?: ChartType;
+    chart_config?: Record<string, any>; // JSON
+    is_scheduled: boolean;
+    schedule_frequency?: ScheduleFrequency;
+    schedule_day_of_week?: number;
+    schedule_day_of_month?: number;
+    schedule_time?: string; // time
+    recipients: (number | string)[]; // JSON array of user_ids or emails
+    is_public: boolean;
+    is_favorite: boolean;
+    created_by: number; // user.id
+    created_at: string;
+    updated_at: string;
+    last_generated_at?: string;
+}
+
+export enum ReportExecutionStatus {
+    GENERATING = 'generating',
+    COMPLETED = 'completed',
+    FAILED = 'failed',
+    CANCELLED = 'cancelled',
+}
+
+export interface ReportExecution {
+    id: number;
+    saved_report_id?: number; // saved_report.id
+    report_name: string;
+    report_type: ReportType;
+    filters_applied: Record<string, any>; // JSON
+    result_data?: Record<string, any>; // JSON
+    result_file_url?: string;
+    row_count: number;
+    generation_time_seconds: number; // decimal
+    status: ReportExecutionStatus;
+    error_message?: string;
+    generated_by: number; // user.id
+    generated_at: string;
+    expires_at?: string;
+}
+
+
+// --- DASHBOARD WIDGETS ---
+
+export enum WidgetType {
+    METRIC_CARD = 'metric_card',
+    CHART = 'chart',
+    TABLE = 'table',
+    MAP = 'map',
+    LIST = 'list',
+    GAUGE = 'gauge',
+    PROGRESS = 'progress',
+    TIMELINE = 'timeline',
+}
+
+export enum WidgetCategory {
+    FINANCIAL = 'financial',
+    OPERATIONAL = 'operational',
+    FLEET = 'fleet',
+    SALES = 'sales',
+    CUSTOMER = 'customer',
+    ALERTS = 'alerts',
+}
+
+export enum WidgetDataSource {
+    BOOKINGS = 'bookings',
+    REVENUE = 'revenue',
+    EXPENSES = 'expenses',
+    VEHICLES = 'vehicles',
+    DRIVERS = 'drivers',
+    LEADS = 'leads',
+    CAMPAIGNS = 'campaigns',
+    CUSTOM_QUERY = 'custom_query',
+}
+
+export enum WidgetSize {
+    SMALL = 'small',
+    MEDIUM = 'medium',
+    LARGE = 'large',
+    FULL_WIDTH = 'full_width',
+}
+
+export interface DashboardWidget {
+    id: number;
+    widget_name: string;
+    widget_type: WidgetType;
+    widget_category: WidgetCategory;
+    data_source: WidgetDataSource;
+    data_query: Record<string, any>; // JSON
+    refresh_interval_seconds?: number;
+    chart_config?: Record<string, any>; // JSON
+    size: WidgetSize;
+    is_default: boolean;
+    required_permission?: string;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface UserDashboard {
+    id: number;
+    user_id: number; // user.id
+    dashboard_name: string;
+    is_default: boolean;
+    layout: Record<string, any>; // JSON
+    widgets: number[]; // JSON array of widget IDs
+    created_at: string;
+    updated_at: string;
+}
+
+
+// --- KPI TRACKING ---
+
+export enum KpiCategory {
+    FINANCIAL = 'financial',
+    OPERATIONAL = 'operational',
+    CUSTOMER = 'customer',
+    FLEET = 'fleet',
+    SALES = 'sales',
+    DRIVER = 'driver',
+}
+
+export enum KpiComparisonType {
+    GREATER_IS_BETTER = 'greater_is_better',
+    LOWER_IS_BETTER = 'lower_is_better',
+    TARGET_IS_BEST = 'target_is_best',
+}
+
+export interface Kpi {
+    id: number;
+    kpi_name: string;
+    kpi_code: string;
+    kpi_category: KpiCategory;
+    measurement_unit: string;
+    calculation_method: string;
+    data_sources: string[]; // JSON array
+    target_value?: number; // decimal
+    warning_threshold?: number; // decimal
+    critical_threshold?: number; // decimal
+    comparison_type: KpiComparisonType;
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
+}
+
+export enum KpiPeriodType {
+    DAILY = 'daily',
+    WEEKLY = 'weekly',
+    MONTHLY = 'monthly',
+    QUARTERLY = 'quarterly',
+    YEARLY = 'yearly',
+}
+
+export enum KpiStatus {
+    ON_TARGET = 'on_target',
+    WARNING = 'warning',
+    CRITICAL = 'critical',
+    EXCELLENT = 'excellent',
+}
+
+export interface KpiValue {
+    id: number;
+    kpi_id: number; // kpi.id
+    period_type: KpiPeriodType;
+    period_start: string; // date
+    period_end: string; // date
+    actual_value: number; // decimal
+    target_value?: number; // decimal
+    variance: number; // decimal
+    variance_percentage: number; // decimal
+    status: KpiStatus;
+    notes?: string;
+    calculated_at: string;
+    created_at: string;
+}
+
+
+// --- BUSINESS METRICS SNAPSHOTS ---
+
+export interface DailyMetrics {
+    id: number;
+    metric_date: string; // date
+    bookings_total: number;
+    bookings_pending: number;
+    bookings_in_transit: number;
+    bookings_completed: number;
+    bookings_cancelled: number;
+    revenue_total: number; // decimal
+    revenue_usd: number; // decimal
+    revenue_zwl: number; // decimal
+    revenue_zig: number; // decimal
+    expenses_total: number; // decimal
+    net_profit: number; // decimal
+    profit_margin: number; // decimal
+    invoices_sent: number;
+    invoices_paid: number;
+    payments_received: number; // decimal
+    vehicles_active: number;
+    vehicles_in_maintenance: number;
+    vehicles_available: number;
+    km_travelled_total: number;
+    fuel_consumed_litres: number; // decimal
+    fuel_cost_total: number; // decimal
+    average_fuel_efficiency: number; // decimal
+    deliveries_on_time: number;
+    deliveries_late: number;
+    on_time_percentage: number; // decimal
+    drivers_active: number;
+    drivers_available: number;
+    new_customers: number;
+    repeat_customers: number;
+    leads_created: number;
+    leads_converted: number;
+    opportunities_won: number;
+    campaigns_sent: number;
+    emails_sent: number;
+    emails_opened: number;
+    maintenance_alerts: number;
+    insurance_expiry_alerts: number;
+    calculated_at: string;
+    created_at: string;
+}
+
+export interface MonthlyMetrics {
+    id: number;
+    metric_year: number;
+    metric_month: number;
+    period_start: string; // date
+    period_end: string; // date
+    bookings_total: number;
+    revenue_total: number; // decimal
+    expenses_total: number; // decimal
+    net_profit: number; // decimal
+    profit_margin: number; // decimal
+    km_travelled_total: number;
+    fuel_cost_total: number; // decimal
+    vehicles_added: number;
+    vehicles_retired: number;
+    drivers_hired: number;
+    drivers_terminated: number;
+    new_customers: number;
+    lost_customers: number;
+    customer_retention_rate: number; // decimal
+    average_booking_value: number; // decimal
+    average_delivery_time_hours: number; // decimal
+    leads_created: number;
+    leads_converted: number;
+    conversion_rate: number; // decimal
+    calculated_at: string;
+    created_at: string;
+}
+
+
+// --- CUSTOMER ANALYTICS ---
+
+export enum CustomerMetricPeriodType {
+    MONTHLY = 'monthly',
+    QUARTERLY = 'quarterly',
+    YEARLY = 'yearly',
+    LIFETIME = 'lifetime',
+}
+
+export enum CustomerRiskLevel {
+    NONE = 'none',
+    LOW = 'low',
+    MEDIUM = 'medium',
+    HIGH = 'high',
+}
+
+export interface CustomerMetrics {
+    id: number;
+    customer_id: number; // customer.id
+    period_type: CustomerMetricPeriodType;
+    period_start: string; // date
+    period_end?: string; // date
+    total_bookings: number;
+    completed_bookings: number;
+    cancelled_bookings: number;
+    total_revenue: number; // decimal
+    total_paid: number; // decimal
+    outstanding_balance: number; // decimal
+    average_booking_value: number; // decimal
+    largest_booking_value: number; // decimal
+    loyalty_points_earned: number;
+    loyalty_points_redeemed: number;
+    current_tier: string;
+    last_booking_date?: string;
+    days_since_last_booking?: number;
+    booking_frequency_days: number; // decimal
+    most_used_route?: string;
+    unique_routes_used: number;
+    on_time_deliveries: number;
+    late_deliveries: number;
+    on_time_percentage: number; // decimal
+    is_active: boolean;
+    risk_level: CustomerRiskLevel;
+    calculated_at: string;
+    created_at: string;
+}
+
+
+// --- FLEET ANALYTICS ---
+
+export enum VehicleMetricPeriodType {
+    MONTHLY = 'monthly',
+    QUARTERLY = 'quarterly',
+    YEARLY = 'yearly',
+    LIFETIME = 'lifetime',
+}
+
+export interface VehicleMetrics {
+    id: number;
+    vehicle_id: number; // vehicle.id
+    period_type: VehicleMetricPeriodType;
+    period_start: string; // date
+    period_end?: string; // date
+    total_trips: number;
+    total_km: number;
+    total_hours_driven: number; // decimal
+    utilization_rate: number; // decimal
+    revenue_generated: number; // decimal
+    expenses_total: number; // decimal
+    fuel_cost: number; // decimal
+    maintenance_cost: number; // decimal
+    profit: number; // decimal
+    profit_margin: number; // decimal
+    revenue_per_km: number; // decimal
+    cost_per_km: number; // decimal
+    fuel_consumed_litres: number; // decimal
+    fuel_efficiency: number; // decimal
+    maintenance_events: number;
+    downtime_days: number;
+    downtime_percentage: number; // decimal
+    average_speed: number; // decimal
+    speeding_incidents: number;
+    harsh_braking_incidents: number;
+    on_time_deliveries: number;
+    late_deliveries: number;
+    current_km: number;
+    km_since_last_service: number;
+    days_until_insurance_expiry?: number;
+    calculated_at: string;
+    created_at: string;
+}
+
+
+// --- DRIVER ANALYTICS ---
+
+export enum DriverMetricPeriodType {
+    MONTHLY = 'monthly',
+    QUARTERLY = 'quarterly',
+    YEARLY = 'yearly',
+    LIFETIME = 'lifetime',
+}
+
+export interface DriverMetrics {
+    id: number;
+    driver_id: number; // driver.id
+    period_type: DriverMetricPeriodType;
+    period_start: string; // date
+    period_end?: string; // date
+    total_trips: number;
+    completed_trips: number;
+    total_km: number;
+    total_hours_driven: number; // decimal
+    on_time_deliveries: number;
+    late_deliveries: number;
+    on_time_percentage: number; // decimal
+    accidents: number;
+    speeding_incidents: number;
+    harsh_braking_incidents: number;
+    safety_score: number; // decimal
+    fuel_efficiency: number; // decimal
+    idle_time_hours: number; // decimal
+    revenue_generated: number; // decimal
+    average_revenue_per_trip: number; // decimal
+    customer_rating?: number; // decimal
+    total_ratings: number;
+    complaints_received: number;
+    compliments_received: number;
+    days_worked: number;
+    days_absent: number;
+    punctuality_score: number; // decimal
+    calculated_at: string;
+    created_at: string;
+}
+
+
+// --- ROUTE ANALYTICS ---
+export enum RouteAnalyticPeriodType {
+    MONTHLY = 'monthly',
+    QUARTERLY = 'quarterly',
+    YEARLY = 'yearly',
+}
+
+export interface RouteAnalytics {
     id: number;
     route_id: number; // route.id
+    period_type: RouteAnalyticPeriodType;
     period_start: string; // date
     period_end: string; // date
     total_trips: number;
+    total_revenue: number; // decimal
+    total_cost: number; // decimal
+    total_profit: number; // decimal
+    profit_margin: number; // decimal
+    average_duration_hours: number; // decimal
+    shortest_trip_hours: number; // decimal
+    longest_trip_hours: number; // decimal
+    total_fuel_cost: number; // decimal
+    average_fuel_cost_per_trip: number; // decimal
+    total_toll_cost: number; // decimal
+    on_time_trips: number;
+    late_trips: number;
+    on_time_percentage: number; // decimal
+    incidents_reported: number;
+    most_used_vehicle_id?: number; // vehicle.id
+    most_used_driver_id?: number; // driver.id
+    calculated_at: string;
+    created_at: string;
+}
+
+
+// --- CAMPAIGN ANALYTICS ---
+
+export interface CampaignAnalytics {
+    id: number;
+    campaign_id: number; // campaign.id
+    snapshot_date: string; // date
+    total_leads: number;
+    active_leads: number;
+    completed_leads: number;
+    unsubscribed_leads: number;
+    emails_sent: number;
+    emails_delivered: number;
+    emails_bounced: number;
+    emails_opened: number;
+    unique_opens: number;
+    open_rate: number; // decimal
+    emails_clicked: number;
+    unique_clicks: number;
+    click_rate: number; // decimal
+    click_to_open_rate: number; // decimal
+    emails_replied: number;
+    reply_rate: number; // decimal
+    leads_converted: number;
+    conversion_rate: number; // decimal
+    opportunities_created: number;
+    deals_won: number;
+    revenue_generated?: number; // decimal
+    best_performing_sequence_id?: number; // email_sequence.id
+    best_performing_subject_line?: string;
+    best_send_time?: string; // time
+    best_send_day?: string;
+    calculated_at: string;
+    created_at: string;
+}
+
+
+// --- FINANCIAL SUMMARIES ---
+
+export enum SummaryType {
+    DAILY = 'daily',
+    WEEKLY = 'weekly',
+    MONTHLY = 'monthly',
+    QUARTERLY = 'quarterly',
+    YEARLY = 'yearly',
+}
+
+export interface FinancialSummary {
+    id: number;
+    summary_type: SummaryType;
+    period_start: string; // date
+    period_end: string; // date
+    revenue_bookings: number; // decimal
+    revenue_other: number; // decimal
+    total_revenue: number; // decimal
+    expenses_fuel: number; // decimal
+    expenses_maintenance: number; // decimal
+    expenses_salaries: number; // decimal
+    expenses_insurance: number; // decimal
+    expenses_licenses: number; // decimal
+    expenses_tolls: number; // decimal
+    expenses_other: number; // decimal
+    total_expenses: number; // decimal
+    gross_profit: number; // decimal
+    net_profit: number; // decimal
+    profit_margin: number; // decimal
+    cash_inflow: number; // decimal
+    cash_outflow: number; // decimal
+    net_cash_flow: number; // decimal
+    invoices_issued: number;
+    invoices_issued_value: number; // decimal
+    invoices_paid: number;
+    invoices_paid_value: number; // decimal
+    outstanding_invoices_value: number; // decimal
+    overdue_invoices_value: number; // decimal
+    revenue_usd: number; // decimal
+    revenue_zwl: number; // decimal
+    revenue_zig: number; // decimal
+    total_bookings: number;
+    average_booking_value: number; // decimal
+    revenue_growth: number; // decimal
+    profit_growth: number; // decimal
+    calculated_at: string;
+    created_at: string;
+}
+
+
+// --- OPERATIONAL ANALYTICS ---
+
+export interface OperationalMetrics {
+    id: number;
+    metric_date: string; // date
+    total_vehicles: number;
+    vehicles_active: number;
+    vehicles_idle: number;
+    vehicles_maintenance: number;
+    fleet_utilization_rate: number; // decimal
+    bookings_total: number;
+    bookings_completed: number;
+    bookings_in_progress: number;
+    bookings_pending: number;
+    bookings_cancelled: number;
+    completion_rate: number; // decimal
+    cancellation_rate: number; // decimal
+    deliveries_on_time: number;
+    deliveries_late: number;
+    on_time_delivery_rate: number; // decimal
+    average_delivery_time_hours: number; // decimal
+    total_drivers: number;
+    drivers_active: number;
+    drivers_available: number;
+    driver_utilization_rate: number; // decimal
     total_km_travelled: number;
-    average_duration_hours: number;
-    fastest_trip_hours: number;
-    slowest_trip_hours: number;
-    total_fuel_cost: number;
-    average_fuel_cost_per_km: number;
-    total_toll_cost: number;
-    total_revenue: number;
-    total_profit: number;
-    on_time_deliveries: number;
-    delayed_deliveries: number;
-    incident_count: number;
-    average_customer_rating?: number;
+    average_km_per_booking: number; // decimal
+    fuel_consumed_litres: number; // decimal
+    average_fuel_efficiency: number; // decimal
+    fuel_cost_per_km: number; // decimal
+    accidents: number;
+    breakdowns: number;
+    delays: number;
+    calculated_at: string;
+    created_at: string;
+}
+
+
+// --- COMPARATIVE ANALYTICS ---
+
+export enum ComparisonType {
+    MONTH_OVER_MONTH = 'month_over_month',
+    QUARTER_OVER_QUARTER = 'quarter_over_quarter',
+    YEAR_OVER_YEAR = 'year_over_year',
+    CUSTOM = 'custom',
+}
+
+export enum ComparisonTrend {
+    UP = 'up',
+    DOWN = 'down',
+    STABLE = 'stable',
+}
+
+export interface PeriodComparison {
+    id: number;
+    comparison_type: ComparisonType;
+    metric_name: string;
+    metric_category: 'revenue' | 'bookings' | 'customers' | 'fleet' | 'drivers' | 'profit';
+    current_period_start: string; // date
+    current_period_end: string; // date
+    current_value: number; // decimal
+    previous_period_start: string; // date
+    previous_period_end: string; // date
+    previous_value: number; // decimal
+    absolute_change: number; // decimal
+    percentage_change: number; // decimal
+    trend: ComparisonTrend;
+    calculated_at: string;
+    created_at: string;
+}
+
+
+// --- PREDICTIVE ANALYTICS ---
+
+export enum ForecastType {
+    REVENUE = 'revenue',
+    BOOKINGS = 'bookings',
+    EXPENSES = 'expenses',
+    PROFIT = 'profit',
+    DEMAND = 'demand',
+}
+
+export enum ForecastPeriod {
+    NEXT_WEEK = 'next_week',
+    NEXT_MONTH = 'next_month',
+    NEXT_QUARTER = 'next_quarter',
+    NEXT_YEAR = 'next_year',
+}
+
+export interface Forecast {
+    id: number;
+    forecast_type: ForecastType;
+    forecast_period: ForecastPeriod;
+    forecast_date: string; // date
+    predicted_value: number; // decimal
+    confidence_level: number; // decimal
+    lower_bound: number; // decimal
+    upper_bound: number; // decimal
+    model_used: string;
+    actual_value?: number; // decimal
+    accuracy?: number; // decimal
     generated_at: string;
+    created_at: string;
+}
+
+
+// --- BENCHMARK COMPARISONS ---
+
+export enum BenchmarkCategory {
+    OPERATIONAL = 'operational',
+    FINANCIAL = 'financial',
+    CUSTOMER_SERVICE = 'customer_service',
+    SAFETY = 'safety',
+}
+
+export enum BenchmarkComparisonStatus {
+    ABOVE_AVERAGE = 'above_average',
+    AVERAGE = 'average',
+    BELOW_AVERAGE = 'below_average',
+    TOP_PERFORMER = 'top_performer',
+}
+
+export interface IndustryBenchmark {
+    id: number;
+    benchmark_name: string;
+    benchmark_category: BenchmarkCategory;
+    industry_average: number; // decimal
+    top_quartile: number; // decimal
+    bottom_quartile: number; // decimal
+    measurement_unit: string;
+    our_value: number; // decimal
+    our_percentile: number; // decimal
+    comparison_status: BenchmarkComparisonStatus;
+    data_source: string;
+    period_start: string; // date
+    period_end: string; // date
+    notes?: string;
+    updated_at: string;
+    created_at: string;
+}
+
+
+// --- CUSTOM REPORTS DATA STORE ---
+
+export interface ReportDataCache {
+    id: number;
+    cache_key: string;
+    report_config: Record<string, any>; // JSON
+    result_data: Record<string, any>; // JSON
+    row_count: number;
+    generated_at: string;
+    expires_at: string;
+}
+
+
+// --- ALERT THRESHOLDS ---
+
+export enum ThresholdType {
+    MINIMUM = 'minimum',
+    MAXIMUM = 'maximum',
+    RANGE = 'range',
+}
+
+export enum AlertFrequency {
+    IMMEDIATE = 'immediate',
+    DAILY_DIGEST = 'daily_digest',
+    WEEKLY_DIGEST = 'weekly_digest',
+}
+
+export enum ComparisonOperator {
+    LESS_THAN = 'less_than',
+    GREATER_THAN = 'greater_than',
+    EQUALS = 'equals',
+    BETWEEN = 'between',
+}
+
+export interface MetricThreshold {
+    id: number;
+    metric_name: string;
+    threshold_type: ThresholdType;
+    warning_value: number; // decimal
+    critical_value: number; // decimal
+    target_value?: number; // decimal
+    comparison_operator: ComparisonOperator;
+    alert_enabled: boolean;
+    alert_frequency: AlertFrequency;
+    notify_users: number[]; // JSON array
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
+}
+
+// --- MARKETING HUB SCHEMA ---
+
+// --- LEAD SOURCES & ATTRIBUTION ---
+
+export enum LeadSourceType {
+    WEBSITE = 'website',
+    SOCIAL_MEDIA = 'social_media',
+    REFERRAL = 'referral',
+    EVENT = 'event',
+    COLD_OUTREACH = 'cold_outreach',
+    PARTNER = 'partner',
+    ADVERTISEMENT = 'advertisement',
+    DIRECT = 'direct',
+    OTHER = 'other',
+}
+
+export enum LeadSourceCategory {
+    ORGANIC = 'organic',
+    PAID = 'paid',
+    REFERRAL = 'referral',
+    DIRECT = 'direct',
+}
+
+export enum AttributionModel {
+    FIRST_TOUCH = 'first_touch',
+    LAST_TOUCH = 'last_touch',
+    MULTI_TOUCH = 'multi_touch',
+    LINEAR = 'linear',
+}
+
+// FIX: Renamed interface from LeadSource to LeadSourceRecord to resolve name conflict with the enum.
+export interface LeadSourceRecord {
+    id: number;
+    source_name: string;
+    source_type: LeadSourceType;
+    source_category: LeadSourceCategory;
+    utm_source?: string;
+    utm_medium?: string;
+    utm_campaign?: string;
+    cost_per_lead?: number; // decimal
+    is_active: boolean;
+    total_leads: number;
+    total_conversions: number;
+    conversion_rate: number; // decimal
+    created_at: string;
+    updated_at: string;
+}
+
+export interface LeadAttribution {
+    id: number;
+    lead_id: number; // lead.id
+    first_touch_source_id: number; // lead_source.id
+    first_touch_date: string;
+    last_touch_source_id: number; // lead_source.id
+    last_touch_date: string;
+    all_touchpoints: { source_id: number; timestamp: string; page_url: string }[]; // JSON array
+    attribution_model: AttributionModel;
+    created_at: string;
+}
+
+
+// --- LEAD ENRICHMENT ---
+
+export enum PhoneType {
+    MOBILE = 'mobile',
+    LANDLINE = 'landline',
+    VOIP = 'voip',
+    UNKNOWN = 'unknown',
+}
+
+export enum EnrichmentSource {
+    CLEARBIT = 'clearbit',
+    HUNTER = 'hunter',
+    ZOOMINFO = 'zoominfo',
+    MANUAL = 'manual',
+    LINKEDIN = 'linkedin',
+    OTHER = 'other',
+}
+
+export interface LeadEnrichmentData {
+    id: number;
+    lead_id: number; // lead.id
+    company_domain?: string;
+    company_linkedin?: string;
+    company_size_employees?: number;
+    company_revenue_range?: string;
+    company_founded_year?: number;
+    company_technologies?: string[]; // JSON array
+    linkedin_url?: string;
+    twitter_handle?: string;
+    facebook_url?: string;
+    email_verified: boolean;
+    email_verification_date?: string;
+    phone_verified: boolean;
+    phone_type?: PhoneType;
+    website_visits: number;
+    last_website_visit?: string;
+    pages_viewed: string[]; // JSON array
+    email_engagement_score: number;
+    enrichment_source: EnrichmentSource;
+    enriched_at?: string;
+    raw_data: Record<string, any>; // JSON
+    created_at: string;
+    updated_at: string;
+}
+
+
+// --- LEAD SEGMENTATION ---
+
+export enum SegmentType {
+    DYNAMIC = 'dynamic',
+    STATIC = 'static',
+}
+
+export interface Segment {
+    id: number;
+    segment_name: string;
+    segment_type: SegmentType;
+    filters: Record<string, any>; // JSON
+    description: string;
+    lead_count: number;
+    last_calculated_at?: string;
+    is_active: boolean;
+    created_by: number; // user.id
+    created_at: string;
+    updated_at: string;
+}
+
+export interface SegmentMember {
+    id: number;
+    segment_id: number; // segment.id
+    lead_id: number; // lead.id
+    added_at: string;
+    added_by?: number; // user.id
+    is_active: boolean;
+}
+
+
+// --- EMAIL WARMUP ---
+
+export enum EmailAccountProvider {
+    SMTP = 'smtp',
+    GMAIL = 'gmail',
+    OUTLOOK = 'outlook',
+    ZOHO = 'zoho',
+    CUSTOM = 'custom',
+}
+
+export enum EmailWarmupStatus {
+    NEW = 'new',
+    WARMING = 'warming',
+    WARMED = 'warmed',
+    INACTIVE = 'inactive',
+}
+
+export interface EmailAccount {
+    id: number;
+    email_address: string;
+    email_password?: string; // encrypted
+    provider: EmailAccountProvider;
+    smtp_host?: string;
+    smtp_port?: number;
+    smtp_username?: string;
+    daily_send_limit: number;
+    current_daily_sent: number;
+    warmup_status: EmailWarmupStatus;
+    warmup_start_date?: string;
+    warmup_current_daily_limit: number;
+    reputation_score: number; // decimal
+    spam_rate: number; // decimal
+    bounce_rate: number; // decimal
+    is_verified: boolean;
+    is_active: boolean;
+    last_used_at?: string;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface EmailWarmupSchedule {
+    id: number;
+    email_account_id: number; // email_account.id
+    day_number: number;
+    planned_sends: number;
+    actual_sends: number;
+    opens: number;
+    clicks: number;
+    replies: number;
+    bounces: number;
+    spam_complaints: number;
+    warmup_date: string; // date
+    created_at: string;
+}
+
+
+// --- LINKEDIN INTEGRATION ---
+
+export enum LinkedInConnectionStatus {
+    NOT_CONNECTED = 'not_connected',
+    PENDING = 'pending',
+    CONNECTED = 'connected',
+    MESSAGE_SENT = 'message_sent',
+    REPLIED = 'replied',
+}
+
+export enum LinkedInCampaignStatus {
+    DRAFT = 'draft',
+    ACTIVE = 'active',
+    PAUSED = 'paused',
+    COMPLETED = 'completed',
+}
+
+export interface LinkedInAccount {
+    id: number;
+    user_id: number; // user.id
+    linkedin_email: string;
+    linkedin_password?: string; // encrypted
+    connection_limit_daily: number;
+    message_limit_daily: number;
+    current_daily_connections: number;
+    current_daily_messages: number;
+    is_active: boolean;
+    last_used_at?: string;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface LinkedInProspect {
+    id: number;
+    lead_id?: number; // lead.id
+    linkedin_url: string;
+    full_name: string;
+    headline: string;
+    company_name: string;
+    location: string;
+    connection_status: LinkedInConnectionStatus;
+    connection_request_sent_at?: string;
+    connection_accepted_at?: string;
+    message_sent_at?: string;
+    last_message_at?: string;
+    notes?: string;
+    scraped_at: string;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface LinkedInCampaign {
+    id: number;
+    campaign_name: string;
+    linkedin_account_id: number; // linkedin_account.id
+    target_criteria: Record<string, any>; // JSON
+    connection_message_template: string;
+    follow_up_message_template: string;
+    daily_connection_limit: number;
+    status: LinkedInCampaignStatus;
+    total_prospects: number;
+    connections_sent: number;
+    connections_accepted: number;
+    messages_sent: number;
+    replies_received: number;
+    created_by: number; // user.id
+    created_at: string;
+    updated_at: string;
+}
+
+
+// --- CONTENT LIBRARY ---
+
+export enum AssetType {
+    CASE_STUDY = 'case_study',
+    WHITEPAPER = 'whitepaper',
+    EBOOK = 'ebook',
+    INFOGRAPHIC = 'infographic',
+    VIDEO = 'video',
+    PRESENTATION = 'presentation',
+    ONE_PAGER = 'one_pager',
+    BROCHURE = 'brochure',
+    PROPOSAL_TEMPLATE = 'proposal_template',
+}
+
+export interface ContentAsset {
+    id: number;
+    asset_name: string;
+    asset_type: AssetType;
+    description: string;
+    file_url: string;
+    thumbnail_url?: string;
+    file_size: number;
+    file_format: string;
+    tags: string[]; // JSON array
+    use_cases: string[]; // JSON array
+    download_count: number;
+    view_count: number;
+    is_public: boolean;
+    created_by: number; // user.id
+    created_at: string;
+    updated_at: string;
+}
+
+export interface ContentShare {
+    id: number;
+    content_asset_id: number; // content_asset.id
+    shared_with_lead_id?: number; // lead.id
+    shared_with_customer_id?: number; // customer.id
+    shared_via_email?: string;
+    share_link: string;
+    viewed: boolean;
+    first_viewed_at?: string;
+    view_count: number;
+    downloaded: boolean;
+    download_count: number;
+    shared_by: number; // user.id
+    shared_at: string;
+    expires_at?: string;
+}
+
+
+// --- LANDING PAGES ---
+
+export enum LandingPageTemplateType {
+    QUOTE_REQUEST = 'quote_request',
+    CONSULTATION = 'consultation',
+    EBOOK_DOWNLOAD = 'ebook_download',
+    CASE_STUDY = 'case_study',
+    CONTACT = 'contact',
+    CUSTOM = 'custom',
+}
+
+export enum LandingPageStatus {
+    DRAFT = 'draft',
+    PUBLISHED = 'published',
+    ARCHIVED = 'archived',
+}
+
+export interface LandingPage {
+    id: number;
+    page_name: string;
+    page_slug: string;
+    page_title: string;
+    meta_description: string;
+    template_type: LandingPageTemplateType;
+    hero_headline: string;
+    hero_subheadline?: string;
+    hero_image_url?: string;
+    hero_cta_text: string;
+    sections: Record<string, any>[]; // JSON array
+    form_fields: Record<string, any>[]; // JSON array
+    thank_you_message: string;
+    redirect_url?: string;
+    campaign_id?: number; // campaign.id
+    utm_parameters: Record<string, any>; // JSON
+    views: number;
+    form_submissions: number;
+    conversion_rate: number; // decimal
+    status: LandingPageStatus;
+    published_at?: string;
+    created_by: number; // user.id
+    created_at: string;
+    updated_at: string;
+}
+
+export interface LandingPageSubmission {
+    id: number;
+    landing_page_id: number; // landing_page.id
+    form_data: Record<string, any>; // JSON
+    lead_id?: number; // lead.id
+    ip_address: string;
+    user_agent: string;
+    referrer_url?: string;
+    submitted_at: string;
+}
+
+
+// --- EMAIL VERIFICATION ---
+
+export enum EmailVerificationStatus {
+    VALID = 'valid',
+    INVALID = 'invalid',
+    RISKY = 'risky',
+    UNKNOWN = 'unknown',
+    CATCH_ALL = 'catch_all',
+    DISPOSABLE = 'disposable',
+}
+
+export enum EmailVerificationProvider {
+    HUNTER = 'hunter',
+    ZEROBOUNCE = 'zerobounce',
+    NEVERBOUNCE = 'neverbounce',
+    MANUAL = 'manual',
+}
+
+export interface EmailVerification {
+    id: number;
+    email_address: string;
+    verification_status: EmailVerificationStatus;
+    is_deliverable: boolean;
+    is_smtp_valid: boolean;
+    is_syntax_valid: boolean;
+    is_disposable: boolean;
+    is_role_account: boolean;
+    is_free_provider: boolean;
+    mx_records_found: boolean;
+    verification_provider: EmailVerificationProvider;
+    confidence_score: number;
+    verified_at: string;
+    created_at: string;
+}
+
+
+// --- A/B TESTING ---
+
+export enum ABTestType {
+    SUBJECT_LINE = 'subject_line',
+    EMAIL_BODY = 'email_body',
+    SEND_TIME = 'send_time',
+    FROM_NAME = 'from_name',
+    LANDING_PAGE = 'landing_page',
+}
+
+export enum ABTestWinningVariant {
+    A = 'a',
+    B = 'b',
+    TIE = 'tie',
+    INCONCLUSIVE = 'inconclusive',
+}
+
+export enum ABTestStatus {
+    DRAFT = 'draft',
+    RUNNING = 'running',
+    COMPLETED = 'completed',
+    STOPPED = 'stopped',
+}
+
+export interface ABTest {
+    id: number;
+    test_name: string;
+    test_type: ABTestType;
+    campaign_id?: number; // campaign.id
+    sequence_id?: number; // email_sequence.id
+    landing_page_id?: number; // landing_page.id
+    variant_a: Record<string, any>; // JSON
+    variant_b: Record<string, any>; // JSON
+    split_percentage: number;
+    variant_a_sends: number;
+    variant_a_opens: number;
+    variant_a_clicks: number;
+    variant_a_conversions: number;
+    variant_b_sends: number;
+    variant_b_opens: number;
+    variant_b_clicks: number;
+    variant_b_conversions: number;
+    winning_variant?: ABTestWinningVariant;
+    status: ABTestStatus;
+    started_at?: string;
+    completed_at?: string;
+    created_by: number; // user.id
+    created_at: string;
+}
+
+
+// --- SALES SEQUENCES ---
+
+export enum SalesSequenceType {
+    COLD_OUTREACH = 'cold_outreach',
+    FOLLOW_UP = 'follow_up',
+    NURTURE = 'nurture',
+    REACTIVATION = 'reactivation',
+}
+
+export enum SequenceStepType {
+    EMAIL = 'email',
+    LINKEDIN_CONNECTION = 'linkedin_connection',
+    LINKEDIN_MESSAGE = 'linkedin_message',
+    CALL = 'call',
+    SMS = 'sms',
+    MANUAL_TASK = 'manual_task',
+    WHATSAPP = 'whatsapp',
+}
+
+export enum SequenceExecuteCondition {
+    ALWAYS = 'always',
+    IF_OPENED = 'if_opened',
+    IF_CLICKED = 'if_clicked',
+    IF_NOT_REPLIED = 'if_not_replied',
+    IF_REPLIED = 'if_replied',
+}
+
+export enum SequenceEnrollmentStatus {
+    ACTIVE = 'active',
+    PAUSED = 'paused',
+    COMPLETED = 'completed',
+    BOUNCED = 'bounced',
+    REPLIED = 'replied',
+    UNSUBSCRIBED = 'unsubscribed',
+}
+
+export enum SequenceStepExecutionStatus {
+    SCHEDULED = 'scheduled',
+    SENT = 'sent',
+    COMPLETED = 'completed',
+    SKIPPED = 'skipped',
+    FAILED = 'failed',
+}
+
+export interface SalesSequence {
+    id: number;
+    sequence_name: string;
+    sequence_type: SalesSequenceType;
+    description: string;
+    total_steps: number;
+    is_active: boolean;
+    enrollment_count: number;
+    completion_count: number;
+    reply_count: number;
+    created_by: number; // user.id
+    created_at: string;
+    updated_at: string;
+}
+
+export interface SequenceStep {
+    id: number;
+    sales_sequence_id: number; // sales_sequence.id
+    step_number: number;
+    step_name: string;
+    step_type: SequenceStepType;
+    delay_days: number;
+    delay_hours: number;
+    email_template_id?: number; // email_template.id
+    subject_line?: string;
+    email_body?: string;
+    linkedin_message?: string;
+    task_instructions?: string;
+    execute_if: SequenceExecuteCondition;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface SequenceEnrollment {
+    id: number;
+    sales_sequence_id: number; // sales_sequence.id
+    lead_id: number; // lead.id
+    status: SequenceEnrollmentStatus;
+    current_step: number;
+    enrolled_at: string;
+    completed_at?: string;
+    enrolled_by: number; // user.id
+}
+
+export interface SequenceStepExecution {
+    id: number;
+    sequence_enrollment_id: number; // sequence_enrollment.id
+    sequence_step_id: number; // sequence_step.id
+    lead_id: number; // lead.id
+    status: SequenceStepExecutionStatus;
+    scheduled_for: string;
+    executed_at?: string;
+    email_opened?: boolean;
+    email_clicked?: boolean;
+    replied?: boolean;
+    task_completed?: boolean;
+    task_notes?: string;
+    error_message?: string;
+    created_at: string;
+}
+
+
+// --- INTENT SIGNALS ---
+
+export enum IntentSignalType {
+    WEBSITE_VISIT = 'website_visit',
+    PRICING_PAGE_VIEW = 'pricing_page_view',
+    CALCULATOR_USE = 'calculator_use',
+    EMAIL_OPENED = 'email_opened',
+    EMAIL_CLICKED = 'email_clicked',
+    CONTENT_DOWNLOAD = 'content_download',
+    DEMO_REQUEST = 'demo_request',
+    QUOTE_REQUEST = 'quote_request',
+    SOCIAL_ENGAGEMENT = 'social_engagement',
+    JOB_CHANGE = 'job_change',
+}
+
+export enum IntentSignalStrength {
+    WEAK = 'weak',
+    MEDIUM = 'medium',
+    STRONG = 'strong',
+    VERY_STRONG = 'very_strong',
+}
+
+export interface IntentSignal {
+    id: number;
+    lead_id?: number; // lead.id
+    customer_id?: number; // customer.id
+    signal_type: IntentSignalType;
+    signal_strength: IntentSignalStrength;
+    signal_score: number;
+    description: string;
+    metadata: Record<string, any>; // JSON
+    detected_at: string;
+    created_at: string;
+}
+
+
+// --- COMPETITOR TRACKING ---
+
+export enum CompetitorPricingModel {
+    PER_KM = 'per_km',
+    PER_TONNE = 'per_tonne',
+    FLAT_RATE = 'flat_rate',
+    CUSTOM = 'custom',
+    UNKNOWN = 'unknown',
+}
+
+export enum CompetitorMarketPosition {
+    PREMIUM = 'premium',
+    MID_RANGE = 'mid_range',
+    BUDGET = 'budget',
+    NICHE = 'niche',
+}
+
+export enum CompetitiveIntelligenceType {
+    PRICING_CHANGE = 'pricing_change',
+    NEW_SERVICE = 'new_service',
+    CLIENT_WON = 'client_won',
+    CLIENT_LOST = 'client_lost',
+    PARTNERSHIP = 'partnership',
+    EXPANSION = 'expansion',
+    OTHER = 'other',
+}
+
+export enum CompetitiveImpactLevel {
+    LOW = 'low',
+    MEDIUM = 'medium',
+    HIGH = 'high',
+}
+
+export interface Competitor {
+    id: number;
+    company_name: string;
+    website: string;
+    services_offered: string[]; // JSON array
+    pricing_model: CompetitorPricingModel;
+    estimated_pricing?: string;
+    fleet_size?: number;
+    coverage_area: string[]; // JSON array
+    strengths: string;
+    weaknesses: string;
+    differentiators: string;
+    market_position: CompetitorMarketPosition;
+    notes?: string;
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface CompetitiveIntelligence {
+    id: number;
+    competitor_id: number; // competitor.id
+    intelligence_type: CompetitiveIntelligenceType;
+    title: string;
+    description: string;
+    source: string;
+    source_url?: string;
+    impact_level: CompetitiveImpactLevel;
+    action_items: string;
+    recorded_by: number; // user.id
+    recorded_at: string;
+    created_at: string;
+}
+
+
+// --- REFERRAL PROGRAM ---
+
+export enum ReferralRewardType {
+    DISCOUNT = 'discount',
+    CASH = 'cash',
+    LOYALTY_POINTS = 'loyalty_points',
+    FREE_SERVICE = 'free_service',
+}
+
+export enum ReferralRewardCurrency {
+    USD = 'USD',
+    ZWL = 'ZWL',
+    ZIG = 'ZIG',
+    POINTS = 'points',
+}
+
+export enum ReferralStatus {
+    SENT = 'sent',
+    CLICKED = 'clicked',
+    SIGNED_UP = 'signed_up',
+    CONVERTED = 'converted',
+    REWARDED = 'rewarded',
+    EXPIRED = 'expired',
+}
+
+export interface ReferralProgram {
+    id: number;
+    program_name: string;
+    reward_type: ReferralRewardType;
+    referrer_reward_amount: number; // decimal
+    referee_reward_amount: number; // decimal
+    reward_currency: ReferralRewardCurrency;
+    minimum_booking_value?: number; // decimal
+    terms_and_conditions: string;
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface Referral {
+    id: number;
+    referral_program_id: number; // referral_program.id
+    referrer_customer_id: number; // customer.id
+    referee_name: string;
+    referee_email: string;
+    referee_phone: string;
+    referee_lead_id?: number; // lead.id
+    referee_customer_id?: number; // customer.id
+    status: ReferralStatus;
+    referral_code: string;
+    referral_link: string;
+    clicked_at?: string;
+    signed_up_at?: string;
+    converted_at?: string;
+    first_booking_id?: number; // booking.id
+    referrer_reward_issued: boolean;
+    referee_reward_issued: boolean;
+    created_at: string;
+    expires_at?: string;
+}
+
+
+// --- MARKETING AUTOMATION WORKFLOWS ---
+
+export enum AutomationWorkflowTriggerType {
+    LEAD_CREATED = 'lead_created',
+    FORM_SUBMITTED = 'form_submitted',
+    EMAIL_OPENED = 'email_opened',
+    LINK_CLICKED = 'link_clicked',
+    BOOKING_COMPLETED = 'booking_completed',
+    QUOTE_REQUESTED = 'quote_requested',
+    TIME_BASED = 'time_based',
+    MANUAL = 'manual',
+}
+
+export enum AutomationWorkflowStatus {
+    DRAFT = 'draft',
+    ACTIVE = 'active',
+    PAUSED = 'paused',
+    ARCHIVED = 'archived',
+}
+
+export enum WorkflowEnrollmentStatus {
+    ACTIVE = 'active',
+    PAUSED = 'paused',
+    COMPLETED = 'completed',
+    FAILED = 'failed',
+    EXITED = 'exited',
+}
+
+export enum WorkflowStepLogStatus {
+    PENDING = 'pending',
+    EXECUTING = 'executing',
+    COMPLETED = 'completed',
+    FAILED = 'failed',
+    SKIPPED = 'skipped',
+}
+
+export interface AutomationWorkflow {
+    id: number;
+    workflow_name: string;
+    trigger_type: AutomationWorkflowTriggerType;
+    trigger_config: Record<string, any>; // JSON
+    workflow_steps: Record<string, any>[]; // JSON array
+    status: AutomationWorkflowStatus;
+    enrollment_count: number;
+    completion_count: number;
+    is_active: boolean;
+    created_by: number; // user.id
+    created_at: string;
+    updated_at: string;
+}
+
+export interface WorkflowEnrollment {
+    id: number;
+    automation_workflow_id: number; // automation_workflow.id
+    lead_id?: number; // lead.id
+    customer_id?: number; // customer.id
+    status: WorkflowEnrollmentStatus;
+    current_step_index: number;
+    enrolled_at: string;
+    completed_at?: string;
+    context_data: Record<string, any>; // JSON
+}
+
+export interface WorkflowStepLog {
+    id: number;
+    workflow_enrollment_id: number; // workflow_enrollment.id
+    step_index: number;
+    step_type: string;
+    status: WorkflowStepLogStatus;
+    result: string;
+    error_message?: string;
+    executed_at?: string;
+    created_at: string;
+}
+
+
+// --- CALL TRACKING ---
+
+export enum CallDirection {
+    INBOUND = 'inbound',
+    OUTBOUND = 'outbound',
+}
+
+export enum CallType {
+    SALES = 'sales',
+    SUPPORT = 'support',
+    FOLLOW_UP = 'follow_up',
+    DEMO = 'demo',
+    OTHER = 'other',
+}
+
+export enum CallOutcome {
+    CONNECTED = 'connected',
+    NO_ANSWER = 'no_answer',
+    VOICEMAIL = 'voicemail',
+    BUSY = 'busy',
+    CALLBACK_REQUESTED = 'callback_requested',
+    CONVERTED = 'converted',
+    NOT_INTERESTED = 'not_interested',
+}
+
+export interface CallLog {
+    id: number;
+    lead_id?: number; // lead.id
+    customer_id?: number; // customer.id
+    caller_phone: string;
+    recipient_phone: string;
+    call_direction: CallDirection;
+    call_type: CallType;
+    call_duration_seconds: number;
+    call_outcome: CallOutcome;
+    recording_url?: string;
+    notes?: string;
+    scheduled_call_id?: number; // task.id
+    handled_by: number; // user.id
+    call_started_at: string;
+    call_ended_at?: string;
+    created_at: string;
+}
+
+
+// --- MARKET RESEARCH ---
+
+export enum MarketResearchType {
+    COMPETITOR_ANALYSIS = 'competitor_analysis',
+    MARKET_TRENDS = 'market_trends',
+    CUSTOMER_SURVEY = 'customer_survey',
+    PRICING_ANALYSIS = 'pricing_analysis',
+    INDUSTRY_REPORT = 'industry_report',
+}
+
+export interface MarketResearch {
+    id: number;
+    research_title: string;
+    research_type: MarketResearchType;
+    description: string;
+    key_findings: string;
+    data_sources: string[]; // JSON array
+    file_url?: string;
+    conducted_by: number; // user.id
+    conducted_date: string; // date
+    tags: string[]; // JSON array
+    created_at: string;
+    updated_at: string;
+}
+
+
+// --- MARKETING CALENDAR ---
+
+export enum MarketingEventType {
+    CAMPAIGN_LAUNCH = 'campaign_launch',
+    EVENT = 'event',
+    WEBINAR = 'webinar',
+    CONTENT_RELEASE = 'content_release',
+    PROMOTION = 'promotion',
+    DEADLINE = 'deadline',
+    MEETING = 'meeting',
+}
+
+export enum MarketingEventStatus {
+    PLANNED = 'planned',
+    IN_PROGRESS = 'in_progress',
+    COMPLETED = 'completed',
+    CANCELLED = 'cancelled',
+}
+
+export interface MarketingEvent {
+    id: number;
+    event_name: string;
+    event_type: MarketingEventType;
+    description: string;
+    start_date: string;
+    end_date?: string;
+    assigned_to?: number; // user.id
+    related_campaign_id?: number; // campaign.id
+    status: MarketingEventStatus;
+    budget?: number; // decimal
+    actual_cost?: number; // decimal
+    notes?: string;
+    created_by: number; // user.id
+    created_at: string;
+    updated_at: string;
 }

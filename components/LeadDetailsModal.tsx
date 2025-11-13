@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Lead, User } from '../types';
 import { CloseIcon, BriefcaseIcon, UserCircleIcon, InfoIcon, DocumentTextIcon } from './icons/Icons';
@@ -11,7 +10,7 @@ interface LeadDetailsModalProps {
 
 const DetailSection: React.FC<{ title: string; icon: React.ReactNode; children: React.ReactNode }> = ({ title, icon, children }) => (
     <div>
-        <h3 className="text-lg font-semibold mb-3 flex items-center text-gray-800 dark:text-gray-200">
+        <h3 className="text-lg font-semibold mb-3 flex items-center text-gray-800">
             {icon}
             <span className="ml-2">{title}</span>
         </h3>
@@ -20,9 +19,9 @@ const DetailSection: React.FC<{ title: string; icon: React.ReactNode; children: 
 );
 
 const DetailItem: React.FC<{ label: string; value?: string | number | null }> = ({ label, value }) => (
-    <div className="grid grid-cols-3 gap-2 py-1 border-b border-gray-100 dark:border-gray-700">
-        <span className="text-gray-500 dark:text-gray-400 col-span-1">{label}</span>
-        <span className="text-gray-900 dark:text-white col-span-2 break-words">{value || 'N/A'}</span>
+    <div className="grid grid-cols-3 gap-2 py-1 border-b border-gray-100">
+        <span className="text-gray-500 col-span-1">{label}</span>
+        <span className="text-gray-900 col-span-2 break-words">{value || 'N/A'}</span>
     </div>
 );
 
@@ -36,13 +35,13 @@ const LeadDetailsModal: React.FC<LeadDetailsModalProps> = ({ lead, salesReps, on
             onClick={onClose}
         >
             <div 
-                className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-3xl h-full max-h-[90vh] flex flex-col"
+                className="bg-white rounded-xl shadow-2xl w-full max-w-3xl h-full max-h-[90vh] flex flex-col"
                 onClick={(e) => e.stopPropagation()}
             >
-                <header className="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
-                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{lead.first_name} {lead.last_name}</h2>
-                    <button onClick={onClose} className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
-                        <CloseIcon className="w-6 h-6 text-gray-600 dark:text-gray-300"/>
+                <header className="flex justify-between items-center p-4 border-b border-gray-200">
+                    <h2 className="text-2xl font-bold text-gray-900">{lead.first_name} {lead.last_name}</h2>
+                    <button onClick={onClose} className="p-1 rounded-full hover:bg-gray-200">
+                        <CloseIcon className="w-6 h-6 text-gray-600"/>
                     </button>
                 </header>
 

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { mockInvoices, mockAllExpenses } from '../data/mockFinancialsData';
 import InvoiceList from './InvoiceList';
@@ -16,13 +15,13 @@ const FinancialsDashboard: React.FC = () => {
     const netProfit = totalRevenue - totalExpenses;
 
     const StatCard: React.FC<{ title: string, value: string, icon: React.ReactNode }> = ({ title, value, icon }) => (
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md flex items-center">
-            <div className="p-3 bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300 rounded-full mr-4">
+        <div className="bg-white p-6 rounded-xl shadow-md flex items-center">
+            <div className="p-3 bg-orange-100 text-orange-600 rounded-full mr-4">
                 {icon}
             </div>
             <div>
-                <h3 className="text-gray-500 dark:text-gray-400 text-lg">{title}</h3>
-                <p className="text-3xl font-bold text-gray-900 dark:text-white">{value}</p>
+                <h3 className="text-gray-500 text-lg">{title}</h3>
+                <p className="text-3xl font-bold text-gray-900">{value}</p>
             </div>
         </div>
     );

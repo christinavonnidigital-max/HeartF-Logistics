@@ -1,5 +1,3 @@
-
-
 import React, { useState } from 'react';
 import { mockLeads, mockOpportunities, mockLeadScoringRules, mockSalesReps } from '../data/mockCrmData';
 import SalesPipeline from './SalesPipeline';
@@ -31,17 +29,17 @@ const CrmDashboard: React.FC = () => {
   return (
     <div className="flex flex-col gap-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md">
-                <h3 className="text-gray-500 dark:text-gray-400 text-lg">Total Pipeline Value</h3>
-                <p className="text-3xl font-bold text-gray-900 dark:text-white">${totalPipelineValue.toLocaleString()}</p>
+            <div className="bg-white p-6 rounded-xl shadow-md">
+                <h3 className="text-gray-500 text-lg">Total Pipeline Value</h3>
+                <p className="text-3xl font-bold text-gray-900">${totalPipelineValue.toLocaleString()}</p>
             </div>
-             <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md">
-                <h3 className="text-gray-500 dark:text-gray-400 text-lg">New Leads</h3>
-                <p className="text-3xl font-bold text-gray-900 dark:text-white">{newLeadsCount}</p>
+             <div className="bg-white p-6 rounded-xl shadow-md">
+                <h3 className="text-gray-500 text-lg">New Leads</h3>
+                <p className="text-3xl font-bold text-gray-900">{newLeadsCount}</p>
             </div>
-             <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md">
-                <h3 className="text-gray-500 dark:text-gray-400 text-lg">Opportunities</h3>
-                <p className="text-3xl font-bold text-gray-900 dark:text-white">{mockOpportunities.length}</p>
+             <div className="bg-white p-6 rounded-xl shadow-md">
+                <h3 className="text-gray-500 text-lg">Opportunities</h3>
+                <p className="text-3xl font-bold text-gray-900">{mockOpportunities.length}</p>
             </div>
         </div>
         <SalesPipeline opportunities={mockOpportunities} />
