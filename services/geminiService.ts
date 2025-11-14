@@ -82,10 +82,16 @@ export const getGeminiResponse = async (
   };
 
   if (tools) {
+    if (!request.config) {
+        request.config = {};
+    }
     request.config.tools = tools;
   }
 
   if (location && tools?.some(t => t.googleMaps)) {
+    if (!request.config) {
+        request.config = {};
+    }
     request.config.toolConfig = {
       retrievalConfig: {
         latLng: {

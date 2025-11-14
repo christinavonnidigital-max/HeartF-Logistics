@@ -1,8 +1,10 @@
+
 import React, { useState, useMemo, useEffect } from 'react';
 import { mockVehicles } from '../data/mockData';
-import { Vehicle } from '../types';
+import { Vehicle, VehicleStatus } from '../types';
 import VehicleDetails from './VehicleDetails';
-import { PlusIcon, SearchIcon, IllustrationTruckIcon } from './icons/Icons';
+// FIX: Imported missing CheckCircleIcon.
+import { PlusIcon, SearchIcon, IllustrationTruckIcon, CheckCircleIcon } from './icons/Icons';
 import EmptyState from './EmptyState';
 
 const FleetDashboard: React.FC = () => {
@@ -27,20 +29,20 @@ const FleetDashboard: React.FC = () => {
   }, [searchTerm, selectedVehicle, filteredVehicles]);
 
 
-  const getStatusColor = (status: string) => {
+  const getStatusPill = (status: VehicleStatus) => {
     switch (status) {
-      case 'active':
-        return 'bg-green-100 text-green-800';
-      case 'maintenance':
-        return 'bg-yellow-100 text-yellow-800';
+      case VehicleStatus.ACTIVE:
+        return <span className="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800 flex items-center"><CheckCircleIcon className="w-4 h-4 mr-1"/> Active</span>;
+      case VehicleStatus.MAINTENANCE:
+        return <span className="px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800">Maintenance</span>;
       default:
-        return 'bg-gray-100 text-gray-800';
+        return <span className="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-800">{status.charAt(0).toUpperCase() + status.slice(1)}</span>;
     }
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
-      <div className="lg:col-span-1 bg-white rounded-xl shadow-md flex flex-col h-[calc(100vh-100px)]">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="lg:col-span-1 bg-white rounded-xl shadow-md flex flex-col">
         <div className="p-4 border-b border-gray-200">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-bold">Vehicle Fleet ({filteredVehicles.length})</h2>
@@ -80,13 +82,7 @@ const FleetDashboard: React.FC = () => {
                       <p className="font-semibold text-gray-900">{vehicle.make} {vehicle.model}</p>
                       <p className="text-sm text-gray-500">{vehicle.registration_number}</p>
                     </div>
-                    <span
-                      className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
-                        vehicle.status
-                      )}`}
-                    >
-                      {vehicle.status.charAt(0).toUpperCase() + vehicle.status.slice(1)}
-                    </span>
+                    {getStatusPill(vehicle.status)}
                   </div>
                 </li>
               ))}
@@ -98,7 +94,7 @@ const FleetDashboard: React.FC = () => {
           )}
         </div>
       </div>
-      <div className="lg:col-span-2 flex flex-col gap-6 h-[calc(100vh-100px)]">
+      <div className="lg:col-span-2 flex flex-col gap-6">
         {selectedVehicle ? (
           <VehicleDetails vehicle={selectedVehicle} />
         ) : (

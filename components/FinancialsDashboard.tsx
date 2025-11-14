@@ -1,9 +1,12 @@
+
+
 import React from 'react';
 import { mockInvoices, mockAllExpenses } from '../data/mockFinancialsData';
 import InvoiceList from './InvoiceList';
 import ExpenseList from './ExpenseList';
 import { InvoiceStatus } from '../types';
-import { DollarIcon } from './icons/Icons';
+// FIX: Replaced missing DollarIcon with CurrencyDollarIcon.
+import { CurrencyDollarIcon } from './icons/Icons';
 
 const FinancialsDashboard: React.FC = () => {
     const totalRevenue = mockInvoices
@@ -32,17 +35,17 @@ const FinancialsDashboard: React.FC = () => {
                 <StatCard 
                     title="Total Revenue (Paid)" 
                     value={`$${totalRevenue.toLocaleString()}`} 
-                    icon={<DollarIcon className="w-6 h-6" />}
+                    icon={<CurrencyDollarIcon className="w-6 h-6" />}
                 />
                 <StatCard 
                     title="Total Expenses" 
                     value={`$${totalExpenses.toLocaleString()}`}
-                    icon={<DollarIcon className="w-6 h-6 text-red-500" />}
+                    icon={<CurrencyDollarIcon className="w-6 h-6 text-red-500" />}
                 />
                 <StatCard 
                     title="Net Profit" 
                     value={`$${netProfit.toLocaleString()}`}
-                    icon={<DollarIcon className={`w-6 h-6 ${netProfit > 0 ? 'text-green-500' : 'text-red-500'}`} />}
+                    icon={<CurrencyDollarIcon className={`w-6 h-6 ${netProfit > 0 ? 'text-green-500' : 'text-red-500'}`} />}
                 />
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

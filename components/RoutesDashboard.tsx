@@ -1,18 +1,19 @@
+
 import React, { useState } from 'react';
 import { mockRoutes } from '../data/mockRoutesData';
-import { Route } from '../types';
+import { Route, RouteType } from '../types';
 import RouteDetails from './RouteDetails';
 import { PlusIcon, IllustrationMapIcon } from './icons/Icons';
 import EmptyState from './EmptyState';
 
 const RoutesDashboard: React.FC = () => {
-  const [selectedRoute, setSelectedRoute] = useState<Route | null>(mockRoutes[0]);
+  const [selectedRoute, setSelectedRoute] = useState<Route | null>(mockRoutes.length > 0 ? mockRoutes[0] : null);
 
-  const getRouteTypeColor = (type: string) => {
+  const getRouteTypeColor = (type: RouteType) => {
     switch (type) {
-      case 'cross_border':
+      case RouteType.CROSS_BORDER:
         return 'bg-yellow-100 text-yellow-800';
-      case 'domestic':
+      case RouteType.DOMESTIC:
         return 'bg-green-100 text-green-800';
       default:
         return 'bg-gray-100 text-gray-800';
@@ -20,8 +21,8 @@ const RoutesDashboard: React.FC = () => {
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
-      <div className="lg:col-span-1 bg-white rounded-xl shadow-md flex flex-col h-[calc(100vh-100px)]">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="lg:col-span-1 bg-white rounded-xl shadow-md flex flex-col">
         <div className="p-4 border-b border-gray-200 flex justify-between items-center">
           <h2 className="text-xl font-bold">Company Routes ({mockRoutes.length})</h2>
           <button 
@@ -47,7 +48,7 @@ const RoutesDashboard: React.FC = () => {
                     <p className="text-sm text-gray-500">{route.distance_km} km</p>
                   </div>
                   <span
-                    className={`px-2 py-1 text-xs font-medium rounded-full ${getRouteTypeColor(
+                    className={`px-2 py-1 text-xs font-medium rounded-full capitalize ${getRouteTypeColor(
                       route.route_type
                     )}`}
                   >
@@ -59,7 +60,7 @@ const RoutesDashboard: React.FC = () => {
           </ul>
         </div>
       </div>
-      <div className="lg:col-span-2 flex flex-col gap-6 h-[calc(100vh-100px)]">
+      <div className="lg:col-span-2 flex flex-col gap-6">
         {selectedRoute ? (
           <RouteDetails route={selectedRoute} />
         ) : (
