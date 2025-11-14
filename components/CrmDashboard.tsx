@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { mockLeads, mockOpportunities, mockLeadScoringRules, mockSalesReps } from '../data/mockCrmData';
+import { mockLeads, mockOpportunities, mockLeadScoringRules, mockSalesReps, mockLeadActivities } from '../data/mockCrmData';
 import SalesPipeline from './SalesPipeline';
 import LeadList from './LeadList';
 import LeadScoringRules from './LeadScoringRules';
@@ -51,6 +51,7 @@ const CrmDashboard: React.FC = () => {
             <LeadDetailsModal 
                 lead={selectedLead} 
                 salesReps={mockSalesReps}
+                leadActivities={mockLeadActivities}
                 onClose={handleCloseModal} 
             />
         )}

@@ -1,5 +1,5 @@
 
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, GenerateContentParameters } from "@google/genai";
 import { Vehicle, VehicleMaintenance, VehicleExpense, Lead, Opportunity, Invoice, Expense, LeadScoringRule, Route, RouteWaypoint } from '../types';
 
 if (!process.env.API_KEY) {
@@ -33,7 +33,7 @@ const analyzePrompt = (prompt: string): { model: string; tools?: any[]; config?:
   }
   
   if (lowerCasePrompt.includes('fast') || lowerCasePrompt.includes('quick summary')) {
-      return { model: 'gemini-2.5-flash-lite' };
+      return { model: 'gemini-flash-lite-latest' };
   }
 
   return { model: 'gemini-2.5-flash' };
@@ -63,35 +63,49 @@ export const getGeminiResponse = async (
   contextType: ContextType,
   location: { latitude: number, longitude: number } | null
 ) => {
-  const { model, tools, config } = analyzePrompt(prompt);
+  const { model, tools, config: analyzedConfig } = analyzePrompt(prompt);
 
   const dataContext = `\n\nCURRENT DATA CONTEXT:\n${JSON.stringify(contextData, null, 2)}`;
   const systemInstruction = getSystemInstruction(contextType);
   
   const contents = [...chatHistory, { role: 'user' as const, parts: [{ text: prompt + dataContext }] }];
 
+  // Build the request object step-by-step to avoid syntax errors from complex inline objects
+  // FIX: `systemInstruction` should be part of the `config` object per Gemini API guidelines.
+  const request: GenerateContentParameters = {
+    model: model,
+    contents: contents,
+    config: {
+      systemInstruction: systemInstruction,
+      ...analyzedConfig
+    }
+  };
+
+  if (tools) {
+    request.config.tools = tools;
+  }
+
+  if (location && tools?.some(t => t.googleMaps)) {
+    request.config.toolConfig = {
+      retrievalConfig: {
+        latLng: {
+          latitude: location.latitude,
+          longitude: location.longitude
+        }
+      }
+    };
+  }
+
   try {
-    const result = await ai.models.generateContent({
-        model: model,
-        contents: contents,
-        config: {
-            ...config,
-            tools: tools,
-            toolConfig: location && tools?.some(t => t.googleMaps) ? {
-              retrievalConfig: {
-                latLng: {
-                  latitude: location.latitude,
-                  longitude: location.longitude
-                }
-              }
-            } : undefined,
-        },
-        systemInstruction: systemInstruction,
-    });
-    
+    const result = await ai.models.generateContent(request);
     return result;
   } catch (error) {
     console.error("Error calling Gemini API:", error);
-    return { text: "Sorry, I encountered an error. Please try again.", candidates: [] };
+    const response = {
+        text: "Sorry, I encountered an error. Please try again.",
+        candidates: [],
+    };
+    // This is not a real GenerateContentResponse, but it's compatible with how the UI uses it.
+    return response as any;
   }
 };

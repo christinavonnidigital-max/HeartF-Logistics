@@ -1,6 +1,6 @@
 
 
-import { Lead, Opportunity, LeadScoringRule, LeadSource, LeadStatus, CompanySize, Industry, OpportunityStage, Currency, User } from '../types';
+import { Lead, Opportunity, LeadScoringRule, LeadSource, LeadStatus, CompanySize, Industry, OpportunityStage, Currency, User, LeadActivity, LeadActivityType } from '../types';
 
 export const mockSalesReps: User[] = [
     { id: 1, first_name: 'Alice', last_name: 'Johnson', email: 'alice@heartfledge.com' },
@@ -186,4 +186,62 @@ export const mockLeadScoringRules: LeadScoringRule[] = [
         created_at: '2024-01-01T00:00:00Z',
         updated_at: '2024-01-01T00:00:00Z',
     },
+];
+
+export const mockLeadActivities: LeadActivity[] = [
+    {
+        id: 1,
+        lead_id: 1,
+        activity_type: LeadActivityType.NOTE,
+        subject: 'Initial thoughts',
+        description: 'Lead seems very promising. They are unhappy with their current provider\'s tracking system.',
+        performed_by: 1,
+        created_at: '2024-07-20T10:05:00Z',
+    },
+    {
+        id: 2,
+        lead_id: 1,
+        activity_type: LeadActivityType.CALL,
+        subject: 'Introductory Call',
+        description: 'Spoke with John Doe. He is interested in a quote for 3 refrigerated trucks per week. Sent him our brochure.',
+        outcome: 'Scheduled follow-up',
+        performed_by: 1,
+        created_at: '2024-07-21T11:00:00Z',
+    },
+    {
+        id: 3,
+        lead_id: 2,
+        activity_type: LeadActivityType.EMAIL,
+        subject: 'Re: Referral from ZimAgri',
+        description: 'Sent an email to Jane Smith thanking her for the interest and attached our agriculture logistics portfolio.',
+        performed_by: 1,
+        created_at: '2024-07-15T09:30:00Z',
+    },
+    {
+        id: 4,
+        lead_id: 2,
+        activity_type: LeadActivityType.MEETING,
+        subject: 'On-site meeting at AgriCorp',
+        description: 'Met with the procurement team. Discussed their specific needs for grain transport during harvest season. They need a proposal by the 19th.',
+        performed_by: 1,
+        created_at: '2024-07-18T14:00:00Z',
+    },
+    {
+        id: 5,
+        lead_id: 2,
+        activity_type: LeadActivityType.PROPOSAL_SENT,
+        subject: 'Proposal for Q3 Grain Haulage',
+        description: 'Sent the official proposal to Jane Smith.',
+        performed_by: 1,
+        created_at: '2024-07-19T09:00:00Z',
+    },
+     {
+        id: 6,
+        lead_id: 3,
+        activity_type: LeadActivityType.EMAIL,
+        subject: 'Cold Outreach: Heartfledge Logistics',
+        description: 'Sent initial cold outreach email to Mike Brown.',
+        performed_by: 2,
+        created_at: '2024-07-22T15:00:00Z',
+    }
 ];

@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { mockRoutes } from '../data/mockRoutesData';
 import { Route } from '../types';
 import RouteDetails from './RouteDetails';
-import { PlusIcon, RoadIcon } from './icons/Icons';
+import { PlusIcon, IllustrationMapIcon } from './icons/Icons';
+import EmptyState from './EmptyState';
 
 const RoutesDashboard: React.FC = () => {
   const [selectedRoute, setSelectedRoute] = useState<Route | null>(mockRoutes[0]);
@@ -62,9 +63,11 @@ const RoutesDashboard: React.FC = () => {
         {selectedRoute ? (
           <RouteDetails route={selectedRoute} />
         ) : (
-          <div className="flex items-center justify-center h-full bg-white rounded-xl shadow-md">
-            <p className="text-gray-500">Select a route to see details</p>
-          </div>
+          <EmptyState
+            icon={<IllustrationMapIcon />}
+            title="Select a Route"
+            message="Choose a route from the list to view its map, waypoints, and other details."
+          />
         )}
       </div>
     </div>

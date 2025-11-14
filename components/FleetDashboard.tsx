@@ -2,7 +2,8 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { mockVehicles } from '../data/mockData';
 import { Vehicle } from '../types';
 import VehicleDetails from './VehicleDetails';
-import { PlusIcon, SearchIcon } from './icons/Icons';
+import { PlusIcon, SearchIcon, IllustrationTruckIcon } from './icons/Icons';
+import EmptyState from './EmptyState';
 
 const FleetDashboard: React.FC = () => {
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(mockVehicles.length > 0 ? mockVehicles[0] : null);
@@ -20,7 +21,6 @@ const FleetDashboard: React.FC = () => {
   }, [searchTerm]);
 
   useEffect(() => {
-    // If the currently selected vehicle is not in the filtered list, clear the selection.
     if (selectedVehicle && !filteredVehicles.find(v => v.id === selectedVehicle.id)) {
       setSelectedVehicle(null);
     }
@@ -102,9 +102,11 @@ const FleetDashboard: React.FC = () => {
         {selectedVehicle ? (
           <VehicleDetails vehicle={selectedVehicle} />
         ) : (
-          <div className="flex items-center justify-center h-full bg-white rounded-xl shadow-md">
-            <p className="text-gray-500">Select a vehicle to see details</p>
-          </div>
+           <EmptyState 
+             icon={<IllustrationTruckIcon />}
+             title="Select a Vehicle"
+             message="Choose a vehicle from the list to view its details, maintenance history, and expenses."
+           />
         )}
       </div>
     </div>

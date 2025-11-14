@@ -4426,3 +4426,30 @@ export interface MarketingEvent {
     created_at: string;
     updated_at: string;
 }
+
+// --- BOOKING ---
+export enum BookingStatus {
+    PENDING = 'pending',
+    CONFIRMED = 'confirmed',
+    IN_TRANSIT = 'in_transit',
+    DELIVERED = 'delivered',
+    CANCELLED = 'cancelled',
+}
+
+export interface Booking {
+    id: number;
+    booking_number: string;
+    customer_id: number;
+    pickup_location: string;
+    delivery_location: string;
+    pickup_date: string;
+    delivery_date: string;
+    cargo_type: CargoType;
+    weight_tonnes: number;
+    vehicle_id?: number;
+    driver_id?: number;
+    status: BookingStatus;
+    total_price: number;
+    currency: Currency;
+    created_at: string;
+}

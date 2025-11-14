@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Message, GroundingChunk } from '../types';
 import { getGeminiResponse } from '../services/geminiService';
@@ -80,6 +81,7 @@ const FleetAssistant: React.FC<FleetAssistantProps> = ({ contextData, contextTyp
         location
       );
 
+      // FIX: Per Gemini API guidelines, the generated text should be accessed via the `.text` property, not by calling it as a function.
       const botMessageText = response.text;
       const groundingChunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks as GroundingChunk[] || [];
 
