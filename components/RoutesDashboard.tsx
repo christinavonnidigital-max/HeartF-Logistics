@@ -38,10 +38,11 @@ const RoutesDashboard: React.FC = () => {
   }, [filteredRoutes, selectedRoute]);
 
 
-  const handleAddRoute = (newRouteData: Omit<Route, 'id' | 'created_at' | 'updated_at' | 'border_crossings' | 'toll_gates' | 'total_toll_cost' | 'is_active' | 'is_popular'>) => {
+  const handleAddRoute = (newRouteData: Omit<Route, 'id' | 'created_at' | 'updated_at' | 'border_crossings' | 'toll_gates' | 'total_toll_cost' | 'is_active' | 'is_popular' | 'road_conditions'>) => {
     const newRoute: Route = {
         ...newRouteData,
         id: Date.now(),
+        road_conditions: RoadConditions.GOOD, // Default value
         border_crossings: [],
         toll_gates: [],
         total_toll_cost: 0,
@@ -84,17 +85,17 @@ const RoutesDashboard: React.FC = () => {
                  <select
                     value={routeTypeFilter}
                     onChange={(e) => setRouteTypeFilter(e.target.value as RouteType | 'all')}
-                    className="w-full p-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 bg-gray-800 text-white border-gray-600"
+                    className="w-full rounded-md border border-gray-300 bg-white text-gray-900 pl-3 pr-10 py-2 text-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500"
                 >
                     <option value="all">All Types</option>
                     {Object.values(RouteType).map(type => (
-                        <option key={type} value={type} className="capitalize">{type.replace('_', ' ')}</option>
+                        <option key={type} value={type} className="capitalize">{type.replace(/_/g, ' ')}</option>
                     ))}
                 </select>
                 <select
                     value={roadConditionFilter}
                     onChange={(e) => setRoadConditionFilter(e.target.value as RoadConditions | 'all')}
-                    className="w-full p-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 bg-gray-800 text-white border-gray-600"
+                    className="w-full rounded-md border border-gray-300 bg-white text-gray-900 pl-3 pr-10 py-2 text-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500"
                 >
                     <option value="all">All Conditions</option>
                      {Object.values(RoadConditions).map(condition => (

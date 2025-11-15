@@ -1,17 +1,19 @@
 
-import React, { useState } from 'react';
-import { Invoice, InvoiceType, InvoiceStatus, Currency } from '../types';
+import React, { useState, useEffect } from 'react';
+import { Invoice, InvoiceType, InvoiceStatus, Currency, Booking } from '../types';
 import { CloseIcon } from './icons/Icons';
 
 interface AddInvoiceModalProps {
   onClose: () => void;
   onAddInvoice: (invoice: Omit<Invoice, 'id' | 'created_at' | 'updated_at' | 'created_by' | 'balance_due' | 'amount_paid'>) => void;
+  booking?: Booking | null;
 }
 
-const AddInvoiceModal: React.FC<AddInvoiceModalProps> = ({ onClose, onAddInvoice }) => {
+const AddInvoiceModal: React.FC<AddInvoiceModalProps> = ({ onClose, onAddInvoice, booking }) => {
   const [formData, setFormData] = useState({
     invoice_number: `INV-${new Date().getFullYear()}-${Math.floor(Math.random() * 10000)}`,
     customer_id: '',
+    booking_id: undefined as number | undefined,
     invoice_type: InvoiceType.BOOKING,
     issue_date: new Date().toISOString().split('T')[0],
     due_date: new Date(new Date().setDate(new Date().getDate() + 30)).toISOString().split('T')[0],
@@ -23,6 +25,31 @@ const AddInvoiceModal: React.FC<AddInvoiceModalProps> = ({ onClose, onAddInvoice
     status: InvoiceStatus.DRAFT,
   });
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (booking) {
+      const subtotal = (booking.total_price - (booking.surcharges || 0) + (booking.discount || 0));
+      const taxRate = 0.15; // Assuming 15% tax for calculation
+      const calculatedTax = subtotal * taxRate;
+      const calculatedTotal = subtotal + calculatedTax + (booking.surcharges || 0) - (booking.discount || 0);
+
+      setFormData({
+        invoice_number: `INV-B${booking.id}-${new Date().getFullYear()}`,
+        customer_id: String(booking.customer_id),
+        booking_id: booking.id,
+        invoice_type: InvoiceType.BOOKING,
+        issue_date: new Date().toISOString().split('T')[0],
+        due_date: new Date(new Date().setDate(new Date().getDate() + 30)).toISOString().split('T')[0],
+        subtotal: subtotal.toFixed(2),
+        tax_amount: calculatedTax.toFixed(2),
+        discount_amount: booking.discount || 0,
+        total_amount: calculatedTotal.toFixed(2),
+        currency: booking.currency,
+        status: InvoiceStatus.DRAFT,
+      });
+    }
+  }, [booking]);
+
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -63,23 +90,23 @@ const AddInvoiceModal: React.FC<AddInvoiceModalProps> = ({ onClose, onAddInvoice
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Customer ID*</label>
-                <input type="number" name="customer_id" value={formData.customer_id} onChange={handleChange} className="mt-1 block w-full shadow-sm sm:text-sm bg-gray-800 text-white placeholder:text-gray-400 border-gray-600 rounded-md" />
+                <input type="number" name="customer_id" value={formData.customer_id} onChange={handleChange} readOnly={!!booking} className={`mt-1 block w-full rounded-md border shadow-sm sm:text-sm ${!!booking ? 'bg-gray-200 text-gray-500 border-gray-300' : 'bg-white text-gray-900 border-gray-300 focus:border-orange-500 focus:ring-orange-500'}`} />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Issue Date</label>
-                <input type="date" name="issue_date" value={formData.issue_date} onChange={handleChange} className="mt-1 block w-full shadow-sm sm:text-sm bg-gray-800 text-white border-gray-600 rounded-md [color-scheme:dark]" />
+                <input type="date" name="issue_date" value={formData.issue_date} onChange={handleChange} className="mt-1 block w-full rounded-md border border-gray-300 bg-white text-gray-900 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Due Date</label>
-                <input type="date" name="due_date" value={formData.due_date} onChange={handleChange} className="mt-1 block w-full shadow-sm sm:text-sm bg-gray-800 text-white border-gray-600 rounded-md [color-scheme:dark]" />
+                <input type="date" name="due_date" value={formData.due_date} onChange={handleChange} className="mt-1 block w-full rounded-md border border-gray-300 bg-white text-gray-900 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Total Amount*</label>
-                <input type="number" name="total_amount" placeholder="0.00" value={formData.total_amount} onChange={handleChange} className="mt-1 block w-full shadow-sm sm:text-sm bg-gray-800 text-white placeholder:text-gray-400 border-gray-600 rounded-md" />
+                <input type="number" name="total_amount" placeholder="0.00" value={formData.total_amount} onChange={handleChange} readOnly={!!booking} className={`mt-1 block w-full rounded-md border shadow-sm sm:text-sm ${!!booking ? 'bg-gray-200 text-gray-500 border-gray-300' : 'bg-white text-gray-900 border-gray-300 focus:border-orange-500 focus:ring-orange-500'}`} />
               </div>
                <div>
                 <label className="block text-sm font-medium text-gray-700">Currency</label>
-                <select name="currency" value={formData.currency} onChange={handleChange} className="mt-1 block w-full pl-3 pr-10 py-2 text-base bg-gray-800 text-white border-gray-600 focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm rounded-md">
+                <select name="currency" value={formData.currency} onChange={handleChange} disabled={!!booking} className={`mt-1 block w-full rounded-md border border-gray-300 pl-3 pr-10 py-2 text-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 ${!!booking ? 'bg-gray-200 text-gray-500' : 'bg-white text-gray-900'}`}>
                     {Object.values(Currency).map(c => <option key={c} value={c}>{c}</option>)}
                 </select>
               </div>

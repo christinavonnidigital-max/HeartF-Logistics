@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { VehicleExpense, ExpenseType, Currency } from '../types';
 import { CloseIcon } from './icons/Icons';
@@ -14,15 +13,25 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ onClose, onAddExpense
   const [currency, setCurrency] = useState<Currency>(Currency.USD);
   const [description, setDescription] = useState('');
   const [expenseDate, setExpenseDate] = useState(new Date().toISOString().split('T')[0]);
-  const [error, setError] = useState('');
+  const [errors, setErrors] = useState<{ amount?: string; description?: string; }>({});
+
+  const validate = () => {
+    const newErrors: { amount?: string; description?: string } = {};
+    if (!amount || parseFloat(amount) <= 0) {
+      newErrors.amount = 'Please enter a valid amount.';
+    }
+    if (!description.trim()) {
+      newErrors.description = 'Description is required.';
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!amount || parseFloat(amount) <= 0 || !description || !expenseDate) {
-      setError('Please fill out all fields correctly.');
+    if (!validate()) {
       return;
     }
-    setError('');
     onAddExpense({
       expense_type: expenseType,
       amount: parseFloat(amount),
@@ -31,8 +40,6 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ onClose, onAddExpense
       expense_date: expenseDate,
     });
   };
-
-  const isFormValid = amount && parseFloat(amount) > 0 && description && expenseDate;
 
   return (
     <div
@@ -57,7 +64,7 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ onClose, onAddExpense
                 id="expenseType"
                 value={expenseType}
                 onChange={(e) => setExpenseType(e.target.value as ExpenseType)}
-                className="mt-1 block w-full pl-3 pr-10 py-2 text-base bg-gray-800 text-white border-gray-600 focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm rounded-md"
+                className="mt-1 block w-full rounded-md border border-gray-300 bg-white text-gray-900 pl-3 pr-10 py-2 text-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500"
               >
                 {Object.values(ExpenseType).map(type => (
                   <option key={type} value={type}>{type.charAt(0).toUpperCase() + type.slice(1)}</option>
@@ -73,8 +80,9 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ onClose, onAddExpense
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
                   placeholder="0.00"
-                  className="mt-1 block w-full shadow-sm sm:text-sm bg-gray-800 text-white placeholder:text-gray-400 border-gray-600 rounded-md focus:ring-orange-500 focus:border-orange-500"
+                  className={`mt-1 block w-full rounded-md border border-gray-300 bg-white text-gray-900 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm ${errors.amount ? 'border-red-500' : ''}`}
                 />
+                {errors.amount && <p className="mt-1 text-xs text-red-500">{errors.amount}</p>}
               </div>
               <div>
                 <label htmlFor="currency" className="block text-sm font-medium text-gray-700">Currency</label>
@@ -82,7 +90,7 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ onClose, onAddExpense
                   id="currency"
                   value={currency}
                   onChange={(e) => setCurrency(e.target.value as Currency)}
-                  className="mt-1 block w-full pl-3 pr-10 py-2 text-base bg-gray-800 text-white border-gray-600 focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm rounded-md"
+                  className="mt-1 block w-full rounded-md border border-gray-300 bg-white text-gray-900 pl-3 pr-10 py-2 text-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500"
                 >
                   {Object.values(Currency).map(c => <option key={c} value={c}>{c}</option>)}
                 </select>
@@ -96,8 +104,9 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ onClose, onAddExpense
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="e.g., Diesel fill-up at truck stop"
-                className="mt-1 block w-full shadow-sm sm:text-sm bg-gray-800 text-white placeholder:text-gray-400 border-gray-600 rounded-md focus:ring-orange-500 focus:border-orange-500"
+                className={`mt-1 block w-full rounded-md border border-gray-300 bg-white text-gray-900 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm ${errors.description ? 'border-red-500' : ''}`}
               />
+               {errors.description && <p className="mt-1 text-xs text-red-500">{errors.description}</p>}
             </div>
              <div>
               <label htmlFor="expenseDate" className="block text-sm font-medium text-gray-700">Date</label>
@@ -106,10 +115,9 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ onClose, onAddExpense
                 id="expenseDate"
                 value={expenseDate}
                 onChange={(e) => setExpenseDate(e.target.value)}
-                className="mt-1 block w-full shadow-sm sm:text-sm bg-gray-800 text-white border-gray-600 rounded-md focus:ring-orange-500 focus:border-orange-500 [color-scheme:dark]"
+                className="mt-1 block w-full rounded-md border border-gray-300 bg-white text-gray-900 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm"
               />
             </div>
-            {error && <p className="text-sm text-red-600">{error}</p>}
           </main>
           <footer className="p-4 bg-gray-50 border-t border-gray-200 flex justify-end space-x-3">
             <button
@@ -121,7 +129,6 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ onClose, onAddExpense
             </button>
             <button
               type="submit"
-              disabled={!isFormValid}
               className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:bg-gray-400 disabled:cursor-not-allowed"
             >
               Save Expense

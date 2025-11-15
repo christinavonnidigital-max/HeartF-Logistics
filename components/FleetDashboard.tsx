@@ -11,7 +11,9 @@ const FleetDashboard: React.FC = () => {
   const [vehicles, setVehicles] = useState<Vehicle[]>(mockVehicles);
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(vehicles.length > 0 ? vehicles[0] : null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [expenses, setExpenses] = useState<VehicleExpense[]>(mockExpenses);
+  const [expenses, setExpenses] = useState<VehicleExpense[]>(() => 
+    [...mockExpenses].sort((a, b) => new Date(b.expense_date).getTime() - new Date(a.expense_date).getTime())
+  );
   const [isAddExpenseModalOpen, setIsAddExpenseModalOpen] = useState(false);
   const [isAddVehicleModalOpen, setIsAddVehicleModalOpen] = useState(false);
 
@@ -55,7 +57,7 @@ const FleetDashboard: React.FC = () => {
         recorded_by: 1, // Assuming user ID 1 is recording
         created_at: new Date().toISOString(),
     };
-    setExpenses(prev => [...prev, newExpenseWithId]);
+    setExpenses(prev => [...prev, newExpenseWithId].sort((a, b) => new Date(b.expense_date).getTime() - new Date(a.expense_date).getTime()));
     setIsAddExpenseModalOpen(false);
   };
 
@@ -112,7 +114,7 @@ const FleetDashboard: React.FC = () => {
                 placeholder="Filter by reg. number or make..."
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 bg-gray-800 text-white border-gray-600 placeholder:text-gray-400"
+                className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500"
               />
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <SearchIcon className="w-5 h-5 text-gray-400" />

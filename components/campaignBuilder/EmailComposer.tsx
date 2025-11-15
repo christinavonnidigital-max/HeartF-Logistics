@@ -70,7 +70,7 @@ const EmailComposer: React.FC<EmailComposerProps> = ({ isOpen, onClose, onSave, 
                 id="subject"
                 value={subject}
                 onChange={(e) => setSubject(e.target.value)}
-                className="mt-1 block w-full shadow-sm sm:text-sm border-gray-600 rounded-md bg-gray-800 text-white placeholder:text-gray-400"
+                className="mt-1 block w-full rounded-md border border-gray-300 bg-white text-gray-900 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm"
                 placeholder="Your email subject line"
               />
             </div>
@@ -81,7 +81,7 @@ const EmailComposer: React.FC<EmailComposerProps> = ({ isOpen, onClose, onSave, 
                 value={body}
                 onChange={(e) => setBody(e.target.value)}
                 rows={12}
-                className="mt-1 block w-full shadow-sm sm:text-sm border-gray-600 rounded-md bg-gray-800 text-white placeholder:text-gray-400"
+                className="mt-1 block w-full rounded-md border border-gray-300 bg-white text-gray-900 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm"
                 placeholder="Write your email here. Use variables for personalization."
               />
             </div>
@@ -94,7 +94,7 @@ const EmailComposer: React.FC<EmailComposerProps> = ({ isOpen, onClose, onSave, 
                   id="delay"
                   value={delayDays}
                   onChange={(e) => setDelayDays(parseInt(e.target.value, 10) || 0)}
-                  className="w-24 max-w-full shadow-sm sm:text-sm border-gray-600 rounded-md bg-gray-800 text-white"
+                  className="w-24 max-w-full rounded-md border border-gray-300 bg-white text-gray-900 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm"
                 />
                 <span>days before sending this email.</span>
               </div>

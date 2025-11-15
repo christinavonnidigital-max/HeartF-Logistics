@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { Lead, LeadStatus } from '../types';
-import { PlusIcon, SearchIcon, CheckCircleIcon, ExclamationTriangleIcon } from './icons/Icons';
+import { PlusIcon, SearchIcon, CheckCircleIcon, PhoneIcon, DocumentTextIcon, CloseIcon } from './icons/Icons';
 
 interface LeadListProps {
   leads: Lead[];
@@ -16,13 +16,13 @@ const getStatusPill = (status: LeadStatus) => {
     case LeadStatus.QUALIFIED:
       return { icon: <CheckCircleIcon className="w-4 h-4 mr-1.5" />, classes: 'bg-green-100 text-green-800' };
     case LeadStatus.CONTACTED:
-      return { icon: <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor"><path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" /></svg>, classes: 'bg-yellow-100 text-yellow-800' };
+      return { icon: <PhoneIcon className="w-4 h-4 mr-1.5" />, classes: 'bg-yellow-100 text-yellow-800' };
     case LeadStatus.PROPOSAL_SENT:
-        return { icon: <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a1 1 0 11-2 0V4H6v12a2 2 0 002 2h8a2 2 0 002-2V9a1 1 0 112 0v9a4 4 0 01-4 4H8a4 4 0 01-4-4V4z" clipRule="evenodd" /></svg>, classes: 'bg-purple-100 text-purple-800' };
+        return { icon: <DocumentTextIcon className="w-4 h-4 mr-1.5" />, classes: 'bg-purple-100 text-purple-800' };
     case LeadStatus.WON:
-        return { icon: <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>, classes: 'bg-teal-100 text-teal-800' };
+        return { icon: <CheckCircleIcon className="w-4 h-4 mr-1.5" />, classes: 'bg-teal-100 text-teal-800' };
     case LeadStatus.LOST:
-        return { icon: <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" /></svg>, classes: 'bg-red-100 text-red-800' };
+        return { icon: <CloseIcon className="w-4 h-4 mr-1.5" />, classes: 'bg-red-100 text-red-800' };
     default:
       return { icon: null, classes: 'bg-gray-100 text-gray-800' };
   }
@@ -78,7 +78,7 @@ const LeadList: React.FC<LeadListProps> = ({ leads, onSelectLead, onAddLeadClick
               placeholder="Search by name, company, or email..."
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 bg-gray-800 text-white border-gray-600 placeholder:text-gray-400"
+              className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500"
             />
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <SearchIcon className="w-5 h-5 text-gray-400" />
@@ -125,7 +125,7 @@ const LeadList: React.FC<LeadListProps> = ({ leads, onSelectLead, onAddLeadClick
                     <td className="px-6 py-4">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusInfo.classes}`}>
                         {statusInfo.icon}
-                        {lead.lead_status.charAt(0).toUpperCase() + lead.lead_status.slice(1)}
+                        {lead.lead_status.charAt(0).toUpperCase() + lead.lead_status.slice(1).replace('_', ' ')}
                       </span>
                     </td>
                   </tr>

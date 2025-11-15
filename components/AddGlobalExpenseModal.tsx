@@ -21,6 +21,7 @@ const AddGlobalExpenseModal: React.FC<AddGlobalExpenseModalProps> = ({ onClose, 
     payment_status: ExpensePaymentStatus.PAID,
     is_recurring: false,
   });
+  const [receiptUrl, setReceiptUrl] = useState<string | undefined>();
   const [error, setError] = useState('');
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -28,6 +29,17 @@ const AddGlobalExpenseModal: React.FC<AddGlobalExpenseModalProps> = ({ onClose, 
     const isCheckbox = type === 'checkbox';
     const checked = isCheckbox ? (e.target as HTMLInputElement).checked : undefined;
     setFormData(prev => ({ ...prev, [name]: isCheckbox ? checked : value }));
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+        const file = e.target.files[0];
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            setReceiptUrl(reader.result as string);
+        };
+        reader.readAsDataURL(file);
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -38,7 +50,7 @@ const AddGlobalExpenseModal: React.FC<AddGlobalExpenseModalProps> = ({ onClose, 
     }
     setError('');
     const { amount, ...rest } = formData;
-    onAddExpense({ ...rest, amount: parseFloat(amount) });
+    onAddExpense({ ...rest, amount: parseFloat(amount), receipt_url: receiptUrl });
   };
 
   return (
@@ -53,25 +65,39 @@ const AddGlobalExpenseModal: React.FC<AddGlobalExpenseModalProps> = ({ onClose, 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700">Vendor*</label>
-                <input type="text" name="vendor_name" value={formData.vendor_name} onChange={handleChange} className="mt-1 block w-full shadow-sm sm:text-sm bg-gray-800 text-white placeholder:text-gray-400 border-gray-600 rounded-md" />
+                <input type="text" name="vendor_name" value={formData.vendor_name} onChange={handleChange} className="mt-1 block w-full rounded-md border border-gray-300 bg-white text-gray-900 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Category</label>
-                <select name="expense_category" value={formData.expense_category} onChange={handleChange} className="mt-1 block w-full pl-3 pr-10 py-2 text-base bg-gray-800 text-white border-gray-600 sm:text-sm rounded-md">
+                <select name="expense_category" value={formData.expense_category} onChange={handleChange} className="mt-1 block w-full rounded-md border border-gray-300 bg-white text-gray-900 pl-3 pr-10 py-2 text-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500">
                   {Object.values(ExpenseCategory).map(c => <option key={c} value={c} className="capitalize">{c}</option>)}
                 </select>
               </div>
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-gray-700">Description</label>
-                <input type="text" name="description" value={formData.description} onChange={handleChange} className="mt-1 block w-full shadow-sm sm:text-sm bg-gray-800 text-white placeholder:text-gray-400 border-gray-600 rounded-md" />
+                <input type="text" name="description" value={formData.description} onChange={handleChange} className="mt-1 block w-full rounded-md border border-gray-300 bg-white text-gray-900 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Amount*</label>
-                <input type="number" name="amount" value={formData.amount} onChange={handleChange} className="mt-1 block w-full shadow-sm sm:text-sm bg-gray-800 text-white placeholder:text-gray-400 border-gray-600 rounded-md" />
+                <input type="number" name="amount" value={formData.amount} onChange={handleChange} className="mt-1 block w-full rounded-md border border-gray-300 bg-white text-gray-900 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Date</label>
-                <input type="date" name="expense_date" value={formData.expense_date} onChange={handleChange} className="mt-1 block w-full shadow-sm sm:text-sm bg-gray-800 text-white border-gray-600 rounded-md [color-scheme:dark]" />
+                <input type="date" name="expense_date" value={formData.expense_date} onChange={handleChange} className="mt-1 block w-full rounded-md border border-gray-300 bg-white text-gray-900 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm" />
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700">Receipt Upload</label>
+                <input 
+                  type="file" 
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100"
+                />
+                {receiptUrl && (
+                  <div className="mt-2">
+                    <img src={receiptUrl} alt="Receipt preview" className="h-24 w-auto rounded-md object-cover" />
+                  </div>
+                )}
               </div>
             </div>
             {error && <p className="text-red-500 text-sm mt-2">{error}</p>}

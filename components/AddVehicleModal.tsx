@@ -66,43 +66,43 @@ const AddVehicleModal: React.FC<AddVehicleModalProps> = ({ onClose, onAddVehicle
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label htmlFor="registration_number" className="block text-sm font-medium text-gray-700">Registration Number*</label>
-                    <input type="text" name="registration_number" id="registration_number" value={formData.registration_number} onChange={handleChange} required className="mt-1 block w-full shadow-sm sm:text-sm bg-gray-800 text-white placeholder:text-gray-400 border-gray-600 rounded-md focus:ring-orange-500 focus:border-orange-500" />
+                    <input type="text" name="registration_number" id="registration_number" value={formData.registration_number} onChange={handleChange} required className="mt-1 block w-full rounded-md border border-gray-300 bg-white text-gray-900 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm" />
                 </div>
                  <div>
                     <label htmlFor="make" className="block text-sm font-medium text-gray-700">Make*</label>
-                    <input type="text" name="make" id="make" value={formData.make} onChange={handleChange} required className="mt-1 block w-full shadow-sm sm:text-sm bg-gray-800 text-white placeholder:text-gray-400 border-gray-600 rounded-md focus:ring-orange-500 focus:border-orange-500" />
+                    <input type="text" name="make" id="make" value={formData.make} onChange={handleChange} required className="mt-1 block w-full rounded-md border border-gray-300 bg-white text-gray-900 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm" />
                 </div>
                 <div>
                     <label htmlFor="model" className="block text-sm font-medium text-gray-700">Model*</label>
-                    <input type="text" name="model" id="model" value={formData.model} onChange={handleChange} required className="mt-1 block w-full shadow-sm sm:text-sm bg-gray-800 text-white placeholder:text-gray-400 border-gray-600 rounded-md focus:ring-orange-500 focus:border-orange-500" />
+                    <input type="text" name="model" id="model" value={formData.model} onChange={handleChange} required className="mt-1 block w-full rounded-md border border-gray-300 bg-white text-gray-900 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm" />
                 </div>
                  <div>
                     <label htmlFor="year" className="block text-sm font-medium text-gray-700">Year</label>
-                    <input type="number" name="year" id="year" value={formData.year} onChange={handleNumberChange} className="mt-1 block w-full shadow-sm sm:text-sm bg-gray-800 text-white placeholder:text-gray-400 border-gray-600 rounded-md focus:ring-orange-500 focus:border-orange-500" />
+                    <input type="number" name="year" id="year" value={formData.year} onChange={handleNumberChange} className="mt-1 block w-full rounded-md border border-gray-300 bg-white text-gray-900 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm" />
                 </div>
                 <div>
                     <label htmlFor="vehicle_type" className="block text-sm font-medium text-gray-700">Vehicle Type</label>
-                    <select name="vehicle_type" id="vehicle_type" value={formData.vehicle_type} onChange={handleChange} className="mt-1 block w-full pl-3 pr-10 py-2 text-base bg-gray-800 text-white border-gray-600 focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm rounded-md">
+                    <select name="vehicle_type" id="vehicle_type" value={formData.vehicle_type} onChange={handleChange} className="mt-1 block w-full rounded-md border border-gray-300 bg-white text-gray-900 pl-3 pr-10 py-2 text-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500">
                         {Object.values(VehicleType).map(type => <option key={type} value={type}>{type.charAt(0).toUpperCase() + type.slice(1)}</option>)}
                     </select>
                 </div>
                  <div>
                     <label htmlFor="capacity_tonnes" className="block text-sm font-medium text-gray-700">Capacity (Tonnes)</label>
-                    <input type="number" name="capacity_tonnes" id="capacity_tonnes" value={formData.capacity_tonnes} onChange={handleNumberChange} className="mt-1 block w-full shadow-sm sm:text-sm bg-gray-800 text-white placeholder:text-gray-400 border-gray-600 rounded-md focus:ring-orange-500 focus:border-orange-500" />
+                    <input type="number" name="capacity_tonnes" id="capacity_tonnes" value={formData.capacity_tonnes} onChange={handleNumberChange} className="mt-1 block w-full rounded-md border border-gray-300 bg-white text-gray-900 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm" />
                 </div>
                  <div>
                     <label htmlFor="fuel_type" className="block text-sm font-medium text-gray-700">Fuel Type</label>
-                    <select name="fuel_type" id="fuel_type" value={formData.fuel_type} onChange={handleChange} className="mt-1 block w-full pl-3 pr-10 py-2 text-base bg-gray-800 text-white border-gray-600 focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm rounded-md">
+                    <select name="fuel_type" id="fuel_type" value={formData.fuel_type} onChange={handleChange} className="mt-1 block w-full rounded-md border border-gray-300 bg-white text-gray-900 pl-3 pr-10 py-2 text-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500">
                         {Object.values(FuelType).map(type => <option key={type} value={type}>{type.charAt(0).toUpperCase() + type.slice(1)}</option>)}
                     </select>
                 </div>
                 <div>
                     <label htmlFor="current_km" className="block text-sm font-medium text-gray-700">Current Kilometers</label>
-                    <input type="number" name="current_km" id="current_km" value={formData.current_km} onChange={handleNumberChange} className="mt-1 block w-full shadow-sm sm:text-sm bg-gray-800 text-white placeholder:text-gray-400 border-gray-600 rounded-md focus:ring-orange-500 focus:border-orange-500" />
+                    <input type="number" name="current_km" id="current_km" value={formData.current_km} onChange={handleNumberChange} className="mt-1 block w-full rounded-md border border-gray-300 bg-white text-gray-900 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm" />
                 </div>
                 <div>
                     <label htmlFor="purchase_date" className="block text-sm font-medium text-gray-700">Purchase Date</label>
-                    <input type="date" name="purchase_date" id="purchase_date" value={formData.purchase_date} onChange={handleChange} className="mt-1 block w-full shadow-sm sm:text-sm bg-gray-800 text-white border-gray-600 rounded-md focus:ring-orange-500 focus:border-orange-500 [color-scheme:dark]" />
+                    <input type="date" name="purchase_date" id="purchase_date" value={formData.purchase_date} onChange={handleChange} className="mt-1 block w-full rounded-md border border-gray-300 bg-white text-gray-900 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm" />
                 </div>
             </div>
             {error && <p className="text-sm text-red-600">{error}</p>}

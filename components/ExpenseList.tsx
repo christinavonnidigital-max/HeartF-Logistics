@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Expense } from '../types';
-import { PlusIcon } from './icons/Icons';
+import { PlusIcon, DocumentDuplicateIcon } from './icons/Icons';
 
 interface ExpenseListProps {
   expenses: Expense[];
@@ -28,6 +28,7 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onAddExpenseClick }
               <th scope="col" className="px-6 py-3">Description</th>
               <th scope="col" className="px-6 py-3">Date</th>
               <th scope="col" className="px-6 py-3">Amount</th>
+              <th scope="col" className="px-6 py-3 text-center">Receipt</th>
             </tr>
           </thead>
           <tbody>
@@ -39,8 +40,24 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onAddExpenseClick }
                 <td className="px-6 py-4">{expense.description}</td>
                 <td className="px-6 py-4">{new Date(expense.expense_date + 'T00:00:00').toLocaleDateString()}</td>
                 <td className="px-6 py-4">${expense.amount_in_base_currency.toLocaleString()}</td>
+                <td className="px-6 py-4 text-center">
+                  {expense.receipt_url ? (
+                    <a href={expense.receipt_url} target="_blank" rel="noopener noreferrer" className="text-orange-500 hover:text-orange-700 inline-block">
+                      <DocumentDuplicateIcon className="w-5 h-5" />
+                    </a>
+                  ) : (
+                    <span className="text-gray-400">-</span>
+                  )}
+                </td>
               </tr>
             ))}
+             {expenses.length === 0 && (
+                <tr>
+                    <td colSpan={5} className="text-center py-8 text-gray-500">
+                       No expenses recorded.
+                    </td>
+                </tr>
+            )}
           </tbody>
         </table>
       </div>

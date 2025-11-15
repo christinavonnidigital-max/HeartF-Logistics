@@ -55,23 +55,23 @@ const AddLeadScoringRuleModal: React.FC<AddLeadScoringRuleModalProps> = ({ onClo
                 <main className="p-6 space-y-4">
                     <div>
                         <label className="block text-sm font-medium text-gray-700">Rule Name</label>
-                        <input type="text" name="rule_name" value={formData.rule_name} onChange={handleChange} className="mt-1 block w-full p-2 border rounded-md bg-gray-800 text-white" />
+                        <input type="text" name="rule_name" value={formData.rule_name} onChange={handleChange} className="mt-1 block w-full rounded-md border border-gray-300 bg-white text-gray-900 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm" />
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-700">Condition</label>
                         <div className="grid grid-cols-3 gap-2 mt-1">
-                            <input type="text" name="condition_field" value={formData.condition_field} onChange={handleChange} className="p-2 border rounded-md bg-gray-800 text-white" />
-                            <select name="condition_operator" value={formData.condition_operator} onChange={handleChange} className="p-2 border rounded-md bg-gray-800 text-white">
+                            <input type="text" name="condition_field" value={formData.condition_field} onChange={handleChange} className="block w-full rounded-md border border-gray-300 bg-white text-gray-900 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm" />
+                            <select name="condition_operator" value={formData.condition_operator} onChange={handleChange} className="block w-full rounded-md border border-gray-300 bg-white text-gray-900 pl-3 pr-10 py-2 text-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500">
                                 <option value="equals">equals</option>
                                 <option value="contains">contains</option>
                                 <option value="greater_than">greater than</option>
                             </select>
-                            <input type="text" name="condition_value" value={formData.condition_value} onChange={handleChange} className="p-2 border rounded-md bg-gray-800 text-white" />
+                            <input type="text" name="condition_value" value={formData.condition_value} onChange={handleChange} className="block w-full rounded-md border border-gray-300 bg-white text-gray-900 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm" />
                         </div>
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-700">Points</label>
-                        <input type="number" name="points" value={formData.points} onChange={handleChange} className="mt-1 block w-full p-2 border rounded-md bg-gray-800 text-white" />
+                        <input type="number" name="points" value={formData.points} onChange={handleChange} className="mt-1 block w-full rounded-md border border-gray-300 bg-white text-gray-900 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm" />
                     </div>
                     {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
                 </main>

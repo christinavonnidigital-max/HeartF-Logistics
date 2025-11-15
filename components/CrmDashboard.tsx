@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { mockLeads, mockOpportunities, mockLeadScoringRules, mockSalesReps, mockLeadActivities } from '../data/mockCrmData';
 import SalesPipeline from './SalesPipeline';
 import LeadList from './LeadList';
@@ -8,6 +8,7 @@ import LeadDetailsModal from './LeadDetailsModal';
 import { Lead, LeadScoringRule } from '../types';
 import AddLeadModal from './AddLeadModal';
 import AddLeadScoringRuleModal from './AddLeadScoringRuleModal';
+import { calculateLeadScore } from '../services/crmService';
 
 const CrmDashboard: React.FC = () => {
     const [leads, setLeads] = useState<Lead[]>(mockLeads);
@@ -15,6 +16,17 @@ const CrmDashboard: React.FC = () => {
     const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
     const [isAddLeadModalOpen, setIsAddLeadModalOpen] = useState(false);
     const [isAddRuleModalOpen, setIsAddRuleModalOpen] = useState(false);
+
+    // Recalculate lead scores whenever the rules change.
+    useEffect(() => {
+        setLeads(prevLeads => 
+            prevLeads.map(lead => ({
+                ...lead,
+                lead_score: calculateLeadScore(lead, rules)
+            }))
+        );
+    }, [rules]);
+
 
     const totalPipelineValue = mockOpportunities.reduce((sum, opp) => {
         if (opp.stage !== 'closed_won' && opp.stage !== 'closed_lost') {
@@ -37,7 +49,7 @@ const CrmDashboard: React.FC = () => {
         const newLead: Lead = {
             ...newLeadData,
             id: Date.now(),
-            lead_score: 10, // Default score
+            lead_score: calculateLeadScore(newLeadData, rules),
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
         };

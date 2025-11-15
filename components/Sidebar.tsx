@@ -1,123 +1,208 @@
-
-import React, { Fragment } from 'react';
-import { BarChartIcon, BriefcaseIcon, CreditCardIcon, DriverIcon, MapIcon, SettingsIcon, TruckIcon, UsersIcon, GridIcon, DocumentTextIcon, CampaignIcon, ChartPieIcon } from './icons/Icons';
+import React from 'react';
+import {
+  BarChartIcon,
+  BriefcaseIcon,
+  CampaignIcon,
+  ChartPieIcon,
+  CreditCardIcon,
+  DriverIcon,
+  MapIcon,
+  SettingsIcon,
+  TruckIcon,
+  UsersIcon,
+  DocumentTextIcon,
+  ClipboardDocumentIcon,
+} from './icons/Icons';
 import { View } from '../App';
 
 interface SidebarProps {
-    activeView: View;
-    setActiveView: (view: View) => void;
-    isOpen: boolean;
-    setIsOpen: (isOpen: boolean) => void;
+  activeView: View;
+  setActiveView: (view: View) => void;
+  isOpen: boolean;
+  setIsOpen: (isOpen: boolean) => void;
 }
 
-const NavLink: React.FC<{
-    view: View;
-    activeView: View;
-    setActiveView: (view: View) => void;
-    setIsOpen: (isOpen: boolean) => void;
-    icon: React.ReactNode;
-    name: string;
-}> = ({ view, activeView, setActiveView, setIsOpen, icon, name }) => {
-    const isActive = activeView === view;
-    return (
-        <a
-            href="#"
-            onClick={(e) => {
-                e.preventDefault();
-                setActiveView(view);
-                setIsOpen(false);
-            }}
-            className={`flex items-center py-2.5 rounded-lg transition-colors duration-200 ${
-                isActive
-                  ? 'bg-[#2C2F3E] text-white border-l-4 border-orange-500 pl-3 font-semibold'
-                  : 'text-gray-300 hover:bg-[#2C2F3E] hover:text-white px-4'
-            }`}
-        >
-            {icon}
-            <span className="ml-3">{name}</span>
-        </a>
-    );
+type NavItemConfig = {
+  view: View;
+  label: string;
+  icon: React.ReactNode;
 };
 
-const PlaceholderLink: React.FC<{ name: string; icon: React.ReactNode; }> = ({ name, icon }) => (
-    <a
-        href="#"
-        onClick={(e) => {
-            e.preventDefault();
-            alert(`${name} module is not yet implemented.`);
-        }}
-        className="flex items-center px-4 py-2.5 rounded-lg text-gray-400 hover:bg-[#2C2F3E] hover:text-white"
-    >
-        {icon}
-        <span className="ml-3">{name}</span>
-    </a>
-);
+type NavSectionConfig = {
+  label: string;
+  items: NavItemConfig[];
+};
 
+const navSections: NavSectionConfig[] = [
+  {
+    label: 'Operations',
+    items: [
+      { view: 'dashboard', label: 'Overview', icon: <BarChartIcon className="h-5 w-5" /> },
+      { view: 'fleet', label: 'Fleet', icon: <TruckIcon className="h-5 w-5" /> },
+      {
+        view: 'bookings',
+        label: 'Bookings',
+        icon: <ClipboardDocumentIcon className="h-5 w-5" />,
+      },
+      { view: 'drivers', label: 'Drivers', icon: <DriverIcon className="h-5 w-5" /> },
+      { view: 'routes', label: 'Routes', icon: <MapIcon className="h-5 w-5" /> },
+    ],
+  },
+  {
+    label: 'CRM',
+    items: [
+      { view: 'leads', label: 'Leads', icon: <BriefcaseIcon className="h-5 w-5" /> },
+      { view: 'customers', label: 'Customers', icon: <UsersIcon className="h-5 w-5" /> },
+    ],
+  },
+  {
+    label: 'Marketing',
+    items: [
+      { view: 'marketing', label: 'Marketing home', icon: <CampaignIcon className="h-5 w-5" /> },
+      { view: 'campaigns', label: 'Sequences', icon: <DocumentTextIcon className="h-5 w-5" /> },
+      { view: 'analytics', label: 'Analytics', icon: <ChartPieIcon className="h-5 w-5" /> },
+      { view: 'new-campaign', label: 'New sequence', icon: <CampaignIcon className="h-5 w-5" /> },
+    ],
+  },
+  {
+    label: 'Finance',
+    items: [
+      { view: 'financials', label: 'Financials', icon: <CreditCardIcon className="h-5 w-5" /> },
+      { view: 'reports', label: 'Reports', icon: <DocumentTextIcon className="h-5 w-5" /> },
+    ],
+  },
+  {
+    label: 'System',
+    items: [{ view: 'settings', label: 'Settings', icon: <SettingsIcon className="h-5 w-5" /> }],
+  },
+];
 
-const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView, isOpen, setIsOpen }) => {
-    
-    const navContent = (
-        <div className="w-64 bg-[#1A1D29] flex flex-col h-full">
-            <div className="h-16 flex items-center justify-center text-2xl font-bold text-white border-b border-gray-700/50">
-                Heartfledge
-            </div>
-            <nav className="flex-1 px-2 py-4 space-y-1">
-                <NavLink view="dashboard" activeView={activeView} setActiveView={setActiveView} setIsOpen={setIsOpen} icon={<GridIcon className="w-6 h-6" />} name="Dashboard" />
-                
-                <div className="pt-4 mt-2">
-                    <h3 className="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">Operations</h3>
-                    <div className="mt-2 space-y-1">
-                        <NavLink view="fleet" activeView={activeView} setActiveView={setActiveView} setIsOpen={setIsOpen} icon={<TruckIcon className="w-6 h-6" />} name="Fleet" />
-                        <NavLink view="bookings" activeView={activeView} setActiveView={setActiveView} setIsOpen={setIsOpen} icon={<DocumentTextIcon className="w-6 h-6" />} name="Bookings" />
-                        <NavLink view="drivers" activeView={activeView} setActiveView={setActiveView} setIsOpen={setIsOpen} icon={<DriverIcon className="w-6 h-6" />} name="Drivers" />
-                        <NavLink view="customers" activeView={activeView} setActiveView={setActiveView} setIsOpen={setIsOpen} icon={<UsersIcon className="w-6 h-6" />} name="Customers" />
-                        <NavLink view="routes" activeView={activeView} setActiveView={setActiveView} setIsOpen={setIsOpen} icon={<MapIcon className="w-6 h-6" />} name="Routes" />
-                    </div>
-                </div>
+interface NavItemProps {
+  item: NavItemConfig;
+  activeView: View;
+  onClick: (view: View) => void;
+}
 
-                <div className="pt-4 mt-2">
-                     <h3 className="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">Marketing</h3>
-                     <div className="mt-2 space-y-1">
-                        <NavLink view="leads" activeView={activeView} setActiveView={setActiveView} setIsOpen={setIsOpen} icon={<BriefcaseIcon className="w-6 h-6" />} name="Leads / CRM" />
-                        <NavLink view="marketing" activeView={activeView} setActiveView={setActiveView} setIsOpen={setIsOpen} icon={<CampaignIcon className="w-6 h-6" />} name="Marketing" />
-                        <NavLink view="campaigns" activeView={activeView} setActiveView={setActiveView} setIsOpen={setIsOpen} icon={<CampaignIcon className="w-6 h-6" />} name="Campaigns" />
-                        <NavLink view="analytics" activeView={activeView} setActiveView={setActiveView} setIsOpen={setIsOpen} icon={<ChartPieIcon className="w-6 h-6" />} name="Analytics" />
-                     </div>
-                </div>
-                 <div className="pt-4 mt-2">
-                     <h3 className="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">Business</h3>
-                     <div className="mt-2 space-y-1">
-                        <NavLink view="financials" activeView={activeView} setActiveView={setActiveView} setIsOpen={setIsOpen} icon={<CreditCardIcon className="w-6 h-6" />} name="Financials" />
-                        <NavLink view="reports" activeView={activeView} setActiveView={setActiveView} setIsOpen={setIsOpen} icon={<BarChartIcon className="w-6 h-6" />} name="Reports" />
-                    </div>
-                </div>
-            </nav>
-            <div className="px-2 py-4 border-t border-gray-700/50">
-                 <PlaceholderLink name="Settings" icon={<SettingsIcon className="w-6 h-6" />} />
-            </div>
-             <div className="px-4 py-2 text-center text-xs text-gray-500">
-                Icons by <a href="https://icons8.com" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-400">Icons8</a>
-            </div>
-        </div>
-    );
+const NavItem: React.FC<NavItemProps> = ({ item, activeView, onClick }) => {
+  const isActive = item.view === activeView;
 
   return (
-    <>
-        {/* Mobile Sidebar */}
-        <div className={`fixed inset-0 z-50 md:hidden ${isOpen ? 'block' : 'hidden'}`}>
-            {/* Overlay */}
-            <div className="absolute inset-0 bg-black opacity-50" onClick={() => setIsOpen(false)}></div>
-            <div className={`relative transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-                {navContent}
-            </div>
-        </div>
+    <button
+      type="button"
+      onClick={() => onClick(item.view)}
+      className={[
+        'group flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm transition',
+        isActive
+          ? 'bg-orange-500 text-white shadow-sm'
+          : 'text-slate-200 hover:bg-slate-800 hover:text-white',
+      ].join(' ')}
+    >
+      <span
+        className={[
+          'inline-flex h-8 w-8 items-center justify-center rounded-md border text-sm',
+          isActive
+            ? 'border-orange-400 bg-orange-500/90 text-white'
+            : 'border-slate-700 bg-slate-900 text-slate-200 group-hover:border-slate-500',
+        ].join(' ')}
+      >
+        {item.icon}
+      </span>
+      <span className="truncate">{item.label}</span>
+    </button>
+  );
+};
 
-        {/* Desktop Sidebar */}
-        <div className="hidden md:flex md:flex-shrink-0">
-             <div className="fixed inset-y-0 left-0 w-64 z-40">
-                {navContent}
-            </div>
+const SidebarShell: React.FC<SidebarProps & { variant?: 'mobile' | 'desktop' }> = ({
+  activeView,
+  setActiveView,
+  setIsOpen,
+}) => {
+  const handleNavClick = (view: View) => {
+    setActiveView(view);
+    setIsOpen(false);
+  };
+
+  return (
+    <div className="flex h-full w-64 flex-col bg-[#0B1020] text-slate-100 shadow-xl">
+      <div className="flex h-16 items-center gap-2 border-b border-slate-800 px-4">
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-500 text-white">
+          <TruckIcon className="h-5 w-5" />
         </div>
+        <div className="flex flex-col leading-tight">
+          <span className="text-sm font-semibold tracking-tight">Heartfledge</span>
+          <span className="text-[11px] text-slate-400">Logistics and CRM hub</span>
+        </div>
+      </div>
+
+      <nav className="flex-1 space-y-4 overflow-y-auto px-3 py-4">
+        {navSections.map(section => (
+          <div key={section.label}>
+            <p className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+              {section.label}
+            </p>
+            <div className="space-y-1">
+              {section.items.map(item => (
+                <NavItem
+                  key={item.view}
+                  item={item}
+                  activeView={activeView}
+                  onClick={handleNavClick}
+                />
+              ))}
+            </div>
+          </div>
+        ))}
+      </nav>
+
+      <div className="border-t border-slate-800 px-3 py-3 text-xs text-slate-500">
+        <p className="truncate">Signed in as</p>
+        <p className="truncate font-medium text-slate-200">dispatcher@heartfledge.local</p>
+      </div>
+    </div>
+  );
+};
+
+const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView, isOpen, setIsOpen }) => {
+  return (
+    <>
+      {/* Mobile overlay */}
+      <div
+        className={`fixed inset-0 z-40 md:hidden ${
+          isOpen ? 'pointer-events-auto' : 'pointer-events-none'
+        }`}
+      >
+        {/* Scrim */}
+        <div
+          className={`absolute inset-0 bg-black/40 transition-opacity ${
+            isOpen ? 'opacity-100' : 'opacity-0'
+          }`}
+          onClick={() => setIsOpen(false)}
+        />
+
+        {/* Drawer */}
+        <div
+          className={`absolute inset-y-0 left-0 w-64 transform bg-[#0B1020] transition-transform duration-200 ease-out ${
+            isOpen ? 'translate-x-0' : '-translate-x-full'
+          }`}
+        >
+          <SidebarShell
+            activeView={activeView}
+            setActiveView={setActiveView}
+            isOpen={isOpen}
+            setIsOpen={setIsOpen}
+          />
+        </div>
+      </div>
+
+      {/* Desktop sidebar */}
+      <div className="hidden md:fixed md:inset-y-0 md:left-0 md:z-30 md:flex md:w-64">
+        <SidebarShell
+          activeView={activeView}
+          setActiveView={setActiveView}
+          isOpen={isOpen}
+          setIsOpen={setIsOpen}
+        />
+      </div>
     </>
   );
 };
