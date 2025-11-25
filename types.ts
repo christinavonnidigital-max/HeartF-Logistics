@@ -185,6 +185,8 @@ export interface VehicleExpense {
     expense_date: string;
     recorded_by: number; // foreign key → users.id
     created_at: string;
+    is_recurring?: boolean;
+    recurring_frequency?: RecurringFrequency;
 }
 
 

@@ -1,13 +1,17 @@
+
 import React, { useState, useMemo } from 'react';
-import { Vehicle, VehicleExpense, ExpenseType, Currency } from '../types';
+import { Vehicle, VehicleExpense, ExpenseType, Currency, VehicleDocument, DocumentType } from '../types';
 import { mockMaintenance } from '../data/mockData';
-import { CogIcon, CurrencyDollarIcon, GaugeIcon, PlusIcon, RoadIcon, WrenchIcon, FuelIcon, ShieldCheckIcon, ClipboardDocumentIcon, TicketIcon, DocumentDuplicateIcon } from './icons/Icons';
+import { CogIcon, CurrencyDollarIcon, GaugeIcon, PlusIcon, RoadIcon, WrenchIcon, FuelIcon, ShieldCheckIcon, ClipboardDocumentIcon, TicketIcon, DocumentDuplicateIcon, TrashIcon, UploadIcon, DocumentTextIcon, CalendarDaysIcon } from './icons/Icons';
 import { ShellCard, SubtleCard } from "./UiKit";
+import AddDocumentModal from './AddDocumentModal';
+import ConfirmModal from './ConfirmModal';
 
 interface VehicleDetailsProps {
   vehicle: Vehicle;
   expenses: VehicleExpense[];
   onAddExpenseClick: () => void;
+  onDeleteVehicle: () => void;
 }
 
 const StatCard: React.FC<{ icon: React.ReactNode; label: string; value: string | number }> = ({ icon, label, value }) => (
@@ -50,10 +54,56 @@ const getExpenseTypeUI = (type: ExpenseType) => {
 }
 
 
-const VehicleDetails: React.FC<VehicleDetailsProps> = ({ vehicle, expenses, onAddExpenseClick }) => {
+const VehicleDetails: React.FC<VehicleDetailsProps> = ({ vehicle, expenses, onAddExpenseClick, onDeleteVehicle }) => {
   const [filterType, setFilterType] = useState('all');
   const [customStartDate, setCustomStartDate] = useState('');
   const [customEndDate, setCustomEndDate] = useState('');
+  const [isAddDocumentModalOpen, setIsAddDocumentModalOpen] = useState(false);
+  const [isDeleteVehicleModalOpen, setIsDeleteVehicleModalOpen] = useState(false);
+  const [documentToDelete, setDocumentToDelete] = useState<number | null>(null);
+
+  // Initialize documents with some data based on vehicle properties for demonstration
+  const [documents, setDocuments] = useState<VehicleDocument[]>(() => {
+    const docs: VehicleDocument[] = [];
+    let idCounter = 1;
+    if (vehicle.insurance_expiry_date) {
+        docs.push({
+            id: idCounter++,
+            vehicle_id: vehicle.id,
+            document_type: DocumentType.INSURANCE,
+            document_name: `Insurance - ${vehicle.insurance_provider || 'Policy'}`,
+            file_url: '#',
+            expiry_date: vehicle.insurance_expiry_date,
+            uploaded_at: vehicle.updated_at,
+            uploaded_by: 1
+        });
+    }
+    if (vehicle.license_disc_expiry) {
+        docs.push({
+            id: idCounter++,
+            vehicle_id: vehicle.id,
+            document_type: DocumentType.LICENSE_DISC,
+            document_name: `License Disc`,
+            file_url: '#',
+            expiry_date: vehicle.license_disc_expiry,
+            uploaded_at: vehicle.updated_at,
+            uploaded_by: 1
+        });
+    }
+    if (vehicle.fitness_certificate_expiry) {
+        docs.push({
+            id: idCounter++,
+            vehicle_id: vehicle.id,
+            document_type: DocumentType.FITNESS,
+            document_name: `Fitness Certificate`,
+            file_url: '#',
+            expiry_date: vehicle.fitness_certificate_expiry,
+            uploaded_at: vehicle.updated_at,
+            uploaded_by: 1
+        });
+    }
+    return docs;
+  });
   
   const maintenanceHistory = mockMaintenance.filter((m) => m.vehicle_id === vehicle.id);
   
@@ -109,18 +159,76 @@ const VehicleDetails: React.FC<VehicleDetailsProps> = ({ vehicle, expenses, onAd
     }, {} as Record<Currency, number>);
   }, [filteredExpenses]);
 
+  // Estimate next service date based on average usage
+  const estimatedServiceDate = useMemo(() => {
+    if (vehicle.next_service_due_date) {
+         return new Date(vehicle.next_service_due_date).toLocaleDateString();
+    }
+    
+    const today = new Date();
+    // Use purchase date to calculate average daily KM usage
+    const startDate = new Date(vehicle.purchase_date); 
+    const daysActive = Math.max(1, (today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+    const avgDailyKm = vehicle.current_km / daysActive;
+    
+    const kmRemaining = vehicle.next_service_due_km - vehicle.current_km;
+    
+    if (kmRemaining <= 0) return 'Overdue';
+    if (avgDailyKm <= 0) return 'Unknown';
+    
+    const daysRemaining = Math.ceil(kmRemaining / avgDailyKm);
+    const estDate = new Date(today);
+    estDate.setDate(today.getDate() + daysRemaining);
+    
+    return `${estDate.toLocaleDateString()} (Est.)`;
+  }, [vehicle]);
+
+  const handleAddDocument = (doc: Omit<VehicleDocument, 'id' | 'vehicle_id' | 'uploaded_at' | 'uploaded_by'>) => {
+    const newDoc: VehicleDocument = {
+        ...doc,
+        id: Date.now(),
+        vehicle_id: vehicle.id,
+        uploaded_at: new Date().toISOString(),
+        uploaded_by: 1 // Mock user ID
+    };
+    setDocuments(prev => [...prev, newDoc]);
+    setIsAddDocumentModalOpen(false);
+  };
+
+  const confirmDeleteDocument = () => {
+    if (documentToDelete !== null) {
+        setDocuments(prev => prev.filter(d => d.id !== documentToDelete));
+        setDocumentToDelete(null);
+    }
+  };
+
+  const confirmDeleteVehicle = () => {
+    onDeleteVehicle();
+    setIsDeleteVehicleModalOpen(false);
+  }
 
   return (
-    <ShellCard className="p-6 overflow-y-auto">
-      <div className="border-b border-slate-200 pb-4 mb-6">
-        <h3 className="text-2xl font-bold leading-6 text-gray-900">{vehicle.make} {vehicle.model} ({vehicle.year})</h3>
-        <p className="mt-1 text-md text-gray-500">{vehicle.registration_number}</p>
-      </div>
+    <>
+    <ShellCard className="p-6 overflow-y-auto relative">
+        <div className="flex justify-between items-start border-b border-slate-200 pb-4 mb-6">
+            <div>
+                <h3 className="text-2xl font-bold leading-6 text-gray-900">{vehicle.make} {vehicle.model} ({vehicle.year})</h3>
+                <p className="mt-1 text-md text-gray-500">{vehicle.registration_number}</p>
+            </div>
+            <button
+                onClick={() => setIsDeleteVehicleModalOpen(true)}
+                className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+                title="Delete Vehicle"
+            >
+                <TrashIcon className="w-5 h-5" />
+            </button>
+        </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <StatCard icon={<RoadIcon className="w-5 h-5"/>} label="Current KM" value={new Intl.NumberFormat().format(vehicle.current_km)} />
         <StatCard icon={<GaugeIcon className="w-5 h-5"/>} label="Capacity" value={`${vehicle.capacity_tonnes} t`} />
-        <StatCard icon={<WrenchIcon className="w-5 h-5"/>} label="Next Service" value={`${new Intl.NumberFormat().format(vehicle.next_service_due_km)} km`} />
+        <StatCard icon={<WrenchIcon className="w-5 h-5"/>} label="Next Service KM" value={`${new Intl.NumberFormat().format(vehicle.next_service_due_km)}`} />
+        <StatCard icon={<CalendarDaysIcon className="w-5 h-5"/>} label="Next Service Date" value={estimatedServiceDate} />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -135,6 +243,7 @@ const VehicleDetails: React.FC<VehicleDetailsProps> = ({ vehicle, expenses, onAd
             )) : <p className="text-sm text-gray-500 p-3">No maintenance records.</p>}
           </div>
         </SubtleCard>
+        
         <SubtleCard className="p-4">
             <div className="flex justify-between items-center mb-3">
                 <h4 className="text-sm font-semibold flex items-center"><CurrencyDollarIcon className="w-5 h-5 mr-2 text-gray-500"/>Expenses</h4>
@@ -209,8 +318,78 @@ const VehicleDetails: React.FC<VehicleDetailsProps> = ({ vehicle, expenses, onAd
             }) : <p className="text-sm text-gray-500 p-3 italic">No expense records for the selected period.</p>}
           </div>
         </SubtleCard>
+
+        {/* Documents Section */}
+        <SubtleCard className="p-4 md:col-span-2">
+            <div className="flex justify-between items-center mb-3">
+                <h4 className="text-sm font-semibold flex items-center"><ClipboardDocumentIcon className="w-5 h-5 mr-2 text-gray-500"/>Documents & Compliance</h4>
+                <button
+                    onClick={() => setIsAddDocumentModalOpen(true)}
+                    className="flex items-center gap-1 p-1.5 px-3 rounded-lg bg-white border border-slate-200 text-slate-700 text-xs font-medium hover:bg-slate-50 transition"
+                    aria-label="Add Document"
+                >
+                    <UploadIcon className="w-4 h-4"/>
+                    <span>Upload</span>
+                </button>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {documents.length > 0 ? documents.map(doc => (
+                    <div key={doc.id} className="p-3 bg-white rounded-lg ring-1 ring-slate-100 flex items-center justify-between group">
+                        <div className="flex items-center gap-3 overflow-hidden">
+                            <div className="flex-shrink-0 h-10 w-10 bg-slate-100 rounded-lg flex items-center justify-center text-slate-500">
+                                <DocumentTextIcon className="w-6 h-6" />
+                            </div>
+                            <div className="min-w-0">
+                                <p className="text-sm font-medium text-slate-900 truncate" title={doc.document_name}>{doc.document_name}</p>
+                                <p className="text-xs text-slate-500 truncate capitalize">{doc.document_type.replace('_', ' ')}</p>
+                                {doc.expiry_date && (
+                                    <p className={`text-[10px] mt-0.5 ${new Date(doc.expiry_date) < new Date() ? 'text-red-600 font-bold' : 'text-slate-400'}`}>
+                                        Exp: {new Date(doc.expiry_date).toLocaleDateString()}
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+                        <button 
+                            onClick={() => setDocumentToDelete(doc.id)}
+                            className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                            <TrashIcon className="w-4 h-4" />
+                        </button>
+                    </div>
+                )) : (
+                    <div className="col-span-full py-8 text-center text-slate-500 text-sm italic">
+                        No documents uploaded for this vehicle.
+                    </div>
+                )}
+            </div>
+        </SubtleCard>
       </div>
     </ShellCard>
+    {isAddDocumentModalOpen && (
+        <AddDocumentModal 
+            onClose={() => setIsAddDocumentModalOpen(false)}
+            onAddDocument={handleAddDocument}
+        />
+    )}
+    
+    <ConfirmModal 
+        isOpen={isDeleteVehicleModalOpen}
+        onClose={() => setIsDeleteVehicleModalOpen(false)}
+        onConfirm={confirmDeleteVehicle}
+        title="Delete Vehicle"
+        message={`Are you sure you want to delete ${vehicle.registration_number}? This action cannot be undone and will remove all associated data.`}
+        confirmLabel="Delete Vehicle"
+    />
+
+    <ConfirmModal 
+        isOpen={documentToDelete !== null}
+        onClose={() => setDocumentToDelete(null)}
+        onConfirm={confirmDeleteDocument}
+        title="Delete Document"
+        message="Are you sure you want to delete this document? This cannot be undone."
+        confirmLabel="Delete Document"
+    />
+    </>
   );
 };
 

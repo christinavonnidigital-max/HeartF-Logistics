@@ -1,6 +1,6 @@
 
 
-import { Lead, Opportunity, LeadScoringRule, LeadSource, LeadStatus, CompanySize, Industry, OpportunityStage, Currency, User, LeadActivity, LeadActivityType } from '../types';
+import { Lead, Opportunity, LeadScoringRule, LeadSource, LeadStatus, CompanySize, Industry, OpportunityStage, Currency, User, LeadActivity, LeadActivityType, Customer, LoyaltyTier } from '../types';
 
 export const mockUsers: User[] = [
     { id: 1, first_name: 'Alice', last_name: 'Johnson', email: 'alice@heartfledge.com', role: 'marketing', is_active: true, email_verified: true, created_at: '2023-01-10T00:00:00Z', updated_at: '2023-01-10T00:00:00Z' },
@@ -9,6 +9,60 @@ export const mockUsers: User[] = [
 
 // Re-exporting for legacy compatibility where it might be used
 export const mockSalesReps = mockUsers;
+
+export const mockCustomers: Customer[] = [
+    {
+        id: 101,
+        user_id: 201,
+        company_name: 'Retail Giant Zimbabwe',
+        address_line1: '1 Shopping Mall Dr',
+        city: 'Harare',
+        country: 'Zimbabwe',
+        billing_email: 'accounts@retailgiant.co.zw',
+        loyalty_points: 1500,
+        loyalty_tier: LoyaltyTier.GOLD,
+        total_spent: 150000,
+        total_bookings: 45,
+        preferred_currency: Currency.USD,
+        is_verified: true,
+        created_at: '2023-01-15T00:00:00Z',
+        updated_at: '2024-07-20T00:00:00Z',
+    },
+    {
+        id: 102,
+        user_id: 202,
+        company_name: 'Mining Corp',
+        address_line1: '45 Mine Shaft Rd',
+        city: 'Gweru',
+        country: 'Zimbabwe',
+        billing_email: 'logistics@miningcorp.co.zw',
+        loyalty_points: 5000,
+        loyalty_tier: LoyaltyTier.PLATINUM,
+        total_spent: 450000,
+        total_bookings: 120,
+        preferred_currency: Currency.USD,
+        is_verified: true,
+        created_at: '2022-05-20T00:00:00Z',
+        updated_at: '2024-07-25T00:00:00Z',
+    },
+     {
+        id: 103,
+        user_id: 203,
+        company_name: 'Fresh Farms Ltd',
+        address_line1: 'Plot 72',
+        city: 'Marondera',
+        country: 'Zimbabwe',
+        billing_email: 'orders@freshfarms.co.zw',
+        loyalty_points: 200,
+        loyalty_tier: LoyaltyTier.SILVER,
+        total_spent: 15000,
+        total_bookings: 10,
+        preferred_currency: Currency.ZIG,
+        is_verified: true,
+        created_at: '2024-02-10T00:00:00Z',
+        updated_at: '2024-07-10T00:00:00Z',
+    }
+];
 
 export const mockLeads: Lead[] = [
   {

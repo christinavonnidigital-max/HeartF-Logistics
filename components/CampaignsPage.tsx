@@ -5,6 +5,7 @@ import { mockCampaigns } from '../data/mockMarketingData';
 import { PlusIcon, SearchIcon, PlayIcon, PauseIcon, DuplicateIcon, TrashIcon } from './icons/Icons';
 import { View } from '../App';
 import { ShellCard, SectionHeader, StatusPill } from './UiKit';
+import ConfirmModal from './ConfirmModal';
 
 
 interface CampaignsPageProps {
@@ -15,6 +16,7 @@ const CampaignsPage: React.FC<CampaignsPageProps> = ({ setActiveView }) => {
     const [campaigns, setCampaigns] = useState<Campaign[]>(mockCampaigns);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState<CampaignStatus | 'all'>('all');
+    const [campaignToDelete, setCampaignToDelete] = useState<number | null>(null);
 
     const handleDuplicateCampaign = (campaignId: number) => {
         const campaignToDuplicate = campaigns.find(c => c.id === campaignId);
@@ -43,6 +45,13 @@ const CampaignsPage: React.FC<CampaignsPageProps> = ({ setActiveView }) => {
         setCampaigns(prevCampaigns => [...prevCampaigns, newCampaign]);
     };
 
+    const confirmDeleteCampaign = () => {
+        if (campaignToDelete !== null) {
+            setCampaigns(prev => prev.filter(c => c.id !== campaignToDelete));
+            setCampaignToDelete(null);
+        }
+    }
+
     const filteredCampaigns = useMemo(() => {
         return campaigns
             .filter(campaign => {
@@ -70,6 +79,7 @@ const CampaignsPage: React.FC<CampaignsPageProps> = ({ setActiveView }) => {
     }
 
     return (
+        <>
         <ShellCard className="flex flex-col">
             <div className="p-4 border-b border-slate-100">
                 <SectionHeader
@@ -146,7 +156,12 @@ const CampaignsPage: React.FC<CampaignsPageProps> = ({ setActiveView }) => {
                                             >
                                                 <DuplicateIcon className="w-5 h-5" />
                                             </button>
-                                            <button className="p-1.5 text-slate-500 hover:text-rose-600"><TrashIcon className="w-5 h-5" /></button>
+                                            <button 
+                                                className="p-1.5 text-slate-500 hover:text-rose-600"
+                                                onClick={() => setCampaignToDelete(campaign.id)}
+                                            >
+                                                <TrashIcon className="w-5 h-5" />
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>
@@ -161,6 +176,16 @@ const CampaignsPage: React.FC<CampaignsPageProps> = ({ setActiveView }) => {
                 )}
             </div>
         </ShellCard>
+        
+        <ConfirmModal 
+            isOpen={campaignToDelete !== null}
+            onClose={() => setCampaignToDelete(null)}
+            onConfirm={confirmDeleteCampaign}
+            title="Delete Campaign"
+            message="Are you sure you want to delete this campaign? All analytics and logs associated with it will be removed."
+            confirmLabel="Delete Campaign"
+        />
+        </>
     );
 };
 

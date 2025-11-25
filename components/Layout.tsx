@@ -1,8 +1,10 @@
+
 import React, { useState } from "react";
 import Sidebar from "./Sidebar";
 import { MenuIcon } from "./icons/Icons";
 import AiAssistant from "./FleetAssistant";
 import { AppSettings, View } from "../App";
+import { useAuth } from "../auth/AuthContext";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -53,6 +55,7 @@ const Layout: React.FC<LayoutProps> = ({
   settings,
 }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const { user, logout } = useAuth();
 
   let contextType: "fleet" | "crm" | "financials" | "routes" = "fleet";
 
@@ -112,12 +115,31 @@ const Layout: React.FC<LayoutProps> = ({
             </div>
 
             <div className="flex items-center gap-3">
-              <div className="hidden items-center gap-2 rounded-full bg-white px-3 py-1 text-xs font-medium text-slate-600 shadow-sm sm:flex">
-                <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-orange-500 text-[11px] font-bold text-white">
-                  HF
-                </span>
-                <span>Heartfledge Ops</span>
-              </div>
+              {user && (
+                <>
+                  <div className="hidden text-right text-xs sm:block">
+                    <p className="font-semibold text-slate-900">{user.name}</p>
+                    <p className="text-[11px] capitalize text-slate-500">
+                      {user.role.replace("_", " ")}
+                    </p>
+                  </div>
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-orange-500 text-xs font-semibold text-white">
+                    {user.name
+                      .split(" ")
+                      .map((n) => n[0])
+                      .join("")
+                      .slice(0, 2)
+                      .toUpperCase()}
+                  </div>
+                </>
+              )}
+
+              <button
+                onClick={logout}
+                className="ml-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50"
+              >
+                Log out
+              </button>
             </div>
           </div>
         </header>

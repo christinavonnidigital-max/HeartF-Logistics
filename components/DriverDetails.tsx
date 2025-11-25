@@ -42,6 +42,8 @@ const DriverDetails: React.FC<DriverDetailsProps> = ({ driver, assignments }) =>
   const isLicenseExpired = new Date(driver.license_expiry_date) < new Date();
   const isMedicalExpired = driver.medical_certificate_expiry ? new Date(driver.medical_certificate_expiry) < new Date() : false;
 
+  const sortedAssignments = [...assignments].sort((a, b) => new Date(b.assigned_at).getTime() - new Date(a.assigned_at).getTime());
+
   return (
     <ShellCard className="p-6 overflow-y-auto">
       <div className="border-b border-slate-200 pb-4 mb-6">
@@ -49,7 +51,7 @@ const DriverDetails: React.FC<DriverDetailsProps> = ({ driver, assignments }) =>
         <p className="mt-1 text-md text-slate-500">Driver Profile & Compliance</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         <div className="space-y-6">
             <DetailSection title="Personal & Contact" icon={<UserCircleIcon className="w-5 h-5" />}>
                 <DetailItem label="Date of Birth" value={new Date(driver.date_of_birth + 'T00:00:00').toLocaleDateString()} />
@@ -88,23 +90,55 @@ const DriverDetails: React.FC<DriverDetailsProps> = ({ driver, assignments }) =>
                 <DetailItem label="Rating" value={`${driver.rating || 'N/A'} / 5`} />
                 <DetailItem label="Total Deliveries" value={driver.total_deliveries || 0} />
             </DetailSection>
-
-            <DetailSection title="Recent Assignments" icon={<MapPinIcon className="w-5 h-5" />}>
-                <div className="space-y-2">
-                {assignments.length > 0 ? assignments.slice(0,3).map(item => (
-                    <div key={item.id} className="text-sm p-2 bg-white rounded-md ring-1 ring-slate-200">
-                        <div className="flex justify-between items-center">
-                            <p className="font-semibold">Booking #{item.booking_id}</p>
-                            <span className={`px-2 py-0.5 text-xs rounded-full ${getAssignmentStatusPill(item.status)}`}>
-                                {item.status}
-                            </span>
-                        </div>
-                        <p className="text-xs text-slate-500">Assigned: {new Date(item.assigned_at).toLocaleDateString()}</p>
-                    </div>
-                )) : <p className="text-slate-500">No recent assignments.</p>}
-                </div>
-            </DetailSection>
         </div>
+      </div>
+
+      <div>
+        <h3 className="text-base font-semibold mb-3 flex items-center text-gray-800">
+            <MapPinIcon className="w-5 h-5" />
+            <span className="ml-2">Assignment History</span>
+        </h3>
+        <SubtleCard className="overflow-hidden">
+            <div className="overflow-x-auto">
+                <table className="min-w-full text-sm text-left">
+                    <thead className="bg-slate-50 border-b border-slate-100">
+                        <tr>
+                            <th className="px-4 py-3 font-medium text-slate-500">Assignment</th>
+                            <th className="px-4 py-3 font-medium text-slate-500">Type</th>
+                            <th className="px-4 py-3 font-medium text-slate-500">Status</th>
+                            <th className="px-4 py-3 font-medium text-slate-500 text-right">Dates</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 bg-white">
+                        {sortedAssignments.length > 0 ? sortedAssignments.map(item => (
+                            <tr key={item.id} className="hover:bg-slate-50 transition-colors">
+                                <td className="px-4 py-3 font-medium text-slate-900">
+                                    {item.booking_id ? `Booking #${item.booking_id}` : 'General Task'}
+                                </td>
+                                <td className="px-4 py-3 text-slate-600 capitalize">
+                                    {item.assignment_type.replace('_', ' ')}
+                                </td>
+                                <td className="px-4 py-3">
+                                    <span className={`px-2 py-1 text-xs font-medium rounded-full capitalize ${getAssignmentStatusPill(item.status)}`}>
+                                        {item.status.replace('_', ' ')}
+                                    </span>
+                                </td>
+                                <td className="px-4 py-3 text-right text-xs text-slate-500">
+                                    <div>Assigned: {new Date(item.assigned_at).toLocaleDateString()}</div>
+                                    {item.completed_at && <div>Completed: {new Date(item.completed_at).toLocaleDateString()}</div>}
+                                </td>
+                            </tr>
+                        )) : (
+                            <tr>
+                                <td colSpan={4} className="px-4 py-8 text-center text-slate-500 italic">
+                                    No assignment history recorded.
+                                </td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
+            </div>
+        </SubtleCard>
       </div>
     </ShellCard>
   );

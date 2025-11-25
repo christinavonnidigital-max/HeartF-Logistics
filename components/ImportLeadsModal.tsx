@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import * as Papa from 'papaparse';
 import * as XLSX from 'xlsx';
@@ -174,7 +175,7 @@ const ImportLeadsModal: React.FC<ImportLeadsModalProps> = ({ onClose, onImport }
                                 <thead className="bg-slate-50">
                                     <tr>
                                         {Object.values(columnMap).filter(f => f).map(field => (
-                                            <th key={field} className="px-3 py-2 text-left font-medium text-slate-600 capitalize">{field.replace(/_/g, ' ')}</th>
+                                            <th key={field} className="px-3 py-2 text-left font-medium text-slate-600 capitalize">{(field as string).replace(/_/g, ' ')}</th>
                                         ))}
                                     </tr>
                                 </thead>

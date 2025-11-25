@@ -14,6 +14,7 @@ import {
   ChartPieIcon,
 } from "./icons/Icons";
 import { View } from "../App";
+import { useAuth, UserRole } from "../auth/AuthContext";
 
 interface SidebarProps {
   activeView: View;
@@ -26,10 +27,12 @@ type NavItemConfig = {
   view: View;
   label: string;
   icon: React.ReactNode;
+  allowedRoles?: UserRole[];
 };
 
 type NavSectionConfig = {
   label: string;
+  allowedRoles?: UserRole[];
   items: NavItemConfig[];
 };
 
@@ -46,6 +49,7 @@ const navSections: NavSectionConfig[] = [
   },
   {
     label: "Fleet ops",
+    allowedRoles: ["admin", "dispatcher", "ops_manager"],
     items: [
       { view: "fleet", label: "Fleet", icon: <TruckIcon className="h-5 w-5" /> },
       {
@@ -60,12 +64,22 @@ const navSections: NavSectionConfig[] = [
   {
     label: "Customers",
     items: [
-      { view: "leads", label: "Leads", icon: <BriefcaseIcon className="h-5 w-5" /> },
-      { view: "customers", label: "Customers", icon: <UsersIcon className="h-5 w-5" /> },
+      { 
+        view: "leads", 
+        label: "Leads", 
+        icon: <BriefcaseIcon className="h-5 w-5" />,
+        allowedRoles: ["admin", "ops_manager", "dispatcher"] 
+      },
+      { 
+        view: "customers", 
+        label: "Customers", 
+        icon: <UsersIcon className="h-5 w-5" /> 
+      },
     ],
   },
   {
     label: "Growth",
+    allowedRoles: ["admin", "ops_manager"],
     items: [
       {
         view: "marketing",
@@ -86,6 +100,7 @@ const navSections: NavSectionConfig[] = [
   },
   {
     label: "Finance",
+    allowedRoles: ["admin", "finance", "ops_manager"],
     items: [
       {
         view: "financials",
@@ -101,11 +116,13 @@ const navSections: NavSectionConfig[] = [
   },
   {
     label: "System",
+    allowedRoles: ["admin"],
     items: [
       {
         view: "settings",
         label: "Settings",
         icon: <SettingsIcon className="h-5 w-5" />,
+        allowedRoles: ["admin"],
       },
     ],
   },
@@ -151,9 +168,17 @@ const SidebarShell: React.FC<SidebarProps> = ({
   setActiveView,
   setIsOpen,
 }) => {
+  const { user } = useAuth();
+
   const handleNavClick = (view: View) => {
     setActiveView(view);
     setIsOpen(false);
+  };
+
+  const hasAccess = (allowedRoles?: UserRole[]) => {
+    if (!allowedRoles) return true;
+    if (!user) return false;
+    return allowedRoles.includes(user.role);
   };
 
   return (
@@ -165,7 +190,6 @@ const SidebarShell: React.FC<SidebarProps> = ({
           alt="Heartfledge Logistics"
           className="h-10 object-contain"
           onError={(e) => {
-            // simple fallback if the path is wrong
             (e.currentTarget as HTMLImageElement).style.display = 'none';
           }}
         />
@@ -173,30 +197,37 @@ const SidebarShell: React.FC<SidebarProps> = ({
 
       {/* Nav */}
       <nav className="flex-1 space-y-4 overflow-y-auto px-3 py-4 custom-scrollbar">
-        {navSections.map((section) => (
-          <div key={section.label}>
-            <p className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wide text-slate-500/80">
-              {section.label}
-            </p>
-            <div className="space-y-1.5">
-              {section.items.map((item) => (
-                <NavItem
-                  key={item.view}
-                  item={item}
-                  activeView={activeView}
-                  onClick={handleNavClick}
-                />
-              ))}
+        {navSections.map((section) => {
+          if (!hasAccess(section.allowedRoles)) return null;
+
+          const visibleItems = section.items.filter(item => hasAccess(item.allowedRoles));
+          if (visibleItems.length === 0) return null;
+
+          return (
+            <div key={section.label}>
+              <p className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wide text-slate-500/80">
+                {section.label}
+              </p>
+              <div className="space-y-1.5">
+                {visibleItems.map((item) => (
+                  <NavItem
+                    key={item.view}
+                    item={item}
+                    activeView={activeView}
+                    onClick={handleNavClick}
+                  />
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </nav>
 
       {/* Footer */}
       <div className="border-t border-slate-800 px-4 py-3 text-[11px] text-slate-500">
         <p className="truncate">Signed in as</p>
         <p className="truncate font-medium text-slate-200">
-          dispatcher@heartfledge.local
+          {user?.email || "Guest"}
         </p>
       </div>
     </div>

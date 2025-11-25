@@ -1,12 +1,13 @@
+
 import React, { useState, useMemo, useEffect } from 'react';
 import { mockVehicles, mockExpenses } from '../data/mockData';
 import { Vehicle, VehicleStatus, VehicleExpense } from '../types';
 import VehicleDetails from './VehicleDetails';
-import { PlusIcon, SearchIcon, IllustrationTruckIcon } from './icons/Icons';
+import { PlusIcon, SearchIcon, IllustrationTruckIcon, GaugeIcon, TruckIcon, WrenchIcon } from './icons/Icons';
 import EmptyState from './EmptyState';
 import AddExpenseModal from './AddExpenseModal';
 import AddVehicleModal from './AddVehicleModal';
-import { ShellCard, SectionHeader, StatusPill } from "./UiKit";
+import { ShellCard, SectionHeader, StatusPill, SubtleCard } from "./UiKit";
 
 const FleetDashboard: React.FC = () => {
   const [vehicles, setVehicles] = useState<Vehicle[]>(mockVehicles);
@@ -48,6 +49,13 @@ const FleetDashboard: React.FC = () => {
     setIsAddVehicleModalOpen(false);
     setSelectedVehicle(newVehicle);
   };
+  
+  const handleDeleteVehicle = (id: number) => {
+    setVehicles(prev => prev.filter(v => v.id !== id));
+    if (selectedVehicle?.id === id) {
+        setSelectedVehicle(null);
+    }
+  };
 
   const handleAddExpense = (newExpense: Omit<VehicleExpense, 'id' | 'vehicle_id' | 'created_at' | 'recorded_by'>) => {
     if (!selectedVehicle) return;
@@ -61,6 +69,12 @@ const FleetDashboard: React.FC = () => {
     setExpenses(prev => [...prev, newExpenseWithId].sort((a, b) => new Date(b.expense_date).getTime() - new Date(a.expense_date).getTime()));
     setIsAddExpenseModalOpen(false);
   };
+
+  // Metrics calculation
+  const totalVehicles = vehicles.length;
+  const activeVehiclesCount = vehicles.filter(v => v.status === VehicleStatus.ACTIVE).length;
+  const maintenanceCount = vehicles.filter(v => v.status === VehicleStatus.MAINTENANCE).length;
+  const utilizationPercentage = totalVehicles > 0 ? Math.round((activeVehiclesCount / totalVehicles) * 100) : 0;
 
   return (
     <>
@@ -107,20 +121,25 @@ const FleetDashboard: React.FC = () => {
                       isSelected ? "bg-orange-50 border border-orange-200" : "hover:bg-slate-50"
                     }`}
                   >
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <p className="font-semibold text-gray-900">{vehicle.make} {vehicle.model}</p>
+                    <div className="flex justify-between items-start">
+                      <div className="min-w-0 flex-1 pr-2">
+                        <p className="font-semibold text-gray-900 truncate">{vehicle.make} {vehicle.model}</p>
                         <p className="text-sm text-gray-500">{vehicle.registration_number}</p>
                       </div>
-                       <StatusPill
-                        label={vehicle.status.replace(/_/g, ' ')}
-                        tone={
-                          vehicle.status === VehicleStatus.ACTIVE ? 'success'
-                          : vehicle.status === VehicleStatus.MAINTENANCE ? 'warn'
-                          : vehicle.status === VehicleStatus.OUT_OF_SERVICE ? 'danger'
-                          : 'neutral'
-                        }
-                      />
+                      <div className="flex flex-col items-end gap-1">
+                         <StatusPill
+                          label={vehicle.status.replace(/_/g, ' ')}
+                          tone={
+                            vehicle.status === VehicleStatus.ACTIVE ? 'success'
+                            : vehicle.status === VehicleStatus.MAINTENANCE ? 'warn'
+                            : vehicle.status === VehicleStatus.OUT_OF_SERVICE ? 'danger'
+                            : 'neutral'
+                          }
+                        />
+                        <span className="text-xs text-slate-500 font-medium whitespace-nowrap">
+                            Due: {new Intl.NumberFormat().format(vehicle.next_service_due_km)} km
+                        </span>
+                      </div>
                     </div>
                   </button>
                 )
@@ -134,12 +153,44 @@ const FleetDashboard: React.FC = () => {
         </ShellCard>
 
         {/* Right column - details */}
-        <div className="flex flex-col">
+        <div className="flex flex-col gap-6">
+           {/* Utilization Metrics Section */}
+           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              <SubtleCard className="p-4 flex items-center gap-3">
+                  <div className="p-2 bg-emerald-100 text-emerald-600 rounded-lg">
+                      <GaugeIcon className="w-6 h-6" />
+                  </div>
+                  <div>
+                      <p className="text-xs text-slate-500 font-medium uppercase">Utilization</p>
+                      <p className="text-xl font-bold text-slate-900">{utilizationPercentage}%</p>
+                  </div>
+              </SubtleCard>
+              <SubtleCard className="p-4 flex items-center gap-3">
+                  <div className="p-2 bg-blue-100 text-blue-600 rounded-lg">
+                      <TruckIcon className="w-6 h-6" />
+                  </div>
+                  <div>
+                      <p className="text-xs text-slate-500 font-medium uppercase">Active Fleet</p>
+                      <p className="text-xl font-bold text-slate-900">{activeVehiclesCount} <span className="text-sm font-normal text-slate-400">/ {totalVehicles}</span></p>
+                  </div>
+              </SubtleCard>
+              <SubtleCard className="p-4 flex items-center gap-3 hidden md:flex">
+                  <div className="p-2 bg-orange-100 text-orange-600 rounded-lg">
+                      <WrenchIcon className="w-6 h-6" />
+                  </div>
+                  <div>
+                      <p className="text-xs text-slate-500 font-medium uppercase">Maintenance</p>
+                      <p className="text-xl font-bold text-slate-900">{maintenanceCount}</p>
+                  </div>
+              </SubtleCard>
+           </div>
+
           {selectedVehicle ? (
             <VehicleDetails 
                 vehicle={selectedVehicle}
                 expenses={expenses}
                 onAddExpenseClick={() => setIsAddExpenseModalOpen(true)}
+                onDeleteVehicle={() => handleDeleteVehicle(selectedVehicle.id)}
             />
           ) : (
              <EmptyState 

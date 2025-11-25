@@ -1,7 +1,5 @@
 
-import React, 'react';
-// FIX: Ensured all component and data imports use relative paths (e.g., './') 
-// to resolve module specifier errors.
+import React, { useState, useEffect } from 'react';
 import Layout from './components/Layout';
 import FleetDashboard from './components/FleetDashboard';
 import CrmDashboard from './components/CrmDashboard';
@@ -17,6 +15,8 @@ import CampaignsPage from './components/CampaignsPage';
 import NewCampaignPage from './components/NewCampaignPage';
 import CampaignAnalyticsPage from './components/CampaignAnalyticsPage';
 import SettingsPage from './components/SettingsPage';
+import LoginPage from './components/LoginPage';
+import { AuthProvider, useAuth, UserRole } from './auth/AuthContext';
 
 import { mockVehicles, mockMaintenance, mockExpenses } from './data/mockData';
 import { mockLeads, mockOpportunities, mockLeadScoringRules, mockSalesReps, mockLeadActivities } from './data/mockCrmData';
@@ -25,7 +25,6 @@ import { mockRoutes, mockWaypoints } from './data/mockRoutesData';
 import { mockBookings } from './data/mockBookingsData';
 import { mockCampaigns, mockSalesSequences } from './data/mockMarketingData';
 import { mockDrivers, mockDriverAssignments, mockUsersForDrivers } from './data/mockDriversData';
-import { useState, useEffect } from 'react';
 
 
 export type View = 'dashboard' | 'fleet' | 'bookings' | 'drivers' | 'customers' | 'routes' | 'reports' | 'leads' | 'campaigns' | 'new-campaign' | 'financials' | 'marketing' | 'settings' | 'analytics';
@@ -60,7 +59,8 @@ function loadSettings(): AppSettings {
   }
 }
 
-function App() {
+const AuthedApp: React.FC = () => {
+  const { user, loading } = useAuth();
   const [settings, setSettings] = useState<AppSettings>(() => loadSettings());
   const [activeView, setActiveView] = useState<View>(() => settings.defaultView);
 
@@ -70,6 +70,39 @@ function App() {
     }
   }, [settings]);
 
+  // Define view permissions
+  const viewPermissions: Partial<Record<View, UserRole[]>> = {
+    fleet: ['admin', 'dispatcher', 'ops_manager'],
+    bookings: ['admin', 'dispatcher', 'ops_manager'],
+    drivers: ['admin', 'dispatcher', 'ops_manager'],
+    routes: ['admin', 'dispatcher', 'ops_manager'],
+    leads: ['admin', 'ops_manager', 'dispatcher'],
+    marketing: ['admin', 'ops_manager'],
+    campaigns: ['admin', 'ops_manager'],
+    "new-campaign": ['admin', 'ops_manager'],
+    analytics: ['admin', 'ops_manager'],
+    financials: ['admin', 'finance', 'ops_manager'],
+    reports: ['admin', 'finance', 'ops_manager'],
+    settings: ['admin'],
+  };
+
+  // Redirect to dashboard if user logs in or permissions change/fail
+  useEffect(() => {
+    if (user) {
+        const allowedRoles = viewPermissions[activeView];
+        if (allowedRoles && !allowedRoles.includes(user.role)) {
+            setActiveView('dashboard');
+        }
+    }
+  }, [user, activeView]);
+
+  if (loading) {
+      return null; // Or a loading spinner, but LoginPage handles loading state too
+  }
+
+  if (!user) {
+    return <LoginPage />;
+  }
 
   const contextData = {
     dashboard: {
@@ -111,10 +144,15 @@ function App() {
   };
 
   const renderView = () => {
+    // Extra safety check during render
+    const allowedRoles = viewPermissions[activeView];
+    if (allowedRoles && !allowedRoles.includes(user.role)) {
+        return <Dashboard data={contextData.dashboard} settings={settings} />;
+    }
+
     switch(activeView) {
       case 'dashboard': return <Dashboard data={contextData.dashboard} settings={settings} />;
       case 'fleet': return <FleetDashboard />;
-      // FIX: The 'crm' case caused a type error because 'crm' is not a defined `View` type. It was also redundant as the 'leads' view correctly renders the CrmDashboard.
       case 'financials': return <FinancialsDashboard />;
       case 'routes': return <RoutesDashboard />;
       case 'bookings': return <BookingsPage bookings={contextData.dashboard.bookings} />;
@@ -139,7 +177,6 @@ function App() {
     return contextData.dashboard; // Default context
   }
 
-
   return (
     <Layout 
       activeView={activeView} 
@@ -150,6 +187,12 @@ function App() {
       {renderView()}
     </Layout>
   );
-}
+};
+
+const App: React.FC = () => (
+  <AuthProvider>
+    <AuthedApp />
+  </AuthProvider>
+);
 
 export default App;

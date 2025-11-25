@@ -1,6 +1,7 @@
 
+
 import React, { useState } from 'react';
-import { VehicleExpense, ExpenseType, Currency } from '../types';
+import { VehicleExpense, ExpenseType, Currency, RecurringFrequency } from '../types';
 import { CloseIcon } from './icons/Icons';
 
 interface AddExpenseModalProps {
@@ -14,6 +15,8 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ onClose, onAddExpense
   const [currency, setCurrency] = useState<Currency>(Currency.USD);
   const [description, setDescription] = useState('');
   const [expenseDate, setExpenseDate] = useState(new Date().toISOString().split('T')[0]);
+  const [isRecurring, setIsRecurring] = useState(false);
+  const [frequency, setFrequency] = useState<RecurringFrequency>(RecurringFrequency.MONTHLY);
   const [errors, setErrors] = useState<{ amount?: string; description?: string; }>({});
 
   const validate = () => {
@@ -39,6 +42,8 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ onClose, onAddExpense
       currency,
       description,
       expense_date: expenseDate,
+      is_recurring: isRecurring,
+      recurring_frequency: isRecurring ? frequency : undefined,
     });
   };
 
@@ -119,6 +124,36 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ onClose, onAddExpense
                 className="mt-1 block w-full rounded-md border border-gray-300 bg-white text-gray-900 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm"
               />
             </div>
+            
+            <div className="flex items-center mt-4">
+                <input
+                    id="is_recurring"
+                    name="is_recurring"
+                    type="checkbox"
+                    checked={isRecurring}
+                    onChange={(e) => setIsRecurring(e.target.checked)}
+                    className="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded"
+                />
+                <label htmlFor="is_recurring" className="ml-2 block text-sm text-gray-900">
+                    Recurring Expense
+                </label>
+            </div>
+
+            {isRecurring && (
+                <div>
+                    <label htmlFor="frequency" className="block text-sm font-medium text-gray-700">Frequency</label>
+                    <select
+                        id="frequency"
+                        value={frequency}
+                        onChange={(e) => setFrequency(e.target.value as RecurringFrequency)}
+                        className="mt-1 block w-full rounded-md border border-gray-300 bg-white text-gray-900 pl-3 pr-10 py-2 text-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 capitalize"
+                    >
+                        {Object.values(RecurringFrequency).map(freq => (
+                            <option key={freq} value={freq}>{freq}</option>
+                        ))}
+                    </select>
+                </div>
+            )}
           </main>
           <footer className="p-4 bg-gray-50 border-t border-gray-200 flex justify-end space-x-3">
             <button

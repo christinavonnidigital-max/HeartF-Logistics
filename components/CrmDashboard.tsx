@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { mockLeads, mockOpportunities, mockLeadScoringRules, mockSalesReps, mockLeadActivities } from '../data/mockCrmData';
 import SalesPipeline from './SalesPipeline';
@@ -82,6 +83,13 @@ const CrmDashboard: React.FC = () => {
         setIsAddLeadModalOpen(false);
     };
     
+    const handleDeleteLead = (id: number) => {
+        setLeads(prev => prev.filter(l => l.id !== id));
+        if (selectedLead?.id === id) {
+            setSelectedLead(null);
+        }
+    };
+    
     const handleImportLeads = (importedLeads: Omit<Lead, 'id' | 'created_at' | 'updated_at' | 'lead_score'>[]) => {
         const newLeads: Lead[] = importedLeads.map((leadData, index) => ({
             ...leadData,
@@ -132,6 +140,7 @@ const CrmDashboard: React.FC = () => {
                   onSelectLead={handleSelectLead} 
                   onAddLeadClick={() => setIsAddLeadModalOpen(true)}
                   onImportClick={() => setIsImportModalOpen(true)}
+                  onDeleteLead={handleDeleteLead}
                 />
                 <LeadScoringRules rules={rules} onAddRuleClick={() => setIsAddRuleModalOpen(true)} />
             </div>

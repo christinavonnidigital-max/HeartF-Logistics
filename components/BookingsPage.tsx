@@ -1,8 +1,8 @@
+
 import React, { useEffect, useMemo, useState } from 'react';
-// FIX: Import BookingStatus to resolve type incompatibility.
 import { Booking, BookingStatus } from '../types';
 import EmptyState from './EmptyState';
-import { DocumentTextIcon, MapPinIcon, TruckIcon, ClockIcon } from './icons/Icons';
+import { DocumentTextIcon, MapPinIcon, TruckIcon, ClockIcon, SearchIcon } from './icons/Icons';
 
 interface BookingsPageProps {
   bookings?: Booking[];
@@ -87,11 +87,30 @@ const BOARD_COLUMNS: {
 
 const BookingsPage: React.FC<BookingsPageProps> = ({ bookings = [] }) => {
   const [localBookings, setLocalBookings] = useState<Booking[]>(bookings);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<BookingStatus | 'all'>('all');
 
   // Sync local state when parent bookings change
   useEffect(() => {
     setLocalBookings(bookings);
   }, [bookings]);
+
+  const filteredBookings = useMemo(() => {
+    return localBookings.filter(b => {
+        // Status Filter
+        if (statusFilter !== 'all' && b.status !== statusFilter) return false;
+        
+        // Search Filter
+        if (!searchTerm) return true;
+        const lowerTerm = searchTerm.toLowerCase();
+        return (
+            b.booking_number.toLowerCase().includes(lowerTerm) ||
+            b.pickup_city.toLowerCase().includes(lowerTerm) ||
+            b.delivery_city.toLowerCase().includes(lowerTerm) ||
+            b.cargo_description.toLowerCase().includes(lowerTerm)
+        );
+    });
+  }, [localBookings, searchTerm, statusFilter]);
 
   const now = new Date();
 
@@ -104,13 +123,14 @@ const BookingsPage: React.FC<BookingsPageProps> = ({ bookings = [] }) => {
   const todayString = now.toISOString().slice(0, 10);
   const activeStatuses: BoardColumnKey[] = ['pending', 'confirmed', 'in_transit'];
 
-  const totalBookings = localBookings.length;
-  const activeBookings = localBookings.filter(b =>
+  // Stats are calculated based on the FILTERED view to give context to search results
+  const totalBookings = filteredBookings.length;
+  const activeBookings = filteredBookings.filter(b =>
     activeStatuses.includes((b.status as BoardColumnKey) || 'pending'),
   );
-  const deliveredBookings = localBookings.filter(b => (b.status as string) === 'delivered');
+  const deliveredBookings = filteredBookings.filter(b => (b.status as string) === 'delivered');
 
-  const todayBookings = localBookings.filter(b => {
+  const todayBookings = filteredBookings.filter(b => {
     const date = safeDate(b.pickup_date);
     if (!date) return false;
     return date.toISOString().slice(0, 10) === todayString;
@@ -118,7 +138,7 @@ const BookingsPage: React.FC<BookingsPageProps> = ({ bookings = [] }) => {
 
   const upcomingBookings = useMemo(
     () =>
-      [...localBookings]
+      [...filteredBookings]
         .filter(b => activeStatuses.includes((b.status as BoardColumnKey) || 'pending'))
         .sort((a, b) => {
           const da = safeDate(a.pickup_date)?.getTime() ?? 0;
@@ -126,7 +146,7 @@ const BookingsPage: React.FC<BookingsPageProps> = ({ bookings = [] }) => {
           return da - db;
         })
         .slice(0, 6),
-    [localBookings],
+    [filteredBookings],
   );
 
   const bookingsByStatus = useMemo(() => {
@@ -137,7 +157,7 @@ const BookingsPage: React.FC<BookingsPageProps> = ({ bookings = [] }) => {
       delivered: [],
       cancelled: [],
     };
-    for (const booking of localBookings) {
+    for (const booking of filteredBookings) {
       const key = ((booking.status as string) || 'pending') as BoardColumnKey;
       if (!grouped[key]) {
         grouped[key] = [];
@@ -145,35 +165,63 @@ const BookingsPage: React.FC<BookingsPageProps> = ({ bookings = [] }) => {
       grouped[key].push(booking);
     }
     return grouped;
-  }, [localBookings]);
+  }, [filteredBookings]);
 
   const handleStatusChange = (bookingId: number, newStatus: BoardColumnKey) => {
     setLocalBookings(prev =>
       prev.map(b =>
-        // FIX: Cast the string-based 'newStatus' to the 'BookingStatus' enum type to match the Booking interface.
         b.id === bookingId ? { ...b, status: newStatus as BookingStatus } : b,
       ),
     );
   };
 
-  const hasBookings = localBookings.length > 0;
+  const hasBookings = filteredBookings.length > 0;
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <section className="rounded-2xl bg-white px-5 py-4 shadow-sm ring-1 ring-slate-100">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h2 className="text-base font-semibold text-slate-900">
-              Bookings workspace
-            </h2>
-            <p className="mt-1 text-sm text-slate-600">
-              Track loads, delivery windows and client details in one place.
-            </p>
-          </div>
-          <span className="inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">
-            Planning and execution
-          </span>
+        <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                    <h2 className="text-base font-semibold text-slate-900">
+                    Bookings workspace
+                    </h2>
+                    <p className="mt-1 text-sm text-slate-600">
+                    Track loads, delivery windows and client details in one place.
+                    </p>
+                </div>
+                <span className="inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">
+                    Planning and execution
+                </span>
+            </div>
+            
+            <div className="flex flex-col sm:flex-row gap-3 pt-2 border-t border-slate-50">
+                <div className="relative flex-grow">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <SearchIcon className="w-4 h-4 text-slate-400" />
+                    </div>
+                    <input
+                        type="text"
+                        placeholder="Search by ID, City, or Cargo..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full rounded-lg border border-slate-200 bg-slate-50 pl-9 pr-4 py-2 text-sm text-slate-900 placeholder:text-slate-500 focus:outline-none focus:bg-white focus:ring-2 focus:ring-orange-500 focus:border-transparent transition"
+                    />
+                </div>
+                <select 
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value as BookingStatus | 'all')}
+                    className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                >
+                    <option value="all">All Statuses</option>
+                    <option value="pending">Pending</option>
+                    <option value="confirmed">Confirmed</option>
+                    <option value="in_transit">In Transit</option>
+                    <option value="delivered">Delivered</option>
+                    <option value="cancelled">Cancelled</option>
+                </select>
+            </div>
         </div>
       </section>
 
@@ -183,7 +231,7 @@ const BookingsPage: React.FC<BookingsPageProps> = ({ bookings = [] }) => {
           icon={<DocumentTextIcon className="h-4 w-4" />}
           label="Total bookings"
           value={totalBookings}
-          sublabel="All time in this workspace"
+          sublabel="Matching current filters"
         />
         <StatCard
           icon={<TruckIcon className="h-4 w-4" />}
@@ -228,15 +276,13 @@ const BookingsPage: React.FC<BookingsPageProps> = ({ bookings = [] }) => {
           <div className="divide-y divide-slate-100">
             {!hasBookings && (
               <div className="px-4 py-8 text-center text-sm text-slate-500">
-                No bookings captured yet. Once you start adding loads,
-                they will show here with pickup and delivery details.
+                {localBookings.length === 0 ? "No bookings captured yet." : "No bookings match your search filters."}
               </div>
             )}
 
             {hasBookings && upcomingBookings.length === 0 && (
               <div className="px-4 py-8 text-center text-sm text-slate-500">
-                No active bookings. New trips will appear here as soon as
-                they are created.
+                No active bookings matching your filters.
               </div>
             )}
 
@@ -381,7 +427,7 @@ const BookingsPage: React.FC<BookingsPageProps> = ({ bookings = [] }) => {
                     <DocumentTextIcon className="h-14 w-14 text-slate-300" />
                   }
                   title="No booking board yet"
-                  message="Once you start capturing bookings, they will appear here by status so you can see work in each stage."
+                  message={localBookings.length === 0 ? "Once you start capturing bookings, they will appear here." : "Adjust your filters to see more bookings."}
                 />
               </div>
             </div>
