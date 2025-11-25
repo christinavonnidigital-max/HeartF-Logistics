@@ -1,9 +1,13 @@
 
 import React, { useState, useMemo } from 'react';
-import { ShellCard, SectionHeader, SubtleCard, StatusPill } from './UiKit';
-import { Vehicle, VehicleMaintenance, VehicleExpense, Lead, Opportunity, Invoice, Expense, User, VehicleStatus, InvoiceStatus, OpportunityStage, ExpenseCategory } from '../types';
-import { FunnelChart, Funnel, Tooltip, LabelList, PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend, ResponsiveContainer } from 'recharts';
-import { CurrencyDollarIcon } from './icons/Icons';
+import * as XLSX from 'xlsx';
+import { ShellCard, SubtleCard } from './UiKit';
+import { Vehicle, VehicleMaintenance, VehicleExpense, Lead, Opportunity, Invoice, Expense, User, VehicleStatus, InvoiceStatus, OpportunityStage } from '../types';
+import { 
+  PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, 
+  LineChart, Line, ComposedChart, Area
+} from 'recharts';
+import { DownloadIcon, TruckIcon, CreditCardIcon, BriefcaseIcon } from './icons/Icons';
 
 interface ReportsPageProps {
   data: {
@@ -13,13 +17,7 @@ interface ReportsPageProps {
   }
 }
 
-const StatCard: React.FC<{ label: string; value: string | number; sublabel?: string }> = ({ label, value, sublabel }) => (
-    <SubtleCard className="p-4">
-        <p className="text-xs font-medium uppercase tracking-wide text-slate-500">{label}</p>
-        <p className="mt-1 text-2xl font-semibold text-slate-900">{value}</p>
-        {sublabel && <p className="mt-0.5 text-xs text-slate-500">{sublabel}</p>}
-    </SubtleCard>
-);
+type ReportTab = 'fleet' | 'financials' | 'sales';
 
 const FleetReport: React.FC<{ fleetData: ReportsPageProps['data']['fleet'] }> = ({ fleetData }) => {
     const maintenanceCosts = useMemo(() => {
@@ -30,7 +28,7 @@ const FleetReport: React.FC<{ fleetData: ReportsPageProps['data']['fleet'] }> = 
         return fleetData.vehicles.map(v => ({
             name: v.registration_number,
             Cost: costs[v.id] || 0,
-        }));
+        })).filter(i => i.Cost > 0).slice(0, 10);
     }, [fleetData]);
 
     const statusDistribution = useMemo(() => {
@@ -53,54 +51,71 @@ const FleetReport: React.FC<{ fleetData: ReportsPageProps['data']['fleet'] }> = 
     const COLORS = ['#10B981', '#F59E0B', '#EF4444', '#6B7280'];
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 animate-in fade-in duration-500">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <SubtleCard className="p-4">
-                    <h3 className="text-sm font-semibold mb-4">Maintenance Costs per Vehicle</h3>
-                    <ResponsiveContainer width="100%" height={300}>
-                        <BarChart data={maintenanceCosts} margin={{ top: 5, right: 20, left: 20, bottom: 5 }}>
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                            <XAxis dataKey="name" tick={{ fontSize: 10 }} />
-                            <YAxis tickFormatter={(value) => `$${value}`} tick={{ fontSize: 10 }}/>
-                            <Tooltip formatter={(value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value)} />
-                            <Bar dataKey="Cost" fill="#f97316" radius={[4, 4, 0, 0]} />
-                        </BarChart>
-                    </ResponsiveContainer>
+                <SubtleCard className="p-4 flex flex-col">
+                    <h3 className="text-sm font-semibold mb-4 text-slate-700">Maintenance Costs (Top Vehicles)</h3>
+                    <div className="flex-1 min-h-[300px]">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={maintenanceCosts} margin={{ top: 5, right: 20, left: 20, bottom: 5 }}>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                                <XAxis dataKey="name" tick={{ fontSize: 10 }} stroke="#94a3b8" />
+                                <YAxis tickFormatter={(value) => `$${value}`} tick={{ fontSize: 10 }} stroke="#94a3b8"/>
+                                <Tooltip 
+                                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                                    formatter={(value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value)} 
+                                />
+                                <Bar dataKey="Cost" fill="#f97316" radius={[4, 4, 0, 0]} barSize={40} />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
                 </SubtleCard>
-                <SubtleCard className="p-4">
-                    <h3 className="text-sm font-semibold mb-4">Vehicle Status Distribution</h3>
-                    <ResponsiveContainer width="100%" height={300}>
-                        <PieChart>
-                            <Pie data={statusDistribution} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100} label>
-                                {statusDistribution.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}
-                            </Pie>
-                            <Tooltip />
-                            <Legend wrapperStyle={{fontSize: "12px"}}/>
-                        </PieChart>
-                    </ResponsiveContainer>
+                <SubtleCard className="p-4 flex flex-col">
+                    <h3 className="text-sm font-semibold mb-4 text-slate-700">Fleet Status Distribution</h3>
+                    <div className="flex-1 min-h-[300px]">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <PieChart>
+                                <Pie 
+                                    data={statusDistribution} 
+                                    dataKey="value" 
+                                    nameKey="name" 
+                                    cx="50%" 
+                                    cy="50%" 
+                                    outerRadius={80} 
+                                    label={({name, percent}) => `${name} ${(percent * 100).toFixed(0)}%`}
+                                >
+                                    {statusDistribution.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}
+                                </Pie>
+                                <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
+                                <Legend wrapperStyle={{fontSize: "12px"}} iconType="circle"/>
+                            </PieChart>
+                        </ResponsiveContainer>
+                    </div>
                 </SubtleCard>
             </div>
-            <SubtleCard className="p-4">
-                 <h3 className="text-sm font-semibold mb-4">Fleet Summary</h3>
+            <SubtleCard className="p-0 overflow-hidden">
+                 <div className="px-4 py-3 border-b border-slate-100 bg-slate-50/50">
+                    <h3 className="text-sm font-semibold text-slate-700">Vehicle Expense Summary</h3>
+                 </div>
                  <div className="overflow-x-auto">
                      <table className="min-w-full text-sm">
-                         <thead className="text-xs uppercase text-slate-500">
+                         <thead className="text-xs uppercase text-slate-500 bg-slate-50">
                              <tr>
-                                 <th className="px-3 py-2">Registration</th>
-                                 <th className="px-3 py-2">Make/Model</th>
-                                 <th className="px-3 py-2">Status</th>
-                                 <th className="px-3 py-2 text-right">Current KM</th>
-                                 <th className="px-3 py-2 text-right">Total Expenses</th>
+                                 <th className="px-4 py-3 text-left font-medium">Registration</th>
+                                 <th className="px-4 py-3 text-left font-medium">Make/Model</th>
+                                 <th className="px-4 py-3 text-left font-medium">Status</th>
+                                 <th className="px-4 py-3 text-right font-medium">Current KM</th>
+                                 <th className="px-4 py-3 text-right font-medium">Total Expenses</th>
                              </tr>
                          </thead>
                          <tbody className="divide-y divide-slate-100">
                              {fleetSummary.map(v => (
-                                 <tr key={v.id}>
-                                     <td className="px-3 py-2 font-medium">{v.registration_number}</td>
-                                     <td className="px-3 py-2">{v.make} {v.model}</td>
-                                     <td className="px-3 py-2 capitalize">{v.status.replace(/_/g, ' ')}</td>
-                                     <td className="px-3 py-2 text-right">{v.current_km.toLocaleString()}</td>
-                                     <td className="px-3 py-2 text-right">{v.totalExpenses.toLocaleString('en-US', {style: 'currency', currency: 'USD'})}</td>
+                                 <tr key={v.id} className="hover:bg-slate-50/50">
+                                     <td className="px-4 py-3 font-medium text-slate-900">{v.registration_number}</td>
+                                     <td className="px-4 py-3 text-slate-600">{v.make} {v.model}</td>
+                                     <td className="px-4 py-3 capitalize text-slate-600">{v.status.replace(/_/g, ' ')}</td>
+                                     <td className="px-4 py-3 text-right text-slate-600">{v.current_km.toLocaleString()}</td>
+                                     <td className="px-4 py-3 text-right font-medium text-slate-900">{v.totalExpenses.toLocaleString('en-US', {style: 'currency', currency: 'USD'})}</td>
                                  </tr>
                              ))}
                          </tbody>
@@ -112,171 +127,143 @@ const FleetReport: React.FC<{ fleetData: ReportsPageProps['data']['fleet'] }> = 
 };
 
 const FinancialsReport: React.FC<{ financialsData: ReportsPageProps['data']['financials'] }> = ({ financialsData }) => {
-    const summary = useMemo(() => {
-        const totalRevenue = financialsData.invoices
-            .filter(inv => inv.status === InvoiceStatus.PAID || inv.status === InvoiceStatus.PARTIAL)
-            .reduce((sum, inv) => sum + inv.amount_paid, 0);
-        const totalExpenses = financialsData.expenses.reduce((sum, exp) => sum + exp.amount_in_base_currency, 0);
-        const netProfit = totalRevenue - totalExpenses;
-        return { totalRevenue, totalExpenses, netProfit };
-    }, [financialsData]);
-
     const monthlyPerformance = useMemo(() => {
         const data: { [key: string]: { Revenue: number, Expenses: number }} = {};
-        const processDate = (dateStr: string) => new Date(dateStr).toLocaleString('default', { month: 'short', year: 'numeric' });
+        const processDate = (dateStr: string) => new Date(dateStr).toLocaleString('default', { month: 'short' });
         
+        // Initialize last 6 months
+        for (let i = 5; i >= 0; i--) {
+            const d = new Date();
+            d.setMonth(d.getMonth() - i);
+            const month = d.toLocaleString('default', { month: 'short' });
+            data[month] = { Revenue: 0, Expenses: 0 };
+        }
+
         financialsData.invoices.forEach(inv => {
-            if(inv.paid_at) {
-                const month = processDate(inv.paid_at);
-                if (!data[month]) data[month] = { Revenue: 0, Expenses: 0 };
-                data[month].Revenue += inv.amount_paid;
+            if(inv.issue_date) {
+                const month = processDate(inv.issue_date);
+                if (data[month]) data[month].Revenue += inv.total_amount;
             }
         });
         financialsData.expenses.forEach(exp => {
-            const month = processDate(exp.expense_date);
-            if (!data[month]) data[month] = { Revenue: 0, Expenses: 0 };
-            data[month].Expenses += exp.amount_in_base_currency;
+            if (exp.expense_date) {
+                const month = processDate(exp.expense_date);
+                if (data[month]) data[month].Expenses += exp.amount_in_base_currency;
+            }
         });
 
-        return Object.entries(data).map(([name, values]) => ({ name, ...values })).slice(-6);
+        return Object.entries(data).map(([name, values]) => ({ name, ...values }));
     }, [financialsData]);
-    
-    const expenseCategories = useMemo(() => {
-        const categories = financialsData.expenses.reduce((acc, exp) => {
-            const category = exp.expense_category.charAt(0).toUpperCase() + exp.expense_category.slice(1);
-            acc[category] = (acc[category] || 0) + exp.amount_in_base_currency;
-            return acc;
-        }, {} as Record<string, number>);
-        return Object.entries(categories).map(([name, value]) => ({name, value}));
-    }, [financialsData]);
-    
-    const COLORS = ['#EF4444', '#F59E0B', '#84CC16', '#3B82F6', '#8B5CF6', '#EC4899'];
+
+    const totalRevenue = financialsData.invoices.reduce((sum, inv) => sum + inv.total_amount, 0);
+    const totalExpenses = financialsData.expenses.reduce((sum, exp) => sum + exp.amount_in_base_currency, 0);
+    const netProfit = totalRevenue - totalExpenses;
 
     return (
-        <div className="space-y-6">
-             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <StatCard label="Total Revenue" value={summary.totalRevenue.toLocaleString('en-US', {style: 'currency', currency: 'USD'})} />
-                <StatCard label="Total Expenses" value={summary.totalExpenses.toLocaleString('en-US', {style: 'currency', currency: 'USD'})} />
-                <StatCard label="Net Profit" value={summary.netProfit.toLocaleString('en-US', {style: 'currency', currency: 'USD'})} />
-            </div>
-             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <SubtleCard className="p-4">
-                    <h3 className="text-sm font-semibold mb-4">Monthly Performance</h3>
-                    <ResponsiveContainer width="100%" height={300}>
-                        <BarChart data={monthlyPerformance}>
-                            <CartesianGrid strokeDasharray="3 3" vertical={false}/>
-                            <XAxis dataKey="name" tick={{fontSize: 10}}/>
-                            <YAxis tickFormatter={(value) => `$${(value as number / 1000)}k`} tick={{fontSize: 10}}/>
-                            <Tooltip formatter={(value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value)} />
-                            <Legend wrapperStyle={{fontSize: "12px"}}/>
-                            <Bar dataKey="Revenue" fill="#10B981" radius={[4, 4, 0, 0]} />
-                            <Bar dataKey="Expenses" fill="#EF4444" radius={[4, 4, 0, 0]} />
-                        </BarChart>
-                    </ResponsiveContainer>
+        <div className="space-y-6 animate-in fade-in duration-500">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <SubtleCard className="p-4 border-l-4 border-emerald-500">
+                    <p className="text-xs font-bold uppercase tracking-wide text-slate-400">Total Revenue</p>
+                    <p className="text-2xl font-bold text-slate-900 mt-1">{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(totalRevenue)}</p>
                 </SubtleCard>
-                <SubtleCard className="p-4">
-                     <h3 className="text-sm font-semibold mb-4">Top Expense Categories</h3>
-                    <ResponsiveContainer width="100%" height={300}>
-                        <PieChart>
-                             <Pie data={expenseCategories} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={60} outerRadius={100} paddingAngle={5}>
-                                {expenseCategories.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}
-                            </Pie>
-                            <Tooltip formatter={(value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value)} />
-                             <Legend wrapperStyle={{fontSize: "12px"}}/>
-                        </PieChart>
-                    </ResponsiveContainer>
+                <SubtleCard className="p-4 border-l-4 border-rose-500">
+                    <p className="text-xs font-bold uppercase tracking-wide text-slate-400">Total Expenses</p>
+                    <p className="text-2xl font-bold text-slate-900 mt-1">{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(totalExpenses)}</p>
+                </SubtleCard>
+                <SubtleCard className={`p-4 border-l-4 ${netProfit >= 0 ? 'border-blue-500' : 'border-amber-500'}`}>
+                    <p className="text-xs font-bold uppercase tracking-wide text-slate-400">Net Profit</p>
+                    <p className={`text-2xl font-bold mt-1 ${netProfit >= 0 ? 'text-blue-700' : 'text-amber-700'}`}>{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(netProfit)}</p>
                 </SubtleCard>
             </div>
+
+            <SubtleCard className="p-6 flex flex-col h-[400px]">
+                <h3 className="text-sm font-semibold mb-6 text-slate-700">Revenue vs Expenses (6 Months)</h3>
+                <div className="flex-1">
+                    <ResponsiveContainer width="100%" height="100%">
+                        <ComposedChart data={monthlyPerformance} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                            <XAxis dataKey="name" stroke="#94a3b8" fontSize={12} />
+                            <YAxis stroke="#94a3b8" fontSize={12} tickFormatter={(val) => `$${val/1000}k`} />
+                            <Tooltip 
+                                contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                                formatter={(value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value)}
+                            />
+                            <Legend verticalAlign="top" height={36}/>
+                            <Bar dataKey="Revenue" barSize={20} fill="#10B981" radius={[4, 4, 0, 0]} />
+                            <Bar dataKey="Expenses" barSize={20} fill="#F43F5E" radius={[4, 4, 0, 0]} />
+                            <Area type="monotone" dataKey="Revenue" fill="none" stroke="#10B981" strokeWidth={2} />
+                        </ComposedChart>
+                    </ResponsiveContainer>
+                </div>
+            </SubtleCard>
         </div>
     );
 };
 
 const SalesReport: React.FC<{ crmData: ReportsPageProps['data']['crm'] }> = ({ crmData }) => {
-    const salesMetrics = useMemo(() => {
-        const won = crmData.opportunities.filter(o => o.stage === OpportunityStage.CLOSED_WON);
-        const lost = crmData.opportunities.filter(o => o.stage === OpportunityStage.CLOSED_LOST);
-        const totalClosed = won.length + lost.length;
-        const conversionRate = totalClosed > 0 ? (won.length / totalClosed) * 100 : 0;
-        const totalValueWon = won.reduce((sum, o) => sum + o.expected_value, 0);
-        const avgDealSize = won.length > 0 ? totalValueWon / won.length : 0;
-        return { conversionRate, totalValueWon, avgDealSize, dealsWon: won.length };
+    const funnelData = useMemo(() => {
+        const stages = [OpportunityStage.PROSPECTING, OpportunityStage.QUALIFICATION, OpportunityStage.PROPOSAL, OpportunityStage.NEGOTIATION, OpportunityStage.CLOSED_WON];
+        return stages.map(stage => ({
+            name: stage.replace(/_/g, ' '),
+            value: crmData.opportunities.filter(o => o.stage === stage).length,
+            fill: stage === OpportunityStage.CLOSED_WON ? '#10B981' : '#6366f1'
+        })).filter(d => d.value > 0);
     }, [crmData]);
 
-    const funnelData = useMemo(() => {
-        const stageOrder = [OpportunityStage.PROSPECTING, OpportunityStage.QUALIFICATION, OpportunityStage.PROPOSAL, OpportunityStage.NEGOTIATION, OpportunityStage.CLOSED_WON];
-        const counts = crmData.opportunities.reduce((acc, o) => {
-            acc[o.stage] = (acc[o.stage] || 0) + 1;
+    const leadSourceData = useMemo(() => {
+        const sources = crmData.leads.reduce((acc, lead) => {
+            acc[lead.lead_source] = (acc[lead.lead_source] || 0) + 1;
             return acc;
         }, {} as Record<string, number>);
-        
-        return stageOrder.map(stage => ({
-            value: counts[stage] || 0,
-            name: stage.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
-            fill: '#' + Math.floor(Math.random()*16777215).toString(16), // random color
-        }));
-    }, [crmData]);
-    
-    const repPerformance = useMemo(() => {
-        const performance: { [key: number]: { dealsWon: number, totalRevenue: number } } = {};
-        crmData.opportunities.forEach(opp => {
-            if(opp.stage === OpportunityStage.CLOSED_WON) {
-                if(!performance[opp.assigned_to]) performance[opp.assigned_to] = { dealsWon: 0, totalRevenue: 0 };
-                performance[opp.assigned_to].dealsWon += 1;
-                performance[opp.assigned_to].totalRevenue += opp.expected_value;
-            }
-        });
-        return Object.entries(performance).map(([repId, data]) => {
-            const rep = crmData.salesReps.find(r => r.id === parseInt(repId));
-            return {
-                name: rep ? `${rep.first_name} ${rep.last_name}` : `User ${repId}`,
-                ...data
-            }
-        }).sort((a,b) => b.totalRevenue - a.totalRevenue);
+        return Object.entries(sources).map(([name, value]) => ({ name: name.replace(/_/g, ' '), value }));
     }, [crmData]);
 
+    const COLORS = ['#818CF8', '#34D399', '#FBBF24', '#F472B6', '#60A5FA'];
 
     return (
-        <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <StatCard label="Conversion Rate" value={`${salesMetrics.conversionRate.toFixed(1)}%`} sublabel="Of all closed deals" />
-                <StatCard label="Total Revenue Won" value={salesMetrics.totalValueWon.toLocaleString('en-US', {style: 'currency', currency: 'USD'})} />
-                <StatCard label="Average Deal Size" value={salesMetrics.avgDealSize.toLocaleString('en-US', {style: 'currency', currency: 'USD'})} />
-                <StatCard label="Deals Won" value={salesMetrics.dealsWon} />
-            </div>
+        <div className="space-y-6 animate-in fade-in duration-500">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                 <SubtleCard className="p-4">
-                    <h3 className="text-sm font-semibold mb-4">Sales Funnel</h3>
-                    <ResponsiveContainer width="100%" height={350}>
-                        <FunnelChart>
-                            <Tooltip />
-                            <Funnel dataKey="value" data={funnelData} isAnimationActive>
-                                <LabelList position="right" fill="#000" stroke="none" dataKey="name" />
-                            </Funnel>
-                        </FunnelChart>
-                    </ResponsiveContainer>
+                <SubtleCard className="p-4 flex flex-col">
+                    <h3 className="text-sm font-semibold mb-4 text-slate-700">Opportunity Pipeline</h3>
+                    <div className="flex-1 min-h-[300px]">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={funnelData} layout="vertical" margin={{ top: 5, right: 30, left: 40, bottom: 5 }}>
+                                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e2e8f0" />
+                                <XAxis type="number" hide />
+                                <YAxis dataKey="name" type="category" width={100} tick={{fontSize: 11}} stroke="#64748b" />
+                                <Tooltip cursor={{fill: '#f8fafc'}} contentStyle={{ borderRadius: '8px', border: 'none' }} />
+                                <Bar dataKey="value" fill="#6366f1" radius={[0, 4, 4, 0]} barSize={30}>
+                                    {funnelData.map((entry, index) => (
+                                        <Cell key={`cell-${index}`} fill={entry.fill} />
+                                    ))}
+                                </Bar>
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
                 </SubtleCard>
-                 <SubtleCard className="p-4">
-                     <h3 className="text-sm font-semibold mb-4">Sales Rep Performance</h3>
-                     <div className="overflow-x-auto">
-                         <table className="min-w-full text-sm">
-                             <thead className="text-xs uppercase text-slate-500">
-                                 <tr>
-                                     <th className="px-3 py-2">Sales Rep</th>
-                                     <th className="px-3 py-2 text-right">Deals Won</th>
-                                     <th className="px-3 py-2 text-right">Total Revenue</th>
-                                 </tr>
-                             </thead>
-                             <tbody className="divide-y divide-slate-100">
-                                 {repPerformance.map(rep => (
-                                     <tr key={rep.name}>
-                                         <td className="px-3 py-2 font-medium">{rep.name}</td>
-                                         <td className="px-3 py-2 text-right">{rep.dealsWon}</td>
-                                         <td className="px-3 py-2 text-right font-semibold text-emerald-600">{rep.totalRevenue.toLocaleString('en-US', {style: 'currency', currency: 'USD'})}</td>
-                                     </tr>
-                                 ))}
-                             </tbody>
-                         </table>
-                     </div>
+                
+                <SubtleCard className="p-4 flex flex-col">
+                    <h3 className="text-sm font-semibold mb-4 text-slate-700">Lead Sources</h3>
+                    <div className="flex-1 min-h-[300px]">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <PieChart>
+                                <Pie 
+                                    data={leadSourceData} 
+                                    dataKey="value" 
+                                    nameKey="name" 
+                                    cx="50%" 
+                                    cy="50%" 
+                                    innerRadius={60} 
+                                    outerRadius={80} 
+                                    paddingAngle={5}
+                                >
+                                    {leadSourceData.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}
+                                </Pie>
+                                <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
+                                <Legend wrapperStyle={{fontSize: "12px"}} />
+                            </PieChart>
+                        </ResponsiveContainer>
+                    </div>
                 </SubtleCard>
             </div>
         </div>
@@ -284,55 +271,98 @@ const SalesReport: React.FC<{ crmData: ReportsPageProps['data']['crm'] }> = ({ c
 };
 
 const ReportsPage: React.FC<ReportsPageProps> = ({ data }) => {
-  const [activeTab, setActiveTab] = useState('fleet');
+  const [activeTab, setActiveTab] = useState<ReportTab>('fleet');
 
-  const renderContent = () => {
-    switch (activeTab) {
-      case 'fleet': return <FleetReport fleetData={data.fleet} />;
-      case 'financials': return <FinancialsReport financialsData={data.financials} />;
-      case 'sales': return <SalesReport crmData={data.crm} />;
-      default: return null;
+  const handleExport = () => {
+    const wb = XLSX.utils.book_new();
+    let dataToExport: any[] = [];
+    let fileName = 'report';
+
+    if (activeTab === 'fleet') {
+        dataToExport = data.fleet.vehicles.map(v => ({
+            Registration: v.registration_number,
+            Make: v.make,
+            Model: v.model,
+            Status: v.status,
+            'Current KM': v.current_km,
+            'Next Service': v.next_service_due_km
+        }));
+        fileName = 'fleet_report';
+    } else if (activeTab === 'financials') {
+        dataToExport = data.financials.invoices.map(i => ({
+            'Invoice #': i.invoice_number,
+            Date: i.issue_date,
+            Total: i.total_amount,
+            Status: i.status,
+            Customer: i.customer_id
+        }));
+        fileName = 'financial_report';
+    } else if (activeTab === 'sales') {
+        dataToExport = data.crm.leads.map(l => ({
+            Name: `${l.first_name} ${l.last_name}`,
+            Company: l.company_name,
+            Status: l.lead_status,
+            Source: l.lead_source,
+            Score: l.lead_score
+        }));
+        fileName = 'sales_report';
     }
+
+    const ws = XLSX.utils.json_to_sheet(dataToExport);
+    XLSX.utils.book_append_sheet(wb, ws, activeTab.toUpperCase());
+    XLSX.writeFile(wb, `${fileName}_${new Date().toISOString().split('T')[0]}.xlsx`);
   };
 
-  const tabs = [
-    { id: 'fleet', label: 'Fleet Efficiency' },
-    { id: 'financials', label: 'Financial Performance' },
-    { id: 'sales', label: 'Sales Pipeline Analysis' },
-  ];
-
   return (
-    <ShellCard className="p-0 flex flex-col">
-      <div className="px-4 pt-4 border-b border-slate-100">
-        <SectionHeader
-          title="Reports & Analytics"
-          subtitle="Export and review performance over time"
-          actions={
-            <button className="flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-orange-500 text-white text-xs font-medium hover:bg-orange-600 transition">
-              Export
+    <ShellCard className="flex flex-col min-h-[80vh]">
+      {/* Unified Toolbar Header */}
+      <div className="p-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white rounded-t-2xl">
+        {/* Segmented Control */}
+        <div className="flex p-1 bg-slate-100 rounded-lg self-start sm:self-auto">
+            <button
+                onClick={() => setActiveTab('fleet')}
+                className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${activeTab === 'fleet' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+            >
+                <div className="flex items-center gap-2">
+                    <TruckIcon className="w-4 h-4" />
+                    <span>Fleet Efficiency</span>
+                </div>
             </button>
-          }
-        />
-        <div className="mt-4">
-          <div className="flex space-x-4">
-            {tabs.map(tab => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`px-3 py-2 text-sm font-medium rounded-t-lg transition-colors ${
-                  activeTab === tab.id
-                    ? 'border-b-2 border-orange-500 text-orange-600 bg-orange-50'
-                    : 'text-slate-500 hover:text-slate-700'
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
+            <button
+                onClick={() => setActiveTab('financials')}
+                className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${activeTab === 'financials' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+            >
+                <div className="flex items-center gap-2">
+                    <CreditCardIcon className="w-4 h-4" />
+                    <span>Financials</span>
+                </div>
+            </button>
+            <button
+                onClick={() => setActiveTab('sales')}
+                className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${activeTab === 'sales' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+            >
+                <div className="flex items-center gap-2">
+                    <BriefcaseIcon className="w-4 h-4" />
+                    <span>Sales Pipeline</span>
+                </div>
+            </button>
         </div>
+
+        {/* Actions */}
+        <button
+            onClick={handleExport}
+            className="flex items-center justify-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-orange-600 transition shadow-sm"
+        >
+            <DownloadIcon className="w-4 h-4" />
+            <span>Export Report</span>
+        </button>
       </div>
-      <div className="p-6 bg-slate-50/50 flex-1">
-        {renderContent()}
+
+      {/* Content Area */}
+      <div className="p-6 flex-1 bg-slate-50/30">
+        {activeTab === 'fleet' && <FleetReport fleetData={data.fleet} />}
+        {activeTab === 'financials' && <FinancialsReport financialsData={data.financials} />}
+        {activeTab === 'sales' && <SalesReport crmData={data.crm} />}
       </div>
     </ShellCard>
   );

@@ -5,7 +5,7 @@ type DivProps = React.HTMLAttributes<HTMLDivElement>;
 export const ShellCard: React.FC<DivProps> = ({ className = "", ...props }) => (
   <div
     className={
-      "rounded-2xl bg-white shadow-sm ring-1 ring-slate-100 " + className
+      "rounded-2xl bg-white shadow-md border border-slate-200/60 " + className
     }
     {...props}
   />
@@ -14,7 +14,7 @@ export const ShellCard: React.FC<DivProps> = ({ className = "", ...props }) => (
 export const SubtleCard: React.FC<DivProps> = ({ className = "", ...props }) => (
   <div
     className={
-      "rounded-xl bg-slate-50/70 ring-1 ring-slate-100 " + className
+      "rounded-xl bg-slate-50/80 border border-slate-200/80 " + className
     }
     {...props}
   />
@@ -27,7 +27,7 @@ export const SectionHeader: React.FC<{ title: string; subtitle?: string; actions
 }) => (
   <div className="flex items-start justify-between gap-4">
     <div className="flex-1">
-      <h2 className="text-sm font-semibold text-slate-900">{title}</h2>
+      <h2 className="text-sm font-semibold text-slate-900 tracking-tight">{title}</h2>
       {subtitle && (
         <p className="mt-0.5 text-xs text-slate-500">{subtitle}</p>
       )}
@@ -42,18 +42,18 @@ export const StatusPill: React.FC<{
   tone?: "success" | "warn" | "danger" | "info" | "neutral";
 }> = ({ label, tone = "neutral" }) => {
   const base =
-    "inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium capitalize";
+    "inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium capitalize border";
 
   const toneClass =
     tone === "success"
-      ? "bg-emerald-50 text-emerald-700"
+      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
       : tone === "warn"
-      ? "bg-amber-50 text-amber-800"
+      ? "bg-amber-50 text-amber-800 border-amber-200"
       : tone === "danger"
-      ? "bg-rose-50 text-rose-700"
+      ? "bg-rose-50 text-rose-700 border-rose-200"
       : tone === "info"
-      ? "bg-sky-50 text-sky-700"
-      : "bg-slate-50 text-slate-700";
+      ? "bg-sky-50 text-sky-700 border-sky-200"
+      : "bg-slate-50 text-slate-600 border-slate-200";
 
   return <span className={base + " " + toneClass}>{label}</span>;
 };

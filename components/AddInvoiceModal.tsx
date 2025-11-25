@@ -1,7 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { Invoice, InvoiceType, InvoiceStatus, Currency, Booking } from '../types';
-import { CloseIcon } from './icons/Icons';
+import { CloseIcon, CalendarDaysIcon, UserCircleIcon, DocumentTextIcon, BanknotesIcon, CalculatorIcon } from './icons/Icons';
+import { mockCustomers } from '../data/mockCrmData';
 
 interface AddInvoiceModalProps {
   onClose: () => void;
@@ -59,7 +60,7 @@ const AddInvoiceModal: React.FC<AddInvoiceModalProps> = ({ onClose, onAddInvoice
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.customer_id || !formData.total_amount) {
-      setError('Customer ID and Total Amount are required.');
+      setError('Customer and Total Amount are required.');
       return;
     }
     setError('');
@@ -75,47 +76,150 @@ const AddInvoiceModal: React.FC<AddInvoiceModalProps> = ({ onClose, onAddInvoice
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center p-4" onClick={onClose}>
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl flex flex-col max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
-        <header className="flex justify-between items-center p-4 border-b">
-          <h2 className="text-xl font-bold">Add New Invoice</h2>
-          <button onClick={onClose} className="p-1 rounded-full hover:bg-gray-200"><CloseIcon className="w-6 h-6" /></button>
+    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] flex justify-center items-center p-4 animate-in fade-in duration-200" onClick={onClose}>
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl flex flex-col max-h-[90vh] border border-slate-200" onClick={(e) => e.stopPropagation()}>
+        <header className="flex justify-between items-center px-6 py-4 border-b border-slate-100 bg-slate-50/50 rounded-t-2xl">
+          <div>
+            <h2 className="text-lg font-bold text-slate-900">Draft New Invoice</h2>
+            <p className="text-xs text-slate-500 mt-0.5">Create a financial record for a client</p>
+          </div>
+          <button onClick={onClose} className="p-2 rounded-full hover:bg-slate-200/60 text-slate-500 transition-colors">
+            <CloseIcon className="w-5 h-5" />
+          </button>
         </header>
-        <form onSubmit={handleSubmit}>
-          <main className="p-6 space-y-4 overflow-y-auto">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Invoice Number</label>
-                <input type="text" value={formData.invoice_number} disabled className="mt-1 block w-full shadow-sm sm:text-sm bg-gray-200 text-gray-500 border-gray-300 rounded-md" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Customer ID*</label>
-                <input type="number" name="customer_id" value={formData.customer_id} onChange={handleChange} readOnly={!!booking} className={`mt-1 block w-full rounded-md border shadow-sm sm:text-sm ${!!booking ? 'bg-gray-200 text-gray-500 border-gray-300' : 'bg-white text-gray-900 border-gray-300 focus:border-orange-500 focus:ring-orange-500'}`} />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Issue Date</label>
-                <input type="date" name="issue_date" value={formData.issue_date} onChange={handleChange} className="mt-1 block w-full rounded-md border border-gray-300 bg-white text-gray-900 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Due Date</label>
-                <input type="date" name="due_date" value={formData.due_date} onChange={handleChange} className="mt-1 block w-full rounded-md border border-gray-300 bg-white text-gray-900 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Total Amount*</label>
-                <input type="number" name="total_amount" placeholder="0.00" value={formData.total_amount} onChange={handleChange} readOnly={!!booking} className={`mt-1 block w-full rounded-md border shadow-sm sm:text-sm ${!!booking ? 'bg-gray-200 text-gray-500 border-gray-300' : 'bg-white text-gray-900 border-gray-300 focus:border-orange-500 focus:ring-orange-500'}`} />
-              </div>
-               <div>
-                <label className="block text-sm font-medium text-gray-700">Currency</label>
-                <select name="currency" value={formData.currency} onChange={handleChange} disabled={!!booking} className={`mt-1 block w-full rounded-md border border-gray-300 pl-3 pr-10 py-2 text-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 ${!!booking ? 'bg-gray-200 text-gray-500' : 'bg-white text-gray-900'}`}>
-                    {Object.values(Currency).map(c => <option key={c} value={c}>{c}</option>)}
-                </select>
-              </div>
+        
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto custom-scrollbar">
+          <main className="p-6 space-y-8">
+            
+            {/* Invoice Meta */}
+            <div className="space-y-4">
+                <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
+                    <DocumentTextIcon className="w-4 h-4" />
+                    Invoice Details
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="bg-slate-50 rounded-lg border border-slate-200 p-3">
+                        <label className="block text-xs font-medium text-slate-500 mb-1">Invoice Number</label>
+                        <input 
+                            type="text" 
+                            value={formData.invoice_number} 
+                            disabled 
+                            className="block w-full bg-transparent border-none p-0 text-sm font-bold text-slate-700 focus:ring-0" 
+                        />
+                    </div>
+                    <div></div> {/* Spacer */}
+                    
+                    <div>
+                        <label className="block text-xs font-medium text-slate-700 mb-1 flex items-center gap-1"><CalendarDaysIcon className="w-3 h-3"/> Issue Date</label>
+                        <input 
+                            type="date" 
+                            name="issue_date" 
+                            value={formData.issue_date} 
+                            onChange={handleChange} 
+                            className="block w-full rounded-lg border-slate-200 text-sm focus:border-orange-500 focus:ring-orange-500 text-slate-600" 
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-xs font-medium text-slate-700 mb-1 flex items-center gap-1"><CalendarDaysIcon className="w-3 h-3"/> Due Date</label>
+                        <input 
+                            type="date" 
+                            name="due_date" 
+                            value={formData.due_date} 
+                            onChange={handleChange} 
+                            className="block w-full rounded-lg border-slate-200 text-sm focus:border-orange-500 focus:ring-orange-500 text-slate-600" 
+                        />
+                    </div>
+                </div>
             </div>
-            {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+
+            <hr className="border-slate-100" />
+
+            {/* Bill To */}
+            <div className="space-y-4">
+                <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
+                    <UserCircleIcon className="w-4 h-4" />
+                    Bill To
+                </h3>
+                <div>
+                    <label className="block text-xs font-medium text-slate-700 mb-1">Customer*</label>
+                    <select 
+                        name="customer_id" 
+                        value={formData.customer_id} 
+                        onChange={handleChange} 
+                        disabled={!!booking}
+                        className={`block w-full rounded-lg border-slate-200 text-sm focus:border-orange-500 focus:ring-orange-500 ${!!booking ? 'bg-slate-50 text-slate-500' : 'bg-white'}`}
+                    >
+                        <option value="">Select a Customer</option>
+                        {mockCustomers.map(c => (
+                            <option key={c.id} value={c.id}>{c.company_name}</option>
+                        ))}
+                    </select>
+                </div>
+            </div>
+
+            <hr className="border-slate-100" />
+
+            {/* Financials */}
+            <div className="space-y-4">
+                <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
+                    <BanknotesIcon className="w-4 h-4" />
+                    Payment Details
+                </h3>
+                
+                <div className="bg-slate-50 rounded-xl border border-slate-200 p-4 space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-xs font-medium text-slate-500 mb-1">Subtotal</label>
+                            <input type="number" name="subtotal" placeholder="0.00" value={formData.subtotal} onChange={handleChange} className="block w-full rounded-lg border-slate-200 text-sm focus:border-orange-500 focus:ring-orange-500 text-right" />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-medium text-slate-500 mb-1">Tax Amount</label>
+                            <input type="number" name="tax_amount" placeholder="0.00" value={formData.tax_amount} onChange={handleChange} className="block w-full rounded-lg border-slate-200 text-sm focus:border-orange-500 focus:ring-orange-500 text-right" />
+                        </div>
+                         <div>
+                            <label className="block text-xs font-medium text-slate-500 mb-1">Discount</label>
+                            <input type="number" name="discount_amount" placeholder="0.00" value={formData.discount_amount} onChange={handleChange} className="block w-full rounded-lg border-slate-200 text-sm focus:border-orange-500 focus:ring-orange-500 text-right" />
+                        </div>
+                         <div>
+                            <label className="block text-xs font-medium text-slate-500 mb-1">Currency</label>
+                            <select name="currency" value={formData.currency} onChange={handleChange} disabled={!!booking} className="block w-full rounded-lg border-slate-200 text-sm focus:border-orange-500 focus:ring-orange-500 text-right">
+                                {Object.values(Currency).map(c => <option key={c} value={c}>{c}</option>)}
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div className="pt-3 border-t border-slate-200">
+                        <div className="flex items-center justify-between">
+                            <label className="block text-sm font-bold text-slate-900 flex items-center gap-2">
+                                <CalculatorIcon className="w-4 h-4 text-orange-500" />
+                                Total Amount*
+                            </label>
+                            <div className="relative w-1/2">
+                                 <input 
+                                    type="number" 
+                                    name="total_amount" 
+                                    placeholder="0.00" 
+                                    value={formData.total_amount} 
+                                    onChange={handleChange} 
+                                    readOnly={!!booking}
+                                    className={`block w-full rounded-lg border-slate-200 text-lg font-bold text-slate-900 text-right focus:border-orange-500 focus:ring-orange-500 ${!!booking ? 'bg-slate-100' : 'bg-white'}`}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {error && (
+                 <div className="bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-lg text-sm text-center">
+                    {error}
+                </div>
+            )}
           </main>
-          <footer className="p-4 bg-gray-50 border-t flex justify-end space-x-3">
-            <button type="button" onClick={onClose} className="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50">Cancel</button>
-            <button type="submit" className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700">Add Invoice</button>
+          
+          <footer className="px-6 py-4 border-t border-slate-100 bg-slate-50/50 rounded-b-2xl flex justify-end gap-3">
+            <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg border border-slate-200 bg-white text-slate-700 text-sm font-medium hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-200 transition-colors">Cancel</button>
+            <button type="submit" className="px-6 py-2 rounded-lg bg-orange-500 text-white text-sm font-semibold hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 shadow-sm shadow-orange-200 transition-all">Generate Invoice</button>
           </footer>
         </form>
       </div>

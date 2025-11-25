@@ -1,11 +1,13 @@
 
 import React, { useState, useMemo } from 'react';
 import { Vehicle, VehicleExpense, ExpenseType, Currency, VehicleDocument, DocumentType } from '../types';
-import { mockMaintenance } from '../data/mockData';
-import { CogIcon, CurrencyDollarIcon, GaugeIcon, PlusIcon, RoadIcon, WrenchIcon, FuelIcon, ShieldCheckIcon, ClipboardDocumentIcon, TicketIcon, DocumentDuplicateIcon, TrashIcon, UploadIcon, DocumentTextIcon, CalendarDaysIcon } from './icons/Icons';
-import { ShellCard, SubtleCard } from "./UiKit";
+import { mockMaintenance, mockGpsLocations } from '../data/mockData';
+import { CogIcon, CurrencyDollarIcon, GaugeIcon, PlusIcon, RoadIcon, WrenchIcon, FuelIcon, ShieldCheckIcon, ClipboardDocumentIcon, TicketIcon, DocumentDuplicateIcon, TrashIcon, UploadIcon, DocumentTextIcon, CalendarDaysIcon, MapPinIcon } from './icons/Icons';
+import { ShellCard, SubtleCard, StatusPill } from "./UiKit";
 import AddDocumentModal from './AddDocumentModal';
 import ConfirmModal from './ConfirmModal';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import * as L from 'leaflet';
 
 interface VehicleDetailsProps {
   vehicle: Vehicle;
@@ -14,93 +16,39 @@ interface VehicleDetailsProps {
   onDeleteVehicle: () => void;
 }
 
-const StatCard: React.FC<{ icon: React.ReactNode; label: string; value: string | number }> = ({ icon, label, value }) => (
-  <SubtleCard 
-    className="flex items-center gap-3 px-4 py-3 hover:bg-slate-100 transition cursor-pointer" 
-    onClick={() => alert(`Viewing details for ${label}`)}
-  >
-    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-orange-50 text-orange-500 flex-shrink-0">
-      {icon}
+const StatItem: React.FC<{ icon: React.ReactNode; label: string; value: string | number; subtext?: string }> = ({ icon, label, value, subtext }) => (
+  <div className="flex flex-col p-4 bg-white rounded-xl border border-slate-100 shadow-sm hover:border-orange-200 transition-colors group min-w-0">
+    <div className="flex items-center gap-3 mb-2">
+        <div className="p-2 rounded-lg bg-slate-50 text-slate-500 group-hover:bg-orange-50 group-hover:text-orange-600 transition-colors flex-shrink-0">
+            {icon}
+        </div>
+        <span className="text-xs font-bold text-slate-400 uppercase tracking-wider truncate">{label}</span>
     </div>
-    <div>
-      <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
-        {label}
-      </p>
-      <p className="mt-1 text-lg font-semibold text-slate-900">
-        {value}
-      </p>
-    </div>
-  </SubtleCard>
+    <p className="text-lg font-bold text-slate-900 truncate" title={String(value)}>{value}</p>
+    {subtext && <p className="text-xs text-slate-500 mt-0.5 truncate">{subtext}</p>}
+  </div>
 );
-
 
 const getExpenseTypeUI = (type: ExpenseType) => {
     switch(type) {
-        case ExpenseType.FUEL:
-            return { icon: <FuelIcon className="w-5 h-5" />, color: 'text-red-600', bgColor: 'bg-red-100' };
-        case ExpenseType.MAINTENANCE:
-            return { icon: <WrenchIcon className="w-5 h-5" />, color: 'text-yellow-600', bgColor: 'bg-yellow-100' };
-        case ExpenseType.INSURANCE:
-            return { icon: <ShieldCheckIcon className="w-5 h-5" />, color: 'text-blue-600', bgColor: 'bg-blue-100' };
-        case ExpenseType.LICENSE:
-            return { icon: <ClipboardDocumentIcon className="w-5 h-5" />, color: 'text-indigo-600', bgColor: 'bg-indigo-100' };
-        case ExpenseType.TOLLS:
-        case ExpenseType.PARKING:
-            return { icon: <TicketIcon className="w-5 h-5" />, color: 'text-purple-600', bgColor: 'bg-purple-100' };
-        case ExpenseType.OTHER:
-        default:
-            return { icon: <DocumentDuplicateIcon className="w-5 h-5" />, color: 'text-gray-600', bgColor: 'bg-gray-100' };
+        case ExpenseType.FUEL: return { icon: <FuelIcon className="w-4 h-4" />, color: 'text-red-600', bgColor: 'bg-red-50', borderColor: 'border-red-100' };
+        case ExpenseType.MAINTENANCE: return { icon: <WrenchIcon className="w-4 h-4" />, color: 'text-amber-600', bgColor: 'bg-amber-50', borderColor: 'border-amber-100' };
+        case ExpenseType.INSURANCE: return { icon: <ShieldCheckIcon className="w-4 h-4" />, color: 'text-blue-600', bgColor: 'bg-blue-50', borderColor: 'border-blue-100' };
+        default: return { icon: <DocumentDuplicateIcon className="w-4 h-4" />, color: 'text-slate-600', bgColor: 'bg-slate-50', borderColor: 'border-slate-100' };
     }
 }
 
-
 const VehicleDetails: React.FC<VehicleDetailsProps> = ({ vehicle, expenses, onAddExpenseClick, onDeleteVehicle }) => {
   const [filterType, setFilterType] = useState('all');
-  const [customStartDate, setCustomStartDate] = useState('');
-  const [customEndDate, setCustomEndDate] = useState('');
   const [isAddDocumentModalOpen, setIsAddDocumentModalOpen] = useState(false);
   const [isDeleteVehicleModalOpen, setIsDeleteVehicleModalOpen] = useState(false);
   const [documentToDelete, setDocumentToDelete] = useState<number | null>(null);
 
-  // Initialize documents with some data based on vehicle properties for demonstration
   const [documents, setDocuments] = useState<VehicleDocument[]>(() => {
     const docs: VehicleDocument[] = [];
     let idCounter = 1;
     if (vehicle.insurance_expiry_date) {
-        docs.push({
-            id: idCounter++,
-            vehicle_id: vehicle.id,
-            document_type: DocumentType.INSURANCE,
-            document_name: `Insurance - ${vehicle.insurance_provider || 'Policy'}`,
-            file_url: '#',
-            expiry_date: vehicle.insurance_expiry_date,
-            uploaded_at: vehicle.updated_at,
-            uploaded_by: 1
-        });
-    }
-    if (vehicle.license_disc_expiry) {
-        docs.push({
-            id: idCounter++,
-            vehicle_id: vehicle.id,
-            document_type: DocumentType.LICENSE_DISC,
-            document_name: `License Disc`,
-            file_url: '#',
-            expiry_date: vehicle.license_disc_expiry,
-            uploaded_at: vehicle.updated_at,
-            uploaded_by: 1
-        });
-    }
-    if (vehicle.fitness_certificate_expiry) {
-        docs.push({
-            id: idCounter++,
-            vehicle_id: vehicle.id,
-            document_type: DocumentType.FITNESS,
-            document_name: `Fitness Certificate`,
-            file_url: '#',
-            expiry_date: vehicle.fitness_certificate_expiry,
-            uploaded_at: vehicle.updated_at,
-            uploaded_by: 1
-        });
+        docs.push({ id: idCounter++, vehicle_id: vehicle.id, document_type: DocumentType.INSURANCE, document_name: `Insurance Policy`, file_url: '#', expiry_date: vehicle.insurance_expiry_date, uploaded_at: vehicle.updated_at, uploaded_by: 1 });
     }
     return docs;
   });
@@ -109,79 +57,28 @@ const VehicleDetails: React.FC<VehicleDetailsProps> = ({ vehicle, expenses, onAd
   
   const filteredExpenses = useMemo(() => {
     const expenseHistory = expenses.filter((e) => e.vehicle_id === vehicle.id);
-
-    if (filterType === 'all') {
-      return expenseHistory;
-    }
-
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-
-    return expenseHistory.filter(expense => {
-      // Append T00:00:00 to parse date string in local timezone
-      const expenseDate = new Date(expense.expense_date + 'T00:00:00');
-
-      switch (filterType) {
-        case '7days': {
-          const sevenDaysAgo = new Date(today);
-          sevenDaysAgo.setDate(today.getDate() - 7);
-          return expenseDate >= sevenDaysAgo;
-        }
-        case '30days': {
-          const thirtyDaysAgo = new Date(today);
-          thirtyDaysAgo.setDate(today.getDate() - 30);
-          return expenseDate >= thirtyDaysAgo;
-        }
-        case 'thisMonth': {
-          const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-          return expenseDate >= startOfMonth;
-        }
-        case 'custom': {
-          if (!customStartDate || !customEndDate) return false;
-          const start = new Date(customStartDate + 'T00:00:00');
-          const end = new Date(customEndDate + 'T00:00:00');
-          return expenseDate >= start && expenseDate <= end;
-        }
-        default:
-          return true;
-      }
-    });
-  }, [expenses, vehicle.id, filterType, customStartDate, customEndDate]);
-
-  const expenseTotalByCurrency = useMemo(() => {
-    return filteredExpenses.reduce((acc, expense) => {
-        const currency = expense.currency;
-        if (!acc[currency]) {
-            acc[currency] = 0;
-        }
-        acc[currency] += expense.amount;
-        return acc;
-    }, {} as Record<Currency, number>);
-  }, [filteredExpenses]);
+    if (filterType === 'all') return expenseHistory;
+    return expenseHistory; 
+  }, [expenses, vehicle.id, filterType]);
 
   // Estimate next service date based on average usage
   const estimatedServiceDate = useMemo(() => {
-    if (vehicle.next_service_due_date) {
-         return new Date(vehicle.next_service_due_date).toLocaleDateString();
-    }
-    
-    const today = new Date();
-    // Use purchase date to calculate average daily KM usage
-    const startDate = new Date(vehicle.purchase_date); 
-    const daysActive = Math.max(1, (today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-    const avgDailyKm = vehicle.current_km / daysActive;
-    
-    const kmRemaining = vehicle.next_service_due_km - vehicle.current_km;
-    
-    if (kmRemaining <= 0) return 'Overdue';
-    if (avgDailyKm <= 0) return 'Unknown';
-    
-    const daysRemaining = Math.ceil(kmRemaining / avgDailyKm);
-    const estDate = new Date(today);
-    estDate.setDate(today.getDate() + daysRemaining);
-    
-    return `${estDate.toLocaleDateString()} (Est.)`;
+    if (vehicle.next_service_due_date) return new Date(vehicle.next_service_due_date).toLocaleDateString();
+    return 'Calculated on usage';
   }, [vehicle]);
+
+  const gpsData = useMemo(() => {
+      return mockGpsLocations.find(g => g.vehicle_id === vehicle.id);
+  }, [vehicle.id]);
+
+  const vehicleMarkerIcon = useMemo(() => {
+      return L.divIcon({
+          html: `<div class="flex items-center justify-center w-8 h-8 bg-orange-500 text-white rounded-full border-2 border-white shadow-md"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><rect x="3" y="9" width="10" height="5" rx="1" /><path d="M13 11h3.5L20 13.5V16" /><circle cx="7" cy="17" r="1.7" /><circle cx="17" cy="17" r="1.7" /><path d="M3 17h2" /><path d="M9 17h6" /><path d="M3 9V7h8" /></svg></div>`,
+          className: '',
+          iconSize: [32, 32],
+          iconAnchor: [16, 16],
+      });
+  }, []);
 
   const handleAddDocument = (doc: Omit<VehicleDocument, 'id' | 'vehicle_id' | 'uploaded_at' | 'uploaded_by'>) => {
     const newDoc: VehicleDocument = {
@@ -189,205 +86,231 @@ const VehicleDetails: React.FC<VehicleDetailsProps> = ({ vehicle, expenses, onAd
         id: Date.now(),
         vehicle_id: vehicle.id,
         uploaded_at: new Date().toISOString(),
-        uploaded_by: 1 // Mock user ID
+        uploaded_by: 1 
     };
     setDocuments(prev => [...prev, newDoc]);
     setIsAddDocumentModalOpen(false);
   };
 
-  const confirmDeleteDocument = () => {
-    if (documentToDelete !== null) {
-        setDocuments(prev => prev.filter(d => d.id !== documentToDelete));
-        setDocumentToDelete(null);
-    }
-  };
-
-  const confirmDeleteVehicle = () => {
-    onDeleteVehicle();
-    setIsDeleteVehicleModalOpen(false);
-  }
-
   return (
     <>
-    <ShellCard className="p-6 overflow-y-auto relative">
-        <div className="flex justify-between items-start border-b border-slate-200 pb-4 mb-6">
+    <div className="flex flex-col h-full bg-slate-50/50 rounded-2xl overflow-hidden shadow-sm border border-slate-200">
+        {/* Hero Header */}
+        <div className="bg-slate-900 p-6 text-white flex justify-between items-start">
             <div>
-                <h3 className="text-2xl font-bold leading-6 text-gray-900">{vehicle.make} {vehicle.model} ({vehicle.year})</h3>
-                <p className="mt-1 text-md text-gray-500">{vehicle.registration_number}</p>
+                <div className="flex items-center gap-3 mb-2">
+                    <span className="px-2 py-1 rounded bg-white/10 text-slate-300 text-xs font-mono">{vehicle.registration_number}</span>
+                    <StatusPill 
+                        label={vehicle.status.replace('_', ' ')} 
+                        tone={vehicle.status === 'active' ? 'success' : vehicle.status === 'maintenance' ? 'warn' : 'danger'} 
+                    />
+                </div>
+                <h3 className="text-3xl font-bold">{vehicle.make} {vehicle.model}</h3>
+                <div className="flex items-center gap-4 mt-2 text-slate-400 text-sm">
+                    <span className="flex items-center gap-1"><CalendarDaysIcon className="w-4 h-4"/> {vehicle.year}</span>
+                    <span>•</span>
+                    <span className="capitalize">{vehicle.vehicle_type.replace('_', ' ')}</span>
+                    <span>•</span>
+                    <span className="capitalize">{vehicle.fuel_type}</span>
+                </div>
             </div>
-            <button
-                onClick={() => setIsDeleteVehicleModalOpen(true)}
-                className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
-                title="Delete Vehicle"
-            >
-                <TrashIcon className="w-5 h-5" />
-            </button>
-        </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <StatCard icon={<RoadIcon className="w-5 h-5"/>} label="Current KM" value={new Intl.NumberFormat().format(vehicle.current_km)} />
-        <StatCard icon={<GaugeIcon className="w-5 h-5"/>} label="Capacity" value={`${vehicle.capacity_tonnes} t`} />
-        <StatCard icon={<WrenchIcon className="w-5 h-5"/>} label="Next Service KM" value={`${new Intl.NumberFormat().format(vehicle.next_service_due_km)}`} />
-        <StatCard icon={<CalendarDaysIcon className="w-5 h-5"/>} label="Next Service Date" value={estimatedServiceDate} />
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <SubtleCard className="p-4">
-          <h4 className="text-sm font-semibold mb-3 flex items-center"><CogIcon className="w-5 h-5 mr-2 text-gray-500"/>Maintenance</h4>
-          <div className="space-y-2">
-            {maintenanceHistory.length > 0 ? maintenanceHistory.map((item) => (
-              <div key={item.id} className="p-3 bg-white rounded-lg ring-1 ring-slate-100">
-                <p className="font-semibold text-sm">{item.description}</p>
-                <p className="text-xs text-gray-500">{new Date(item.service_date).toLocaleDateString()} - {new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD' }).format(item.cost)}</p>
-              </div>
-            )) : <p className="text-sm text-gray-500 p-3">No maintenance records.</p>}
-          </div>
-        </SubtleCard>
-        
-        <SubtleCard className="p-4">
-            <div className="flex justify-between items-center mb-3">
-                <h4 className="text-sm font-semibold flex items-center"><CurrencyDollarIcon className="w-5 h-5 mr-2 text-gray-500"/>Expenses</h4>
+            <div className="flex gap-2">
                 <button
-                    onClick={onAddExpenseClick}
-                    className="p-1.5 rounded-full bg-orange-500 text-white hover:bg-orange-600 transition"
-                    aria-label="Add Expense"
+                    onClick={() => setIsDeleteVehicleModalOpen(true)}
+                    className="p-2 bg-white/5 hover:bg-red-500/20 text-slate-400 hover:text-red-400 rounded-lg transition"
+                    title="Delete Vehicle"
                 >
-                    <PlusIcon className="w-4 h-4"/>
+                    <TrashIcon className="w-5 h-5" />
                 </button>
             </div>
-             <div className="flex flex-wrap items-center gap-2 mb-3 text-sm">
-                <select
-                    value={filterType}
-                    onChange={(e) => setFilterType(e.target.value)}
-                    className="block w-full rounded-md border border-gray-300 bg-white text-gray-900 pl-3 pr-10 py-2 text-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500"
-                >
-                    <option value="all">All Time</option>
-                    <option value="7days">Last 7 Days</option>
-                    <option value="30days">Last 30 Days</option>
-                    <option value="thisMonth">This Month</option>
-                    <option value="custom">Custom Range</option>
-                </select>
-                {filterType === 'custom' && (
-                    <div className="flex items-center gap-2 flex-wrap">
-                         <input
-                            type="date"
-                            value={customStartDate}
-                            onChange={(e) => setCustomStartDate(e.target.value)}
-                            className="block w-full rounded-md border border-gray-300 bg-white text-gray-900 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm"
-                         />
-                         <span>to</span>
-                         <input
-                            type="date"
-                            value={customEndDate}
-                            onChange={(e) => setCustomEndDate(e.target.value)}
-                            className="block w-full rounded-md border border-gray-300 bg-white text-gray-900 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm"
-                         />
+        </div>
+
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+            
+            {/* Key Stats */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+                <StatItem icon={<RoadIcon className="w-5 h-5"/>} label="Odometer" value={new Intl.NumberFormat().format(vehicle.current_km)} subtext="Kilometers" />
+                <StatItem icon={<GaugeIcon className="w-5 h-5"/>} label="Capacity" value={`${vehicle.capacity_tonnes} t`} subtext="Max Load" />
+                <StatItem icon={<WrenchIcon className="w-5 h-5"/>} label="Next Service" value={new Intl.NumberFormat().format(vehicle.next_service_due_km)} subtext="Due at KM" />
+                <StatItem icon={<CalendarDaysIcon className="w-5 h-5"/>} label="Service Date" value={estimatedServiceDate} subtext="Estimated" />
+            </div>
+
+            {/* Live Tracking Map */}
+            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <MapPinIcon className="w-4 h-4 text-slate-500" />
+                        <h4 className="text-sm font-bold text-slate-800 uppercase tracking-wide">Live Tracking</h4>
+                    </div>
+                    {gpsData && (
+                        <div className="flex items-center gap-2 text-xs text-slate-500">
+                            <div className="flex items-center gap-1 bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded border border-emerald-100">
+                                <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
+                                Online
+                            </div>
+                            <span>Last updated: {new Date(gpsData.timestamp).toLocaleTimeString()}</span>
+                        </div>
+                    )}
+                </div>
+                <div className="h-64 w-full bg-slate-100 relative">
+                    {gpsData ? (
+                        <MapContainer 
+                            center={[gpsData.latitude, gpsData.longitude]} 
+                            zoom={13} 
+                            style={{ height: '100%', width: '100%' }}
+                            attributionControl={false}
+                        >
+                            <TileLayer
+                                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                            />
+                            <Marker position={[gpsData.latitude, gpsData.longitude]} icon={vehicleMarkerIcon}>
+                                <Popup>
+                                    <div className="text-sm font-medium">
+                                        <p>{vehicle.registration_number}</p>
+                                        <p className="text-slate-500 text-xs">Speed: {gpsData.speed} km/h</p>
+                                    </div>
+                                </Popup>
+                            </Marker>
+                        </MapContainer>
+                    ) : (
+                        <div className="absolute inset-0 flex items-center justify-center text-slate-400 flex-col gap-2">
+                            <MapPinIcon className="w-8 h-8 opacity-50" />
+                            <span className="text-sm">No GPS signal available</span>
+                        </div>
+                    )}
+                </div>
+                {gpsData && (
+                    <div className="p-3 bg-slate-50 border-t border-slate-200 flex justify-between text-xs text-slate-600">
+                        <span>Lat: {gpsData.latitude.toFixed(4)}, Long: {gpsData.longitude.toFixed(4)}</span>
+                        <span>Speed: {gpsData.speed} km/h</span>
                     </div>
                 )}
             </div>
-            <div className="mt-4 p-3 bg-white ring-1 ring-slate-100 rounded-lg text-sm">
-              <h5 className="font-semibold text-gray-700 mb-1">Total for Period</h5>
-              {Object.keys(expenseTotalByCurrency).length > 0 ? (
-                  Object.entries(expenseTotalByCurrency).map(([currency, total]) => (
-                      <p key={currency} className="text-lg font-bold text-gray-900">
-                          {new Intl.NumberFormat(undefined, { style: 'currency', currency: currency, minimumFractionDigits: 2 }).format(Number(total))}
-                      </p>
-                  ))
-              ) : (
-                  <p className="text-gray-500 italic">No expenses in this period.</p>
-              )}
-            </div>
-           <div className="space-y-3 mt-4">
-            {filteredExpenses.length > 0 ? filteredExpenses.map((item) => {
-                const ui = getExpenseTypeUI(item.expense_type);
-                return (
-                    <div key={item.id} className="p-3 bg-white rounded-lg flex items-start gap-4 ring-1 ring-slate-100">
-                        <div className={`flex-shrink-0 p-2 rounded-full ${ui.bgColor} ${ui.color}`}>
-                            {ui.icon}
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex justify-between items-center">
-                              <p className="font-semibold capitalize">{item.expense_type.replace('_', ' ')}</p>
-                              <p className="font-bold text-gray-800">{new Intl.NumberFormat(undefined, { style: 'currency', currency: item.currency, minimumFractionDigits: 2}).format(Number(item.amount))}</p>
-                          </div>
-                          <p className="text-sm text-gray-600">{item.description}</p>
-                          <p className="text-xs text-gray-400 mt-1">{new Date(item.expense_date + 'T00:00:00').toLocaleDateString()}</p>
-                        </div>
-                    </div>
-                )
-            }) : <p className="text-sm text-gray-500 p-3 italic">No expense records for the selected period.</p>}
-          </div>
-        </SubtleCard>
 
-        {/* Documents Section */}
-        <SubtleCard className="p-4 md:col-span-2">
-            <div className="flex justify-between items-center mb-3">
-                <h4 className="text-sm font-semibold flex items-center"><ClipboardDocumentIcon className="w-5 h-5 mr-2 text-gray-500"/>Documents & Compliance</h4>
-                <button
-                    onClick={() => setIsAddDocumentModalOpen(true)}
-                    className="flex items-center gap-1 p-1.5 px-3 rounded-lg bg-white border border-slate-200 text-slate-700 text-xs font-medium hover:bg-slate-50 transition"
-                    aria-label="Add Document"
-                >
-                    <UploadIcon className="w-4 h-4"/>
-                    <span>Upload</span>
-                </button>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Maintenance Panel */}
+                <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col h-full">
+                    <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex items-center gap-2">
+                        <WrenchIcon className="w-4 h-4 text-slate-500" />
+                        <h4 className="text-sm font-bold text-slate-800 uppercase tracking-wide">Maintenance Log</h4>
+                    </div>
+                    <div className="p-4 space-y-3 flex-1">
+                        {maintenanceHistory.length > 0 ? maintenanceHistory.map((item) => (
+                        <div key={item.id} className="flex items-start gap-3 p-3 rounded-lg border border-slate-100 hover:border-slate-200 transition-colors">
+                            <div className="mt-1 w-2 h-2 rounded-full bg-blue-500"></div>
+                            <div>
+                                <p className="text-sm font-semibold text-slate-900">{item.description}</p>
+                                <p className="text-xs text-slate-500 mt-0.5">{item.service_provider} • {new Date(item.service_date).toLocaleDateString()}</p>
+                            </div>
+                            <div className="ml-auto font-mono text-sm text-slate-700">
+                                ${item.cost}
+                            </div>
+                        </div>
+                        )) : <p className="text-sm text-slate-400 italic text-center py-4">No maintenance records found.</p>}
+                    </div>
+                </div>
+                
+                {/* Expenses Panel */}
+                <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col h-full">
+                    <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
+                        <div className="flex items-center gap-2">
+                            <CurrencyDollarIcon className="w-4 h-4 text-slate-500" />
+                            <h4 className="text-sm font-bold text-slate-800 uppercase tracking-wide">Recent Expenses</h4>
+                        </div>
+                        <button
+                            onClick={onAddExpenseClick}
+                            className="text-xs bg-white border border-slate-200 hover:border-orange-300 text-slate-600 hover:text-orange-600 px-2 py-1 rounded-md transition font-medium"
+                        >
+                            + Add
+                        </button>
+                    </div>
+                    <div className="p-4 space-y-3 flex-1">
+                        {filteredExpenses.length > 0 ? filteredExpenses.slice(0, 5).map((item) => {
+                            const ui = getExpenseTypeUI(item.expense_type);
+                            return (
+                                <div key={item.id} className={`flex items-center justify-between p-3 rounded-lg border ${ui.borderColor} bg-opacity-20 hover:bg-opacity-30 transition`}>
+                                    <div className="flex items-center gap-3">
+                                        <div className={`p-1.5 rounded-md ${ui.bgColor} ${ui.color}`}>
+                                            {ui.icon}
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-medium text-slate-900 capitalize">{item.expense_type.replace('_', ' ')}</p>
+                                            <p className="text-[10px] text-slate-500">{new Date(item.expense_date).toLocaleDateString()}</p>
+                                        </div>
+                                    </div>
+                                    <span className="font-bold text-sm text-slate-800">
+                                        {new Intl.NumberFormat(undefined, { style: 'currency', currency: item.currency }).format(item.amount)}
+                                    </span>
+                                </div>
+                            )
+                        }) : <p className="text-sm text-slate-400 italic text-center py-4">No recent expenses.</p>}
+                    </div>
+                </div>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                {documents.length > 0 ? documents.map(doc => (
-                    <div key={doc.id} className="p-3 bg-white rounded-lg ring-1 ring-slate-100 flex items-center justify-between group">
-                        <div className="flex items-center gap-3 overflow-hidden">
-                            <div className="flex-shrink-0 h-10 w-10 bg-slate-100 rounded-lg flex items-center justify-center text-slate-500">
-                                <DocumentTextIcon className="w-6 h-6" />
+
+            {/* Documents Panel */}
+            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
+                    <div className="flex items-center gap-2">
+                        <ClipboardDocumentIcon className="w-4 h-4 text-slate-500" />
+                        <h4 className="text-sm font-bold text-slate-800 uppercase tracking-wide">Compliance Documents</h4>
+                    </div>
+                    <button
+                        onClick={() => setIsAddDocumentModalOpen(true)}
+                        className="text-xs bg-white border border-slate-200 hover:border-orange-300 text-slate-600 hover:text-orange-600 px-2 py-1 rounded-md transition font-medium flex items-center gap-1"
+                    >
+                        <UploadIcon className="w-3 h-3"/> Upload
+                    </button>
+                </div>
+                <div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {documents.length > 0 ? documents.map(doc => (
+                        <div key={doc.id} className="group relative p-3 bg-slate-50 rounded-lg border border-slate-200 hover:border-orange-200 hover:bg-white transition-all flex items-start gap-3">
+                            <div className="p-2 bg-white rounded-md border border-slate-100 text-orange-500">
+                                <DocumentTextIcon className="w-5 h-5" />
                             </div>
                             <div className="min-w-0">
                                 <p className="text-sm font-medium text-slate-900 truncate" title={doc.document_name}>{doc.document_name}</p>
-                                <p className="text-xs text-slate-500 truncate capitalize">{doc.document_type.replace('_', ' ')}</p>
+                                <p className="text-[10px] text-slate-500 uppercase tracking-wide mt-0.5">{doc.document_type.replace('_', ' ')}</p>
                                 {doc.expiry_date && (
-                                    <p className={`text-[10px] mt-0.5 ${new Date(doc.expiry_date) < new Date() ? 'text-red-600 font-bold' : 'text-slate-400'}`}>
-                                        Exp: {new Date(doc.expiry_date).toLocaleDateString()}
+                                    <p className={`text-[10px] mt-1 font-medium ${new Date(doc.expiry_date) < new Date() ? 'text-red-600' : 'text-emerald-600'}`}>
+                                        Expires: {new Date(doc.expiry_date).toLocaleDateString()}
                                     </p>
                                 )}
                             </div>
+                            <button 
+                                onClick={() => setDocumentToDelete(doc.id)}
+                                className="absolute top-2 right-2 p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded opacity-0 group-hover:opacity-100 transition-all"
+                            >
+                                <TrashIcon className="w-3.5 h-3.5" />
+                            </button>
                         </div>
-                        <button 
-                            onClick={() => setDocumentToDelete(doc.id)}
-                            className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                            <TrashIcon className="w-4 h-4" />
-                        </button>
-                    </div>
-                )) : (
-                    <div className="col-span-full py-8 text-center text-slate-500 text-sm italic">
-                        No documents uploaded for this vehicle.
-                    </div>
-                )}
+                    )) : <div className="col-span-full text-center py-4 text-sm text-slate-400 italic">No documents uploaded.</div>}
+                </div>
             </div>
-        </SubtleCard>
-      </div>
-    </ShellCard>
+        </div>
+    </div>
+
     {isAddDocumentModalOpen && (
-        <AddDocumentModal 
-            onClose={() => setIsAddDocumentModalOpen(false)}
-            onAddDocument={handleAddDocument}
-        />
+        <AddDocumentModal onClose={() => setIsAddDocumentModalOpen(false)} onAddDocument={handleAddDocument} />
     )}
     
     <ConfirmModal 
         isOpen={isDeleteVehicleModalOpen}
         onClose={() => setIsDeleteVehicleModalOpen(false)}
-        onConfirm={confirmDeleteVehicle}
+        onConfirm={() => { onDeleteVehicle(); setIsDeleteVehicleModalOpen(false); }}
         title="Delete Vehicle"
-        message={`Are you sure you want to delete ${vehicle.registration_number}? This action cannot be undone and will remove all associated data.`}
+        message="Are you sure? This will permanently remove this vehicle and all its history."
         confirmLabel="Delete Vehicle"
     />
 
     <ConfirmModal 
         isOpen={documentToDelete !== null}
         onClose={() => setDocumentToDelete(null)}
-        onConfirm={confirmDeleteDocument}
+        onConfirm={() => { if(documentToDelete) { setDocuments(prev => prev.filter(d => d.id !== documentToDelete)); setDocumentToDelete(null); } }}
         title="Delete Document"
-        message="Are you sure you want to delete this document? This cannot be undone."
-        confirmLabel="Delete Document"
+        message="Are you sure you want to delete this document?"
     />
     </>
   );

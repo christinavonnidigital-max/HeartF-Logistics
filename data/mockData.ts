@@ -1,4 +1,5 @@
-import { Vehicle, VehicleMaintenance, VehicleExpense, VehicleType, VehicleStatus, MaintenanceType, MaintenanceStatus, ExpenseType, Currency, FuelType } from '../types';
+
+import { Vehicle, VehicleMaintenance, VehicleExpense, VehicleType, VehicleStatus, MaintenanceType, MaintenanceStatus, ExpenseType, Currency, FuelType, GpsLocation } from '../types';
 
 export const mockVehicles: Vehicle[] = [
   {
@@ -126,4 +127,12 @@ export const mockExpenses: VehicleExpense[] = [
   { id: 2, vehicle_id: 2, expense_type: ExpenseType.FUEL, amount: 450, currency: Currency.USD, description: 'Diesel fill-up', expense_date: '2024-07-16', recorded_by: 1, created_at: '2024-07-16T00:00:00Z' },
   { id: 3, vehicle_id: 3, expense_type: ExpenseType.MAINTENANCE, amount: 1200, currency: Currency.USD, description: 'Transmission repair payment', expense_date: '2024-07-20', recorded_by: 2, created_at: '2024-07-20T00:00:00Z' },
   { id: 4, vehicle_id: 1, expense_type: ExpenseType.TOLLS, amount: 50, currency: Currency.ZIG, description: 'Highway tolls', expense_date: '2024-07-18', recorded_by: 1, created_at: '2024-07-18T00:00:00Z' },
+];
+
+export const mockGpsLocations: GpsLocation[] = [
+    { id: 1, vehicle_id: 1, latitude: -17.8252, longitude: 31.0335, timestamp: new Date().toISOString(), speed: 45, heading: 90, created_at: new Date().toISOString() }, // Harare
+    { id: 2, vehicle_id: 2, latitude: -20.1581, longitude: 28.5833, timestamp: new Date().toISOString(), speed: 60, heading: 180, created_at: new Date().toISOString() }, // Bulawayo
+    { id: 3, vehicle_id: 3, latitude: -18.9707, longitude: 32.6710, timestamp: new Date().toISOString(), speed: 0, heading: 0, created_at: new Date().toISOString() }, // Mutare (Maintenance)
+    { id: 4, vehicle_id: 4, latitude: -26.2041, longitude: 28.0473, timestamp: new Date().toISOString(), speed: 80, heading: 270, created_at: new Date().toISOString() }, // JHB
+    { id: 5, vehicle_id: 5, latitude: -17.8252, longitude: 31.0335, timestamp: new Date().toISOString(), speed: 0, heading: 0, created_at: new Date().toISOString() }, // Harare (Broken down)
 ];

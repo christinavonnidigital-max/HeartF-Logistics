@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { VehicleDocument, DocumentType } from '../types';
-import { CloseIcon, DocumentTextIcon } from './icons/Icons';
+import { CloseIcon, DocumentTextIcon, UploadIcon } from './icons/Icons';
 
 interface AddDocumentModalProps {
   onClose: () => void;
@@ -9,10 +9,11 @@ interface AddDocumentModalProps {
 }
 
 const AddDocumentModal: React.FC<AddDocumentModalProps> = ({ onClose, onAddDocument }) => {
+    // Pre-filled demo data
     const [formData, setFormData] = useState({
-        document_type: DocumentType.OTHER,
-        document_name: '',
-        expiry_date: '',
+        document_type: DocumentType.INSURANCE,
+        document_name: 'Alliance Insurance 2025',
+        expiry_date: '2025-12-31',
     });
     const [file, setFile] = useState<File | null>(null);
     const [error, setError] = useState('');
@@ -38,14 +39,11 @@ const AddDocumentModal: React.FC<AddDocumentModalProps> = ({ onClose, onAddDocum
             setError('Document Name is required.');
             return;
         }
-        if (!file) {
-            setError('Please upload a file.');
-            return;
-        }
+        // Allow submission without file for demo purposes if pre-filled
         setError('');
         
         // Mock file URL creation
-        const file_url = URL.createObjectURL(file);
+        const file_url = file ? URL.createObjectURL(file) : '#';
         
         onAddDocument({
             document_type: formData.document_type,
@@ -56,64 +54,66 @@ const AddDocumentModal: React.FC<AddDocumentModalProps> = ({ onClose, onAddDocum
     };
 
     return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center p-4" onClick={onClose}>
+    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] flex justify-center items-center p-4" onClick={onClose}>
         <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg flex flex-col" onClick={(e) => e.stopPropagation()}>
-            <header className="flex justify-between items-center p-4 border-b">
-                <h2 className="text-xl font-bold">Upload Document</h2>
-                <button onClick={onClose} className="p-1 rounded-full hover:bg-gray-200"><CloseIcon className="w-6 h-6" /></button>
+            <header className="flex justify-between items-center p-4 border-b border-slate-100">
+                <h2 className="text-xl font-bold text-slate-900">Upload Document</h2>
+                <button onClick={onClose} className="p-1 rounded-full hover:bg-slate-100 text-slate-500 transition"><CloseIcon className="w-5 h-5" /></button>
             </header>
             <form onSubmit={handleSubmit}>
                 <main className="p-6 space-y-4">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700">Document Type</label>
-                        <select name="document_type" value={formData.document_type} onChange={handleChange} className="mt-1 block w-full rounded-md border border-gray-300 bg-white text-gray-900 pl-3 pr-10 py-2 text-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 capitalize">
+                        <label className="block text-xs font-medium text-slate-700 mb-1">Document Type</label>
+                        <select name="document_type" value={formData.document_type} onChange={handleChange} className="block w-full rounded-lg border-slate-200 bg-white text-slate-900 text-sm focus:border-orange-500 focus:ring-orange-500 capitalize">
                             {Object.values(DocumentType).map(t => <option key={t} value={t}>{t.replace(/_/g, ' ')}</option>)}
                         </select>
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700">Document Name*</label>
-                        <input type="text" name="document_name" value={formData.document_name} onChange={handleChange} placeholder="e.g. Insurance Policy 2024" className="mt-1 block w-full rounded-md border border-gray-300 bg-white text-gray-900 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm" />
+                        <label className="block text-xs font-medium text-slate-700 mb-1">Document Name*</label>
+                        <input type="text" name="document_name" value={formData.document_name} onChange={handleChange} placeholder="e.g. Insurance Policy 2024" className="block w-full rounded-lg border-slate-200 bg-white text-slate-900 text-sm focus:border-orange-500 focus:ring-orange-500" />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700">Expiry Date (Optional)</label>
-                        <input type="date" name="expiry_date" value={formData.expiry_date} onChange={handleChange} className="mt-1 block w-full rounded-md border border-gray-300 bg-white text-gray-900 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm" />
+                        <label className="block text-xs font-medium text-slate-700 mb-1">Expiry Date (Optional)</label>
+                        <input type="date" name="expiry_date" value={formData.expiry_date} onChange={handleChange} className="block w-full rounded-lg border-slate-200 bg-white text-slate-900 text-sm focus:border-orange-500 focus:ring-orange-500 text-slate-600" />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700">File*</label>
-                        <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md hover:bg-gray-50 transition-colors">
+                        <label className="block text-xs font-medium text-slate-700 mb-1">File</label>
+                        <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-slate-300 border-dashed rounded-xl hover:bg-slate-50 transition-colors group cursor-pointer relative">
                             <div className="space-y-1 text-center">
                                 {file ? (
                                     <div className="flex flex-col items-center">
-                                        <DocumentTextIcon className="mx-auto h-12 w-12 text-orange-500" />
-                                        <div className="flex text-sm text-gray-600">
-                                            <span className="font-medium text-orange-600 truncate max-w-[200px]">{file.name}</span>
+                                        <div className="p-3 bg-orange-100 text-orange-600 rounded-lg mb-2">
+                                            <DocumentTextIcon className="h-8 w-8" />
                                         </div>
-                                        <p className="text-xs text-gray-500">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
-                                        <button type="button" onClick={() => setFile(null)} className="mt-2 text-xs text-red-500 hover:text-red-700">Remove</button>
+                                        <div className="flex text-sm text-gray-600">
+                                            <span className="font-medium text-slate-900 truncate max-w-[200px]">{file.name}</span>
+                                        </div>
+                                        <p className="text-xs text-slate-500">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                                        <button type="button" onClick={(e) => { e.preventDefault(); setFile(null); }} className="mt-2 text-xs text-red-500 hover:text-red-700 bg-white border border-slate-200 px-2 py-1 rounded shadow-sm z-10">Remove</button>
                                     </div>
                                 ) : (
                                     <>
-                                        <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
-                                            <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                        </svg>
-                                        <div className="flex text-sm text-gray-600 justify-center">
-                                            <label htmlFor="file-upload" className="relative cursor-pointer bg-white rounded-md font-medium text-orange-600 hover:text-orange-500 focus-within:outline-none">
+                                        <div className="mx-auto h-12 w-12 text-slate-300 group-hover:text-orange-400 transition-colors">
+                                            <UploadIcon className="h-full w-full" />
+                                        </div>
+                                        <div className="flex text-sm text-gray-600 justify-center mt-2">
+                                            <label htmlFor="file-upload" className="relative cursor-pointer rounded-md font-medium text-orange-600 hover:text-orange-500 focus-within:outline-none">
                                                 <span>Upload a file</span>
                                                 <input id="file-upload" name="file-upload" type="file" className="sr-only" onChange={handleFileChange} />
                                             </label>
                                             <p className="pl-1">or drag and drop</p>
                                         </div>
-                                        <p className="text-xs text-gray-500">PDF, PNG, JPG up to 10MB</p>
+                                        <p className="text-xs text-slate-500">PDF, PNG, JPG up to 10MB</p>
                                     </>
                                 )}
                             </div>
                         </div>
                     </div>
-                    {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+                    {error && <p className="text-red-600 text-sm mt-2 bg-red-50 p-2 rounded-lg text-center">{error}</p>}
                 </main>
-                <footer className="p-4 bg-gray-50 border-t flex justify-end space-x-3">
-                    <button type="button" onClick={onClose} className="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50">Cancel</button>
-                    <button type="submit" className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700">Save Document</button>
+                <footer className="p-4 bg-slate-50 border-t border-slate-100 flex justify-end space-x-3 rounded-b-xl">
+                    <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg border border-slate-200 bg-white text-slate-700 text-sm font-medium hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-200 transition-colors">Cancel</button>
+                    <button type="submit" className="px-6 py-2 rounded-lg bg-orange-500 text-white text-sm font-semibold hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 shadow-sm shadow-orange-200 transition-all">Save Document</button>
                 </footer>
             </form>
         </div>

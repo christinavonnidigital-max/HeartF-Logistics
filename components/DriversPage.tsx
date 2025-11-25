@@ -49,9 +49,10 @@ const DriversPage: React.FC<DriversPageProps> = ({ data }) => {
   }, [filteredDrivers, selectedDriver]);
 
   const handleAddDriver = (newDriverData: Omit<Driver, 'id' | 'created_at' | 'updated_at' | 'user_id'> & { user: Omit<User, 'id' | 'created_at' | 'updated_at' | 'role' | 'email_verified'>}) => {
+    const newUserId = Date.now() + 1;
     const newUser: User = {
         ...newDriverData.user,
-        id: Date.now() + 1,
+        id: newUserId,
         role: 'driver',
         email_verified: true,
         created_at: new Date().toISOString(),
@@ -61,7 +62,7 @@ const DriversPage: React.FC<DriversPageProps> = ({ data }) => {
     const newDriver: Driver = {
       ...newDriverData,
       id: Date.now(),
-      user_id: newUser.id,
+      user_id: newUserId,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };

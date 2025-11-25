@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Layout from './components/Layout';
 import FleetDashboard from './components/FleetDashboard';
 import CrmDashboard from './components/CrmDashboard';
@@ -17,14 +17,14 @@ import CampaignAnalyticsPage from './components/CampaignAnalyticsPage';
 import SettingsPage from './components/SettingsPage';
 import LoginPage from './components/LoginPage';
 import { AuthProvider, useAuth, UserRole } from './auth/AuthContext';
+import { DataProvider, useData } from './contexts/DataContext';
 
-import { mockVehicles, mockMaintenance, mockExpenses } from './data/mockData';
-import { mockLeads, mockOpportunities, mockLeadScoringRules, mockSalesReps, mockLeadActivities } from './data/mockCrmData';
-import { mockInvoices, mockAllExpenses } from './data/mockFinancialsData';
+// Static mocks still needed for some secondary data like routes/waypoints/activities which we aren't putting in global state yet
+import { mockLeadScoringRules, mockSalesReps, mockLeadActivities } from './data/mockCrmData';
 import { mockRoutes, mockWaypoints } from './data/mockRoutesData';
-import { mockBookings } from './data/mockBookingsData';
 import { mockCampaigns, mockSalesSequences } from './data/mockMarketingData';
-import { mockDrivers, mockDriverAssignments, mockUsersForDrivers } from './data/mockDriversData';
+import { mockDriverAssignments, mockUsersForDrivers } from './data/mockDriversData';
+import { mockMaintenance, mockExpenses } from './data/mockData';
 
 
 export type View = 'dashboard' | 'fleet' | 'bookings' | 'drivers' | 'customers' | 'routes' | 'reports' | 'leads' | 'campaigns' | 'new-campaign' | 'financials' | 'marketing' | 'settings' | 'analytics';
@@ -33,7 +33,7 @@ export type AppSettings = {
   defaultView: View;
   enableAssistant: boolean;
   distanceUnit: 'km' | 'mi';
-  currency: 'ZAR' | 'USD';
+  currency: 'USD' | 'ZWL';
   showFinancialSummary: boolean;
 };
 
@@ -61,6 +61,7 @@ function loadSettings(): AppSettings {
 
 const AuthedApp: React.FC = () => {
   const { user, loading } = useAuth();
+  const { vehicles, bookings, leads, opportunities, invoices, expenses, drivers } = useData(); // Consuming global data
   const [settings, setSettings] = useState<AppSettings>(() => loadSettings());
   const [activeView, setActiveView] = useState<View>(() => settings.defaultView);
 
@@ -73,7 +74,7 @@ const AuthedApp: React.FC = () => {
   // Define view permissions
   const viewPermissions: Partial<Record<View, UserRole[]>> = {
     fleet: ['admin', 'dispatcher', 'ops_manager'],
-    bookings: ['admin', 'dispatcher', 'ops_manager'],
+    bookings: ['admin', 'dispatcher', 'ops_manager', 'customer'],
     drivers: ['admin', 'dispatcher', 'ops_manager'],
     routes: ['admin', 'dispatcher', 'ops_manager'],
     leads: ['admin', 'ops_manager', 'dispatcher'],
@@ -81,7 +82,7 @@ const AuthedApp: React.FC = () => {
     campaigns: ['admin', 'ops_manager'],
     "new-campaign": ['admin', 'ops_manager'],
     analytics: ['admin', 'ops_manager'],
-    financials: ['admin', 'finance', 'ops_manager'],
+    financials: ['admin', 'finance', 'ops_manager', 'customer'],
     reports: ['admin', 'finance', 'ops_manager'],
     settings: ['admin'],
   };
@@ -97,41 +98,42 @@ const AuthedApp: React.FC = () => {
   }, [user, activeView]);
 
   if (loading) {
-      return null; // Or a loading spinner, but LoginPage handles loading state too
+      return null; 
   }
 
   if (!user) {
     return <LoginPage />;
   }
 
+  // Construct context data for views and AI, mixing Global State with static/secondary mocks
   const contextData = {
     dashboard: {
-      vehicles: mockVehicles,
-      leads: mockLeads,
-      opportunities: mockOpportunities,
-      invoices: mockInvoices,
-      bookings: mockBookings,
+      vehicles,
+      leads,
+      opportunities,
+      invoices,
+      bookings,
     },
     fleet: {
-      vehicles: mockVehicles,
-      maintenance: mockMaintenance,
-      expenses: mockExpenses,
+      vehicles,
+      maintenance: mockMaintenance, // Still static for now
+      expenses: mockExpenses, // Vehicle expenses still static for now, main expenses are global
     },
     drivers: {
-      drivers: mockDrivers,
+      drivers,
       assignments: mockDriverAssignments,
       users: mockUsersForDrivers,
     },
     crm: {
-      leads: mockLeads,
-      opportunities: mockOpportunities,
+      leads,
+      opportunities,
       leadScoringRules: mockLeadScoringRules,
       salesReps: mockSalesReps,
       leadActivities: mockLeadActivities
     },
     financials: {
-        invoices: mockInvoices,
-        expenses: mockAllExpenses,
+        invoices,
+        expenses,
     },
     routes: {
       routes: mockRoutes,
@@ -143,19 +145,34 @@ const AuthedApp: React.FC = () => {
     }
   };
 
+  // Secure Data Filtering for Dashboard
+  const getDashboardData = () => {
+    if (user.role === 'customer') {
+      const customerId = Number(user.id);
+      return {
+        vehicles: [], // Customers don't see fleet details
+        leads: [], // Customers don't see sales leads
+        opportunities: opportunities.filter(o => o.customer_id === customerId),
+        invoices: invoices.filter(i => i.customer_id === customerId),
+        bookings: bookings.filter(b => b.customer_id === customerId),
+      };
+    }
+    return contextData.dashboard;
+  };
+
   const renderView = () => {
     // Extra safety check during render
     const allowedRoles = viewPermissions[activeView];
     if (allowedRoles && !allowedRoles.includes(user.role)) {
-        return <Dashboard data={contextData.dashboard} settings={settings} />;
+        return <Dashboard data={getDashboardData()} settings={settings} userRole={user.role} />;
     }
 
     switch(activeView) {
-      case 'dashboard': return <Dashboard data={contextData.dashboard} settings={settings} />;
+      case 'dashboard': return <Dashboard data={getDashboardData()} settings={settings} userRole={user.role} />;
       case 'fleet': return <FleetDashboard />;
       case 'financials': return <FinancialsDashboard />;
       case 'routes': return <RoutesDashboard />;
-      case 'bookings': return <BookingsPage bookings={contextData.dashboard.bookings} />;
+      case 'bookings': return <BookingsPage />;
       case 'drivers': return <DriversPage data={contextData.drivers} />;
       case 'customers': return <CustomersPage />;
       case 'reports': return <ReportsPage data={contextData} />;
@@ -165,7 +182,7 @@ const AuthedApp: React.FC = () => {
       case 'marketing': return <MarketingDashboard />;
       case 'analytics': return <CampaignAnalyticsPage />;
       case 'settings': return <SettingsPage settings={settings} onChangeSettings={setSettings} />;
-      default: return <Dashboard data={contextData.dashboard} settings={settings} />;
+      default: return <Dashboard data={getDashboardData()} settings={settings} userRole={user.role} />;
     }
   }
   
@@ -191,7 +208,9 @@ const AuthedApp: React.FC = () => {
 
 const App: React.FC = () => (
   <AuthProvider>
-    <AuthedApp />
+    <DataProvider>
+        <AuthedApp />
+    </DataProvider>
   </AuthProvider>
 );
 

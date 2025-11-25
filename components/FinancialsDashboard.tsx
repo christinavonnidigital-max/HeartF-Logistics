@@ -1,107 +1,208 @@
 
-import React, { useState } from 'react';
-import { mockInvoices, mockAllExpenses } from '../data/mockFinancialsData';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useData } from '../contexts/DataContext';
 import InvoiceList from './InvoiceList';
 import ExpenseList from './ExpenseList';
 import { Invoice, Expense, InvoiceStatus } from '../types';
-import { CurrencyDollarIcon } from './icons/Icons';
+import { CurrencyDollarIcon, TrendingUpIcon, DocumentTextIcon, CreditCardIcon } from './icons/Icons';
 import AddInvoiceModal from './AddInvoiceModal';
 import AddGlobalExpenseModal from './AddGlobalExpenseModal';
+import { useAuth } from '../auth/AuthContext';
+import { ShellCard, SectionHeader } from './UiKit';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from 'recharts';
 
-const StatCard: React.FC<{ label: string; value: number; icon: React.ReactNode; valueColor?: string }> = ({ label, value, icon, valueColor = 'text-slate-900' }) => (
-    <div className="flex flex-col justify-between rounded-2xl bg-white px-4 py-3 shadow-sm ring-1 ring-slate-100">
-        <div className="flex items-center justify-between gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-orange-50 text-orange-500">
-                {icon}
+// Enhanced Stat Card for Financials
+const FinStatCard: React.FC<{ label: string; value: number; icon: React.ReactNode; color: string; trend?: string }> = ({ label, value, icon, color, trend }) => (
+    <div className="relative overflow-hidden rounded-2xl bg-white p-5 shadow-md border border-slate-100 group min-w-0">
+        <div className={`absolute top-0 right-0 -mt-4 -mr-4 h-20 w-20 rounded-full ${color} opacity-10 transition-transform group-hover:scale-110`}></div>
+        <div className="relative z-10 flex justify-between items-start">
+            <div>
+                <p className="text-xs font-bold uppercase tracking-wider text-slate-400">{label}</p>
+                <p className="mt-2 text-2xl font-bold text-slate-900 tracking-tight">
+                    {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value)}
+                </p>
+            </div>
+            <div className={`p-3 rounded-xl ${color} bg-opacity-10 text-opacity-100`}>
+                {React.cloneElement(icon as React.ReactElement, { className: `w-6 h-6 ${color.replace('bg-', 'text-').replace('-500', '-600')}` })}
             </div>
         </div>
-        <div className="mt-3">
-            <p className="text-xs font-medium uppercase tracking-wide text-slate-500">{label}</p>
-            <p className={`mt-1 text-xl font-semibold ${valueColor}`}>
-                {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value)}
-            </p>
-        </div>
+        {trend && (
+            <div className="relative z-10 mt-4 flex items-center gap-1 text-xs font-medium text-emerald-600">
+                <TrendingUpIcon className="w-3 h-3" />
+                <span>{trend} vs last month</span>
+            </div>
+        )}
     </div>
 );
 
 const FinancialsDashboard: React.FC = () => {
-    const [invoices, setInvoices] = useState<Invoice[]>(mockInvoices);
-    const [expenses, setExpenses] = useState<Expense[]>(mockAllExpenses);
+    const { user } = useAuth();
+    const { invoices, expenses, addInvoice, addExpense } = useData();
+    
+    const [filteredInvoices, setFilteredInvoices] = useState<Invoice[]>([]);
+    const [filteredExpenses, setFilteredExpenses] = useState<Expense[]>([]);
     const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
     const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
 
-    const totalRevenue = invoices
+    useEffect(() => {
+        if (user?.role === 'customer') {
+            const customerId = Number(user.id);
+            setFilteredInvoices(!isNaN(customerId) ? invoices.filter(i => i.customer_id === customerId) : []);
+            setFilteredExpenses([]);
+        } else {
+            setFilteredInvoices(invoices);
+            setFilteredExpenses(expenses);
+        }
+    }, [user, invoices, expenses]);
+
+    const totalRevenue = filteredInvoices
         .filter(inv => inv.status === InvoiceStatus.PAID || inv.status === InvoiceStatus.PARTIAL)
         .reduce((sum, inv) => sum + inv.amount_paid, 0);
 
-    const totalExpenses = expenses.reduce((sum, exp) => sum + exp.amount_in_base_currency, 0);
-    
+    const totalExpenses = filteredExpenses.reduce((sum, exp) => sum + exp.amount_in_base_currency, 0);
     const netProfit = totalRevenue - totalExpenses;
+    const isCustomer = user?.role === 'customer';
 
-    const handleAddInvoice = (newInvoiceData: Omit<Invoice, 'id' | 'created_at' | 'updated_at' | 'created_by' | 'balance_due' | 'amount_paid'>) => {
-        const newInvoice: Invoice = {
-            ...newInvoiceData,
-            id: Date.now(),
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-            created_by: 1, // Logged in user
-            balance_due: newInvoiceData.total_amount,
-            amount_paid: 0,
-        };
-        setInvoices(prev => [newInvoice, ...prev]);
+    // Process chart data for the last 6 months
+    const chartData = useMemo(() => {
+        const dataByMonth: { [key: string]: number } = {};
+        const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+        filteredInvoices.forEach(invoice => {
+            const date = new Date(invoice.issue_date);
+            if (isNaN(date.getTime())) return;
+            const month = date.getMonth();
+            const year = date.getFullYear();
+            const key = `${year}-${month}`;
+            if (!dataByMonth[key]) dataByMonth[key] = 0;
+            dataByMonth[key] += invoice.total_amount;
+        });
+
+        const data = [];
+        const today = new Date();
+        for (let i = 5; i >= 0; i--) {
+            const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
+            const month = d.getMonth();
+            const year = d.getFullYear();
+            const key = `${year}-${month}`;
+            data.push({
+                name: monthNames[month],
+                Value: dataByMonth[key] || 0
+            });
+        }
+        return data;
+    }, [filteredInvoices]);
+
+    const handleAddInvoice = (newInvoiceData: any) => {
+        addInvoice({ ...newInvoiceData, id: Date.now(), created_at: new Date().toISOString(), updated_at: new Date().toISOString(), created_by: 1, balance_due: newInvoiceData.total_amount, amount_paid: 0 });
         setIsInvoiceModalOpen(false);
     };
 
-    const handleAddExpense = (newExpenseData: Omit<Expense, 'id' | 'created_at' | 'updated_at' | 'recorded_by' | 'amount_in_base_currency'>) => {
-        const newExpense: Expense = {
-            ...newExpenseData,
-            id: Date.now(),
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-            recorded_by: 1, // Logged in user
-            amount_in_base_currency: newExpenseData.amount, // Assuming USD for now
-        };
-        setExpenses(prev => [newExpense, ...prev]);
+    const handleAddExpense = (newExpenseData: any) => {
+        addExpense({ ...newExpenseData, id: Date.now(), created_at: new Date().toISOString(), updated_at: new Date().toISOString(), recorded_by: 1, amount_in_base_currency: newExpenseData.amount });
         setIsExpenseModalOpen(false);
     };
 
     return (
         <>
-            <div className="flex flex-col gap-6">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <StatCard 
-                        label="Total Revenue (Paid)" 
+            <div className="flex flex-col gap-6 min-w-0">
+                <div className={`grid grid-cols-1 ${isCustomer ? '' : 'md:grid-cols-3'} gap-5`}>
+                    <FinStatCard 
+                        label={isCustomer ? "Total Paid" : "Total Revenue"}
                         value={totalRevenue}
-                        icon={<CurrencyDollarIcon className="w-5 h-5" />}
+                        icon={<CurrencyDollarIcon />}
+                        color="bg-emerald-500"
+                        trend="+8.4%"
                     />
-                    <StatCard 
-                        label="Total Expenses" 
-                        value={totalExpenses}
-                        icon={<CurrencyDollarIcon className="w-5 h-5" />}
-                    />
-                    <StatCard 
-                        label="Net Profit" 
-                        value={netProfit}
-                        valueColor={netProfit >= 0 ? 'text-emerald-600' : 'text-rose-600'}
-                        icon={<CurrencyDollarIcon className="w-5 h-5" />}
-                    />
+                    {!isCustomer && (
+                        <>
+                            <FinStatCard 
+                                label="Expenses" 
+                                value={totalExpenses}
+                                icon={<CreditCardIcon />}
+                                color="bg-rose-500"
+                            />
+                            <FinStatCard 
+                                label="Net Profit" 
+                                value={netProfit}
+                                icon={<DocumentTextIcon />}
+                                color={netProfit >= 0 ? 'bg-indigo-500' : 'bg-amber-500'}
+                            />
+                        </>
+                    )}
                 </div>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                     <InvoiceList invoices={invoices} onAddInvoiceClick={() => setIsInvoiceModalOpen(true)} />
-                     <ExpenseList expenses={expenses} onAddExpenseClick={() => setIsExpenseModalOpen(true)} />
+                
+                <div className="h-80 w-full">
+                    <ShellCard className="h-full p-5 flex flex-col min-w-0 overflow-hidden">
+                        <SectionHeader 
+                            title={isCustomer ? "Spend History" : "Revenue Trend"} 
+                            subtitle="Financial performance over the last 6 months" 
+                        />
+                        <div className="flex-1 mt-4 w-full min-h-0">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <LineChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                                    <XAxis 
+                                        dataKey="name" 
+                                        tick={{ fontSize: 12, fill: '#64748b' }} 
+                                        axisLine={false} 
+                                        tickLine={false} 
+                                        dy={10}
+                                    />
+                                    <YAxis 
+                                        tick={{ fontSize: 12, fill: '#64748b' }} 
+                                        axisLine={false} 
+                                        tickLine={false}
+                                        tickFormatter={(value) => `$${value >= 1000 ? `${value/1000}k` : value}`}
+                                    />
+                                    <Tooltip 
+                                        contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                                        formatter={(value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value)}
+                                        itemStyle={{ color: '#10b981', fontWeight: 600 }}
+                                    />
+                                    <Line 
+                                        type="monotone" 
+                                        dataKey="Value" 
+                                        name={isCustomer ? "Spend" : "Revenue"}
+                                        stroke="#10b981" 
+                                        strokeWidth={3} 
+                                        dot={{ r: 4, fill: '#10b981', strokeWidth: 2, stroke: '#fff' }} 
+                                        activeDot={{ r: 6, fill: '#10b981', stroke: '#d1fae5', strokeWidth: 4 }} 
+                                    />
+                                </LineChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </ShellCard>
+                </div>
+
+                <div className={`grid grid-cols-1 ${isCustomer ? '' : 'lg:grid-cols-2'} gap-6 min-w-0`}>
+                     <div className="min-w-0">
+                        <InvoiceList 
+                            invoices={filteredInvoices} 
+                            onAddInvoiceClick={() => !isCustomer && setIsInvoiceModalOpen(true)} 
+                        />
+                     </div>
+                     {!isCustomer && (
+                        <div className="min-w-0">
+                            <ExpenseList expenses={filteredExpenses} onAddExpenseClick={() => setIsExpenseModalOpen(true)} />
+                        </div>
+                     )}
                 </div>
             </div>
-            {isInvoiceModalOpen && (
-                <AddInvoiceModal
-                    onClose={() => setIsInvoiceModalOpen(false)}
-                    onAddInvoice={handleAddInvoice}
-                />
+            
+            {isInvoiceModalOpen && !isCustomer && (
+                <AddInvoiceModal onClose={() => setIsInvoiceModalOpen(false)} onAddInvoice={handleAddInvoice} />
             )}
-            {isExpenseModalOpen && (
-                <AddGlobalExpenseModal
-                    onClose={() => setIsExpenseModalOpen(false)}
-                    onAddExpense={handleAddExpense}
-                />
+            {isExpenseModalOpen && !isCustomer && (
+                <AddGlobalExpenseModal onClose={() => setIsExpenseModalOpen(false)} onAddExpense={handleAddExpense} />
             )}
         </>
     );

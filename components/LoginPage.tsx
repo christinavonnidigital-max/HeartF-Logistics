@@ -7,6 +7,7 @@ const DEMO_ACCOUNTS = [
   { email: "ops@heartfledge.local", password: "routes123", role: "Ops Manager" },
   { email: "finance@heartfledge.local", password: "money123", role: "Finance Desk" },
   { email: "admin@heartfledge.local", password: "admin123", role: "Admin" },
+  { email: "customer@heartfledge.local", password: "client123", role: "Customer" },
 ];
 
 const LoginPage: React.FC = () => {

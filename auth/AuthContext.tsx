@@ -7,7 +7,7 @@ import React, {
   useState,
 } from "react";
 
-export type UserRole = "dispatcher" | "ops_manager" | "finance" | "admin";
+export type UserRole = "dispatcher" | "ops_manager" | "finance" | "admin" | "customer";
 
 export type User = {
   id: string;
@@ -30,6 +30,8 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 const STORAGE_KEY = "hf_current_user";
 
 // demo users
+// NOTE: In a production environment, passwords should never be stored in plain text.
+// This is for demonstration purposes only.
 const DEMO_USERS: InternalUserRecord[] = [
   {
     id: "u1",
@@ -59,6 +61,13 @@ const DEMO_USERS: InternalUserRecord[] = [
     password: "admin123",
     role: "admin",
   },
+  {
+    id: "101", // Matches "Retail Giant" customer ID in mock data
+    name: "Retail Giant (Customer)",
+    email: "customer@heartfledge.local",
+    password: "client123",
+    role: "customer",
+  },
 ];
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
@@ -81,6 +90,49 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       setLoading(false);
     }
   }, []);
+
+  const logout = useCallback(() => {
+    setUser(null);
+    try {
+      window.localStorage.removeItem(STORAGE_KEY);
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  // Security: Auto-logout on inactivity
+  useEffect(() => {
+    if (!user) return;
+
+    // Auto-logout after 30 minutes of inactivity
+    const IDLE_TIMEOUT = 30 * 60 * 1000; 
+    let timeoutId: number;
+
+    const resetTimer = () => {
+      window.clearTimeout(timeoutId);
+      timeoutId = window.setTimeout(() => {
+        console.warn("User inactive for 30 minutes, logging out for security.");
+        logout();
+        alert("You have been logged out due to inactivity.");
+      }, IDLE_TIMEOUT);
+    };
+
+    // List of events to track activity
+    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
+    
+    events.forEach(event => {
+      document.addEventListener(event, resetTimer);
+    });
+
+    resetTimer(); // Start timer immediately
+
+    return () => {
+      window.clearTimeout(timeoutId);
+      events.forEach(event => {
+        document.removeEventListener(event, resetTimer);
+      });
+    };
+  }, [user, logout]);
 
   const login = useCallback(
     async (email: string, password: string) => {
@@ -112,15 +164,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     },
     []
   );
-
-  const logout = useCallback(() => {
-    setUser(null);
-    try {
-      window.localStorage.removeItem(STORAGE_KEY);
-    } catch {
-      // ignore
-    }
-  }, []);
 
   const value: AuthContextValue = {
     user,

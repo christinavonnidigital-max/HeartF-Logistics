@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Opportunity, Lead, User, OpportunityStage } from '../types';
 import { CloseIcon, BriefcaseIcon, UserCircleIcon, InfoIcon, DocumentTextIcon, PhoneIcon, EnvelopeIcon, CalendarDaysIcon, ClockIcon, CurrencyDollarIcon } from './icons/Icons';
@@ -67,7 +68,7 @@ const OpportunityDetailsModal: React.FC<OpportunityDetailsModalProps> = ({ oppor
 
   return (
     <div
-      className="fixed inset-0 bg-black bg-opacity-60 z-40 flex items-end md:justify-end"
+      className="fixed inset-0 bg-black bg-opacity-60 z-[60] flex items-end md:justify-end"
       onClick={handleClose}
     >
       <div

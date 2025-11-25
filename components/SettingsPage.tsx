@@ -1,14 +1,20 @@
 
-import React from "react";
-import { ShellCard, SubtleCard, SectionHeader } from "./UiKit";
+import React, { useState } from "react";
+import { ShellCard, SubtleCard, SectionHeader, StatusPill } from "./UiKit";
 import {
   UsersIcon,
-  CreditCardIcon,
   CogIcon,
   SparklesIcon,
+  LockIcon,
+  ShieldExclamationIcon,
+  UserPlusIcon,
+  TrashIcon,
 } from "./icons/Icons";
 import { AppSettings, View } from "../App";
-import { Currency } from "../types";
+import { Currency, User } from "../types";
+import { useData } from "../contexts/DataContext";
+import InviteUserModal from "./InviteUserModal";
+import ConfirmModal from "./ConfirmModal";
 
 interface SettingsPageProps {
   settings: AppSettings;
@@ -31,7 +37,6 @@ const viewTitles: Record<View, string> = {
   settings: "Settings",
   analytics: "Analytics",
 };
-
 
 const SettingsToggle: React.FC<{
   label: string;
@@ -62,6 +67,9 @@ const SettingsToggle: React.FC<{
 
 
 const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onChangeSettings }) => {
+  const { users, addUser, deleteUser } = useData();
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<string | number | null>(null);
 
   const handleToggle = (key: keyof AppSettings) => {
     onChangeSettings(prev => ({ ...prev, [key]: !prev[key] }));
@@ -72,6 +80,36 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onChangeSettings 
     onChangeSettings(prev => ({ ...prev, [name]: value }));
   };
 
+  const handleInviteUser = (userData: Omit<User, 'id' | 'created_at' | 'updated_at' | 'is_active' | 'email_verified'>) => {
+    const newUser: User = {
+      ...userData,
+      id: Date.now(),
+      is_active: true,
+      email_verified: false, // Invite flow usually means pending verification
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    addUser(newUser);
+    setIsInviteModalOpen(false);
+  };
+
+  const confirmDeleteUser = () => {
+    if (userToDelete !== null) {
+      deleteUser(userToDelete);
+      setUserToDelete(null);
+    }
+  };
+
+  const getRoleTone = (role: User['role']) => {
+    switch(role) {
+      case 'admin': return 'danger';
+      case 'ops_manager': return 'warn';
+      case 'finance': return 'success';
+      case 'dispatcher': return 'info';
+      case 'customer': return 'neutral';
+      default: return 'neutral';
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -121,7 +159,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onChangeSettings 
                       <label className="block text-sm font-medium text-slate-700">Default Currency</label>
                       <select name="currency" value={settings.currency} onChange={handleChange} className="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm">
                           <option value="USD">USD</option>
-                          <option value="ZAR">ZAR</option>
+                          <option value="ZWL">ZWL</option>
                       </select>
                   </div>
                    <div>
@@ -135,58 +173,111 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onChangeSettings 
           </div>
         </ShellCard>
         
-        <ShellCard className="px-5 py-4">
+        <ShellCard className="px-5 py-4 flex flex-col">
           <SectionHeader
             title="User management"
-            subtitle="Invite dispatchers, managers, and finance users."
+            subtitle="Manage access for your team."
+            actions={
+              <button 
+                onClick={() => setIsInviteModalOpen(true)}
+                className="flex items-center gap-1 bg-orange-50 text-orange-700 px-2 py-1 rounded-lg text-xs font-semibold hover:bg-orange-100 transition"
+              >
+                <UserPlusIcon className="w-4 h-4" />
+                Invite User
+              </button>
+            }
           />
-          <div className="mt-4 flex items-start gap-3">
-            <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-600">
-              <UsersIcon className="h-5 w-5" />
-            </div>
-            <div className="text-sm text-slate-600">
-              <p>
-                User roles and permissions are currently in development. Soon you'll be able to assign roles and limit access to specific modules.
-              </p>
+          <div className="mt-4 flex-1 overflow-y-auto max-h-80 -mx-2 px-2">
+            <div className="space-y-2">
+              {users.map(user => (
+                <div key={user.id} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100 group hover:border-orange-200 hover:shadow-sm transition-all">
+                  <div className="flex items-center gap-3">
+                    <div className="h-8 w-8 rounded-full bg-white border border-slate-200 flex items-center justify-center text-xs font-bold text-slate-700">
+                      {user.first_name[0]}{user.last_name[0]}
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-slate-900">{user.first_name} {user.last_name}</p>
+                      <p className="text-[11px] text-slate-500">{user.email}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <StatusPill label={user.role.replace('_', ' ')} tone={getRoleTone(user.role)} />
+                    <button 
+                      onClick={() => setUserToDelete(user.id)}
+                      className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-md opacity-0 group-hover:opacity-100 transition-opacity"
+                      title="Remove User"
+                    >
+                      <TrashIcon className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </ShellCard>
 
         <ShellCard className="px-5 py-4">
           <SectionHeader
-            title="Integrations"
-            subtitle="Connect maps, email, and other tools."
+            title="Security"
+            subtitle="Protect your account and organization."
           />
-           <div className="mt-4 flex items-start gap-3">
-            <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-600">
-              <SparklesIcon className="h-5 w-5" />
-            </div>
-            <div className="text-sm text-slate-600">
-              <p>
-                Manage connections to external services like Google Maps, email providers, or accounting systems. This feature is coming soon.
-              </p>
-            </div>
-          </div>
-        </ShellCard>
-
-        <ShellCard className="px-5 py-4">
-          <SectionHeader
-            title="Billing and plans"
-            subtitle="Manage subscription and payment details."
-          />
-           <div className="mt-4 flex items-start gap-3">
-            <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-600">
-              <CreditCardIcon className="h-5 w-5" />
-            </div>
-            <div className="text-sm text-slate-600">
-              <p>
-                Your subscription and billing history will be available here once the payment system is integrated.
-              </p>
-            </div>
-          </div>
+           <div className="mt-4 space-y-3">
+             <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                    <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-600">
+                        <LockIcon className="h-5 w-5" /> 
+                    </div>
+                    <div className="text-sm">
+                        <p className="font-medium text-slate-900">Password</p>
+                        <p className="text-slate-500">Last changed 3 months ago</p>
+                    </div>
+                </div>
+                <button className="text-sm font-medium text-orange-600 hover:text-orange-700">Change</button>
+             </div>
+             
+             <div className="flex items-center justify-between pt-3 border-t border-slate-100">
+                <div className="flex items-center gap-3">
+                    <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-600">
+                        <ShieldExclamationIcon className="h-5 w-5" /> 
+                    </div>
+                    <div className="text-sm">
+                        <p className="font-medium text-slate-900">Two-factor authentication</p>
+                        <p className="text-slate-500">Add an extra layer of security</p>
+                    </div>
+                </div>
+                <SettingsToggle 
+                    label="" 
+                    description="" 
+                    enabled={false} 
+                    onToggle={() => alert("2FA setup would open here.")} 
+                />
+             </div>
+             
+             <div className="flex items-center justify-between pt-3 border-t border-slate-100">
+                <div className="text-sm text-slate-500 w-full text-center bg-orange-50 p-2 rounded-lg border border-orange-100">
+                    <p>Session timeout enabled: 30 mins</p>
+                </div>
+             </div>
+           </div>
         </ShellCard>
 
       </div>
+
+      {isInviteModalOpen && (
+        <InviteUserModal 
+          onClose={() => setIsInviteModalOpen(false)} 
+          onInvite={handleInviteUser} 
+        />
+      )}
+
+      <ConfirmModal
+        isOpen={userToDelete !== null}
+        onClose={() => setUserToDelete(null)}
+        onConfirm={confirmDeleteUser}
+        title="Remove User"
+        message="Are you sure you want to remove this user? They will lose access to the platform immediately."
+        confirmLabel="Remove"
+      />
     </div>
   );
 };

@@ -95,8 +95,8 @@ const CampaignsPage: React.FC<CampaignsPageProps> = ({ setActiveView }) => {
                         </button>
                     }
                 />
-                <div className="mt-2 flex items-center gap-4">
-                    <div className="relative flex-grow">
+                <div className="mt-2 flex flex-col sm:flex-row items-center gap-4">
+                    <div className="relative flex-grow w-full">
                         <input
                             type="text"
                             placeholder="Search campaigns..."
@@ -111,11 +111,11 @@ const CampaignsPage: React.FC<CampaignsPageProps> = ({ setActiveView }) => {
                     <select
                         value={statusFilter}
                         onChange={e => setStatusFilter(e.target.value as CampaignStatus | 'all')}
-                        className="rounded-md border border-slate-200 bg-white text-slate-900 pl-3 pr-10 py-2 text-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500"
+                        className="w-full sm:w-auto rounded-md border border-slate-200 bg-white text-slate-900 pl-3 pr-10 py-2 text-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500"
                     >
                         <option value="all">All Statuses</option>
                         {Object.values(CampaignStatus).map(status => (
-                            <option key={status} value={status} className="capitalize">{status}</option>
+                            <option key={status} value={status} className="capitalize">{status.replace(/_/g, ' ')}</option>
                         ))}
                     </select>
                 </div>
@@ -138,26 +138,26 @@ const CampaignsPage: React.FC<CampaignsPageProps> = ({ setActiveView }) => {
                             const openRate = calculateRate(campaign.emails_opened, campaign.emails_delivered);
                             const clickRate = calculateRate(campaign.emails_clicked, campaign.emails_opened);
                             return (
-                                <tr key={campaign.id} className="bg-white hover:bg-slate-50">
+                                <tr key={campaign.id} className="bg-white hover:bg-slate-50 transition-colors">
                                     <td className="px-6 py-4 font-medium text-slate-900 whitespace-nowrap">{campaign.campaign_name}</td>
-                                    <td className="px-6 py-4 text-center"><StatusPill label={campaign.status} tone={getStatusTone(campaign.status)}/></td>
+                                    <td className="px-6 py-4 text-center"><StatusPill label={campaign.status.replace(/_/g, ' ')} tone={getStatusTone(campaign.status)}/></td>
                                     <td className="px-6 py-4 text-center">{campaign.total_leads}</td>
                                     <td className="px-6 py-4 text-center">{campaign.emails_sent}</td>
                                     <td className="px-6 py-4 text-center">{openRate.toFixed(1)}%</td>
                                     <td className="px-6 py-4 text-center">{clickRate.toFixed(1)}%</td>
                                     <td className="px-6 py-4">
                                         <div className="flex items-center justify-center space-x-2">
-                                            <button className="p-1.5 text-slate-500 hover:text-emerald-600"><PlayIcon className="w-5 h-5" /></button>
-                                            <button className="p-1.5 text-slate-500 hover:text-amber-600"><PauseIcon className="w-5 h-5" /></button>
+                                            <button className="p-1.5 text-slate-500 hover:text-emerald-600 rounded-full hover:bg-emerald-50 transition"><PlayIcon className="w-5 h-5" /></button>
+                                            <button className="p-1.5 text-slate-500 hover:text-amber-600 rounded-full hover:bg-amber-50 transition"><PauseIcon className="w-5 h-5" /></button>
                                             <button 
-                                                className="p-1.5 text-slate-500 hover:text-sky-600"
+                                                className="p-1.5 text-slate-500 hover:text-sky-600 rounded-full hover:bg-sky-50 transition"
                                                 onClick={() => handleDuplicateCampaign(campaign.id)}
                                                 aria-label={`Duplicate campaign ${campaign.campaign_name}`}
                                             >
                                                 <DuplicateIcon className="w-5 h-5" />
                                             </button>
                                             <button 
-                                                className="p-1.5 text-slate-500 hover:text-rose-600"
+                                                className="p-1.5 text-slate-500 hover:text-rose-600 rounded-full hover:bg-rose-50 transition"
                                                 onClick={() => setCampaignToDelete(campaign.id)}
                                             >
                                                 <TrashIcon className="w-5 h-5" />
@@ -171,7 +171,10 @@ const CampaignsPage: React.FC<CampaignsPageProps> = ({ setActiveView }) => {
                 </table>
                  {filteredCampaigns.length === 0 && (
                     <div className="text-center py-16 text-slate-500">
-                        No campaigns found.
+                        <div className="flex flex-col items-center">
+                            <SearchIcon className="w-12 h-12 text-slate-300 mb-3" />
+                            <p>No campaigns found{searchTerm ? ` matching "${searchTerm}"` : ''}.</p>
+                        </div>
                     </div>
                 )}
             </div>

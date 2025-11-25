@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 
 export interface IconProps extends React.SVGProps<SVGSVGElement> {
@@ -86,6 +87,40 @@ export const ExclamationTriangleIcon = (props: IconProps) => (
   </IconBase>
 );
 
+export const ArrowPathIcon = (props: IconProps) => (
+  <IconBase {...props}>
+    <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+  </IconBase>
+);
+
+export const TagIcon = (props: IconProps) => (
+  <IconBase {...props}>
+    <path d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+  </IconBase>
+);
+
+export const DownloadIcon = (props: IconProps) => (
+  <IconBase {...props}>
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+    <polyline points="7 10 12 15 17 10" />
+    <line x1="12" y1="15" x2="12" y2="3" />
+  </IconBase>
+);
+
+export const TrendingUpIcon = (props: IconProps) => (
+  <IconBase {...props}>
+    <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+    <polyline points="17 6 23 6 23 12" />
+  </IconBase>
+);
+
+export const TrendingDownIcon = (props: IconProps) => (
+  <IconBase {...props}>
+    <polyline points="23 18 13.5 8.5 8.5 13.5 1 6" />
+    <polyline points="17 18 23 18 23 12" />
+  </IconBase>
+);
+
 // Navigation / section icons
 
 export const GridIcon = (props: IconProps) => (
@@ -123,6 +158,15 @@ export const UsersIcon = (props: IconProps) => (
     <circle cx={15} cy={10} r={2.3} />
     <path d="M4.5 18a4.8 4.8 0 0 1 9-2" />
     <path d="M13 18h6" />
+  </IconBase>
+);
+
+export const UserPlusIcon = (props: IconProps) => (
+  <IconBase {...props}>
+    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+    <circle cx={8.5} cy={7} r={4} />
+    <line x1={20} y1={8} x2={20} y2={14} />
+    <line x1={23} y1={11} x2={17} y2={11} />
   </IconBase>
 );
 
@@ -209,6 +253,27 @@ export const CurrencyDollarIcon = (props: IconProps) => (
   </IconBase>
 );
 
+export const BanknotesIcon = (props: IconProps) => (
+  <IconBase {...props}>
+    <path d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+  </IconBase>
+);
+
+export const CalculatorIcon = (props: IconProps) => (
+  <IconBase {...props}>
+    <rect x={4} y={2} width={16} height={20} rx={2} />
+    <line x1={8} y1={6} x2={16} y2={6} />
+    <line x1={16} y1={14} x2={16} y2={18} />
+    <path d="M16 10h.01" />
+    <path d="M12 10h.01" />
+    <path d="M8 10h.01" />
+    <path d="M12 14h.01" />
+    <path d="M8 14h.01" />
+    <path d="M12 18h.01" />
+    <path d="M8 18h.01" />
+  </IconBase>
+);
+
 // CRM icons
 
 export const PhoneIcon = (props: IconProps) => (
@@ -269,6 +334,29 @@ export const PencilSquareIcon = (props: IconProps) => (
 export const StarIcon = (props: IconProps) => (
   <IconBase {...props}>
     <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+  </IconBase>
+);
+
+export const LockIcon = (props: IconProps) => (
+  <IconBase {...props}>
+    <rect x={5} y={11} width={14} height={10} rx={2} />
+    <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+  </IconBase>
+);
+
+export const ShieldExclamationIcon = (props: IconProps) => (
+  <IconBase {...props}>
+    <path d="M12 4l6 2v5.5c0 3.5-2.5 6.5-6 8-3.5-1.5-6-4.5-6-8V6l6-2z" />
+    <path d="M12 8v4" />
+    <path d="M12 16h.01" />
+  </IconBase>
+);
+
+export const GlobeIcon = (props: IconProps) => (
+  <IconBase {...props}>
+    <circle cx={12} cy={12} r={10} />
+    <line x1={2} y1={12} x2={22} y2={12} />
+    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
   </IconBase>
 );
 

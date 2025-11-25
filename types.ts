@@ -3,10 +3,10 @@
 // --- USER & AUTHENTICATION MODULE ---
 
 export interface User {
-    id: number;
+    id: number | string;
     email: string;
     // password_hash: string; // Omitted for frontend security
-    role: 'admin' | 'customer' | 'driver' | 'marketing';
+    role: 'admin' | 'customer' | 'driver' | 'marketing' | 'dispatcher' | 'ops_manager' | 'finance';
     first_name: string;
     last_name: string;
     phone?: string;
@@ -566,6 +566,7 @@ export enum CampaignType {
     REENGAGEMENT = 'reengagement',
     NEWSLETTER = 'newsletter',
     PROMOTIONAL = 'promotional',
+    EVENT = 'event',
 }
 
 export enum CampaignStatus {

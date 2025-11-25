@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Lead, User, LeadActivity, LeadActivityType } from '../types';
 import { CloseIcon, BriefcaseIcon, UserCircleIcon, InfoIcon, DocumentTextIcon, PhoneIcon, EnvelopeIcon, CalendarDaysIcon, PencilSquareIcon } from './icons/Icons';
@@ -44,7 +45,7 @@ const LeadDetailsModal: React.FC<LeadDetailsModalProps> = ({ lead, salesReps, le
 
     return (
         <div 
-            className="fixed inset-0 bg-black bg-opacity-50 z-40 flex justify-center items-center p-4"
+            className="fixed inset-0 bg-black bg-opacity-50 z-[60] flex justify-center items-center p-4"
             onClick={onClose}
         >
             <div 

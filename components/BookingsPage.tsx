@@ -2,438 +2,175 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Booking, BookingStatus } from '../types';
 import EmptyState from './EmptyState';
-import { DocumentTextIcon, MapPinIcon, TruckIcon, ClockIcon, SearchIcon } from './icons/Icons';
-
-interface BookingsPageProps {
-  bookings?: Booking[];
-}
+import { DocumentTextIcon, MapPinIcon, TruckIcon, ClockIcon, SearchIcon, PlusIcon, CalendarDaysIcon } from './icons/Icons';
+import { useAuth } from '../auth/AuthContext';
+import { useData } from '../contexts/DataContext';
+import AddBookingModal from './AddBookingModal';
+import BookingDetailsModal from './BookingDetailsModal';
+import { StatusPill } from './UiKit';
 
 const statusToLabelAndTone = (status: Booking['status'] | string) => {
   const normalized = (status || '').toString();
   switch (normalized) {
-    case 'pending':
-      return { label: 'Pending', toneClass: 'bg-amber-50 text-amber-800' };
-    case 'confirmed':
-      return { label: 'Confirmed', toneClass: 'bg-emerald-50 text-emerald-800' };
-    case 'in_transit':
-      return { label: 'In transit', toneClass: 'bg-sky-50 text-sky-800' };
-    case 'delivered':
-      return { label: 'Delivered', toneClass: 'bg-slate-100 text-slate-800' };
-    case 'cancelled':
-      return { label: 'Cancelled', toneClass: 'bg-rose-50 text-rose-800' };
-    default:
-      return { label: normalized || 'Unknown', toneClass: 'bg-slate-50 text-slate-700' };
+    case 'pending': return { label: 'Pending', toneClass: 'bg-amber-50 text-amber-700 border border-amber-200' };
+    case 'confirmed': return { label: 'Confirmed', toneClass: 'bg-emerald-50 text-emerald-700 border border-emerald-200' };
+    case 'in_transit': return { label: 'In Transit', toneClass: 'bg-sky-50 text-sky-700 border border-sky-200' };
+    case 'delivered': return { label: 'Delivered', toneClass: 'bg-slate-100 text-slate-700 border border-slate-200' };
+    case 'cancelled': return { label: 'Cancelled', toneClass: 'bg-rose-50 text-rose-700 border border-rose-200' };
+    default: return { label: normalized, toneClass: 'bg-slate-50 text-slate-600 border border-slate-200' };
   }
 };
 
-const StatCard: React.FC<{
-  icon: React.ReactNode;
-  label: string;
-  value: string | number;
-  sublabel?: string;
-}> = ({ icon, label, value, sublabel }) => {
-  const formatted = typeof value === 'number' ? value.toLocaleString() : value;
+type BoardColumnKey = 'pending' | 'confirmed' | 'in_transit' | 'delivered';
 
-  return (
-    <div className="flex flex-col justify-between rounded-2xl bg-white px-4 py-3 shadow-sm ring-1 ring-slate-100">
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-orange-50 text-orange-500">
-          {icon}
-        </div>
-      </div>
-      <div className="mt-3">
-        <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
-          {label}
-        </p>
-        <p className="mt-1 text-xl font-semibold text-slate-900">
-          {formatted}
-        </p>
-        {sublabel && (
-          <p className="mt-0.5 text-xs text-slate-500">{sublabel}</p>
-        )}
-      </div>
-    </div>
-  );
-};
-
-type BoardColumnKey = 'pending' | 'confirmed' | 'in_transit' | 'delivered' | 'cancelled';
-
-const BOARD_COLUMNS: {
-  key: BoardColumnKey;
-  title: string;
-  subtitle: string;
-}[] = [
-  {
-    key: 'pending',
-    title: 'Planned',
-    subtitle: 'Awaiting confirmation',
-  },
-  {
-    key: 'confirmed',
-    title: 'Confirmed',
-    subtitle: 'Ready to dispatch',
-  },
-  {
-    key: 'in_transit',
-    title: 'In transit',
-    subtitle: 'Currently on the road',
-  },
-  {
-    key: 'delivered',
-    title: 'Delivered',
-    subtitle: 'Completed drops',
-  },
+const BOARD_COLUMNS: { key: BoardColumnKey; title: string; subtitle: string; color: string; accent: string }[] = [
+  { key: 'pending', title: 'Planned', subtitle: 'Awaiting confirmation', color: 'bg-amber-50', accent: 'border-amber-400' },
+  { key: 'confirmed', title: 'Confirmed', subtitle: 'Ready to dispatch', color: 'bg-emerald-50', accent: 'border-emerald-400' },
+  { key: 'in_transit', title: 'In Transit', subtitle: 'On the road', color: 'bg-sky-50', accent: 'border-sky-400' },
+  { key: 'delivered', title: 'Delivered', subtitle: 'Completed jobs', color: 'bg-slate-50', accent: 'border-slate-400' },
 ];
 
-const BookingsPage: React.FC<BookingsPageProps> = ({ bookings = [] }) => {
-  const [localBookings, setLocalBookings] = useState<Booking[]>(bookings);
+const BookingsPage: React.FC = () => {
+  const { user } = useAuth();
+  const { bookings, addBooking, updateBooking } = useData();
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<BookingStatus | 'all'>('all');
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
 
-  // Sync local state when parent bookings change
-  useEffect(() => {
-    setLocalBookings(bookings);
-  }, [bookings]);
+  const isCustomer = user?.role === 'customer';
 
   const filteredBookings = useMemo(() => {
-    return localBookings.filter(b => {
-        // Status Filter
+    let baseData = bookings;
+    if (isCustomer) {
+        const customerId = Number(user?.id);
+        baseData = !isNaN(customerId) ? bookings.filter(b => b.customer_id === customerId) : [];
+    }
+
+    return baseData.filter(b => {
         if (statusFilter !== 'all' && b.status !== statusFilter) return false;
-        
-        // Search Filter
         if (!searchTerm) return true;
         const lowerTerm = searchTerm.toLowerCase();
         return (
             b.booking_number.toLowerCase().includes(lowerTerm) ||
             b.pickup_city.toLowerCase().includes(lowerTerm) ||
-            b.delivery_city.toLowerCase().includes(lowerTerm) ||
-            b.cargo_description.toLowerCase().includes(lowerTerm)
+            b.delivery_city.toLowerCase().includes(lowerTerm)
         );
     });
-  }, [localBookings, searchTerm, statusFilter]);
-
-  const now = new Date();
-
-  const safeDate = (value?: string) => {
-    if (!value) return null;
-    const d = new Date(value);
-    return isNaN(d.getTime()) ? null : d;
-  };
-
-  const todayString = now.toISOString().slice(0, 10);
-  const activeStatuses: BoardColumnKey[] = ['pending', 'confirmed', 'in_transit'];
-
-  // Stats are calculated based on the FILTERED view to give context to search results
-  const totalBookings = filteredBookings.length;
-  const activeBookings = filteredBookings.filter(b =>
-    activeStatuses.includes((b.status as BoardColumnKey) || 'pending'),
-  );
-  const deliveredBookings = filteredBookings.filter(b => (b.status as string) === 'delivered');
-
-  const todayBookings = filteredBookings.filter(b => {
-    const date = safeDate(b.pickup_date);
-    if (!date) return false;
-    return date.toISOString().slice(0, 10) === todayString;
-  });
-
-  const upcomingBookings = useMemo(
-    () =>
-      [...filteredBookings]
-        .filter(b => activeStatuses.includes((b.status as BoardColumnKey) || 'pending'))
-        .sort((a, b) => {
-          const da = safeDate(a.pickup_date)?.getTime() ?? 0;
-          const db = safeDate(b.pickup_date)?.getTime() ?? 0;
-          return da - db;
-        })
-        .slice(0, 6),
-    [filteredBookings],
-  );
+  }, [bookings, user, searchTerm, statusFilter, isCustomer]);
 
   const bookingsByStatus = useMemo(() => {
-    const grouped: Record<BoardColumnKey, Booking[]> = {
-      pending: [],
-      confirmed: [],
-      in_transit: [],
-      delivered: [],
-      cancelled: [],
-    };
-    for (const booking of filteredBookings) {
-      const key = ((booking.status as string) || 'pending') as BoardColumnKey;
-      if (!grouped[key]) {
-        grouped[key] = [];
-      }
-      grouped[key].push(booking);
-    }
+    const grouped: Record<string, Booking[]> = { pending: [], confirmed: [], in_transit: [], delivered: [], cancelled: [] };
+    filteredBookings.forEach(b => {
+        if (grouped[b.status]) grouped[b.status].push(b);
+        else grouped['pending'].push(b); 
+    });
     return grouped;
   }, [filteredBookings]);
 
-  const handleStatusChange = (bookingId: number, newStatus: BoardColumnKey) => {
-    setLocalBookings(prev =>
-      prev.map(b =>
-        b.id === bookingId ? { ...b, status: newStatus as BookingStatus } : b,
-      ),
-    );
-  };
-
-  const hasBookings = filteredBookings.length > 0;
-
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <section className="rounded-2xl bg-white px-5 py-4 shadow-sm ring-1 ring-slate-100">
-        <div className="flex flex-col gap-4">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                    <h2 className="text-base font-semibold text-slate-900">
-                    Bookings workspace
-                    </h2>
-                    <p className="mt-1 text-sm text-slate-600">
-                    Track loads, delivery windows and client details in one place.
-                    </p>
-                </div>
-                <span className="inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">
-                    Planning and execution
-                </span>
-            </div>
-            
-            <div className="flex flex-col sm:flex-row gap-3 pt-2 border-t border-slate-50">
-                <div className="relative flex-grow">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <SearchIcon className="w-4 h-4 text-slate-400" />
-                    </div>
-                    <input
-                        type="text"
-                        placeholder="Search by ID, City, or Cargo..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full rounded-lg border border-slate-200 bg-slate-50 pl-9 pr-4 py-2 text-sm text-slate-900 placeholder:text-slate-500 focus:outline-none focus:bg-white focus:ring-2 focus:ring-orange-500 focus:border-transparent transition"
-                    />
-                </div>
-                <select 
-                    value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value as BookingStatus | 'all')}
-                    className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                >
-                    <option value="all">All Statuses</option>
-                    <option value="pending">Pending</option>
-                    <option value="confirmed">Confirmed</option>
-                    <option value="in_transit">In Transit</option>
-                    <option value="delivered">Delivered</option>
-                    <option value="cancelled">Cancelled</option>
-                </select>
-            </div>
-        </div>
-      </section>
-
-      {/* Stats */}
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <StatCard
-          icon={<DocumentTextIcon className="h-4 w-4" />}
-          label="Total bookings"
-          value={totalBookings}
-          sublabel="Matching current filters"
-        />
-        <StatCard
-          icon={<TruckIcon className="h-4 w-4" />}
-          label="Active"
-          value={activeBookings.length}
-          sublabel="Pending, confirmed, in transit"
-        />
-        <StatCard
-          icon={<ClockIcon className="h-4 w-4" />}
-          label="Today"
-          value={todayBookings.length}
-          sublabel="Pickup scheduled for today"
-        />
-        <StatCard
-          icon={<MapPinIcon className="h-4 w-4" />}
-          label="Delivered"
-          value={deliveredBookings.length}
-          sublabel="Completed deliveries"
-        />
-      </section>
-
-      {/* Main content */}
-      <section className="grid gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,2fr)]">
-        {/* Upcoming list */}
-        <div className="rounded-2xl bg-white shadow-sm ring-1 ring-slate-100">
-          <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
+    <div className="space-y-6 h-auto lg:h-[calc(100vh-8rem)] flex flex-col">
+      {/* Header & Toolbar */}
+      <div className="flex flex-col gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex-shrink-0">
+        <div className="flex justify-between items-center">
             <div>
-              <h3 className="text-sm font-semibold text-slate-900">
-                Upcoming bookings
-              </h3>
-              <p className="text-xs text-slate-500">
-                Loads that still need to be executed.
-              </p>
+                <h2 className="text-lg font-bold text-slate-900">Bookings Board</h2>
+                <p className="text-xs text-slate-500">Manage logistics pipeline and active loads</p>
             </div>
-            {hasBookings && (
-              <span className="inline-flex items-center rounded-full bg-slate-50 px-3 py-1 text-xs font-medium text-slate-500">
-                {activeBookings.length} active
-              </span>
-            )}
-          </div>
-
-          <div className="divide-y divide-slate-100">
-            {!hasBookings && (
-              <div className="px-4 py-8 text-center text-sm text-slate-500">
-                {localBookings.length === 0 ? "No bookings captured yet." : "No bookings match your search filters."}
-              </div>
-            )}
-
-            {hasBookings && upcomingBookings.length === 0 && (
-              <div className="px-4 py-8 text-center text-sm text-slate-500">
-                No active bookings matching your filters.
-              </div>
-            )}
-
-            {upcomingBookings.map(booking => {
-              const routeLabel = `${booking.pickup_city} \u2192 ${booking.delivery_city}`;
-              const { label: statusLabel, toneClass } = statusToLabelAndTone(
-                booking.status as string,
-              );
-              const pickupDate = safeDate(booking.pickup_date);
-              const pickupLabel = pickupDate
-                ? pickupDate.toLocaleDateString()
-                : 'Date not set';
-
-              return (
-                <div
-                  key={booking.id}
-                  className="flex items-center justify-between gap-3 px-4 py-3"
-                >
-                  <div>
-                    <p className="text-sm font-medium text-slate-900">
-                      {booking.booking_number || 'Booking'}
-                    </p>
-                    <p className="text-xs text-slate-500">{routeLabel}</p>
-                    <p className="mt-0.5 text-xs text-slate-500">
-                      Pickup: {pickupLabel}
-                    </p>
-                  </div>
-                  <div className="flex flex-col items-end gap-1 text-right">
-                    <span
-                      className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${toneClass}`}
-                    >
-                      {statusLabel}
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+            <button onClick={() => setIsAddModalOpen(true)} className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-xl text-sm font-bold shadow-md shadow-orange-200 hover:bg-orange-700 transition-all hover:scale-105 active:scale-95">
+                <PlusIcon className="w-4 h-4" />
+                <span>{isCustomer ? 'Request Booking' : 'New Booking'}</span>
+            </button>
         </div>
-
-        {/* Booking board */}
-        <div className="rounded-2xl bg-white shadow-sm ring-1 ring-slate-100">
-          <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
-            <div>
-              <h3 className="text-sm font-semibold text-slate-900">
-                Booking board
-              </h3>
-              <p className="text-xs text-slate-500">
-                Drag and drop is not wired, but you can update status inline.
-              </p>
-            </div>
-          </div>
-
-          <div className="grid gap-3 p-4 sm:grid-cols-2 xl:grid-cols-4">
-            {BOARD_COLUMNS.map(column => {
-              const items = bookingsByStatus[column.key];
-
-              return (
-                <div
-                  key={column.key}
-                  className="flex flex-col rounded-xl bg-slate-50/80 p-3"
-                >
-                  <div className="flex items-baseline justify-between gap-2">
-                    <div>
-                      <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">
-                        {column.title}
-                      </p>
-                      <p className="text-[11px] text-slate-500">
-                        {column.subtitle}
-                      </p>
-                    </div>
-                    <span className="text-[11px] font-medium text-slate-500">
-                      {items.length}
-                    </span>
-                  </div>
-
-                  <div className="mt-2 space-y-2">
-                    {items.length === 0 && (
-                      <p className="rounded-lg bg-slate-100 px-2 py-2 text-[11px] text-slate-500">
-                        Nothing in this column yet.
-                      </p>
-                    )}
-
-                    {items.map(booking => {
-                      const routeLabel = `${booking.pickup_city} \u2192 ${booking.delivery_city}`;
-                      const pickupDate = safeDate(booking.pickup_date);
-                      const pickupLabel = pickupDate
-                        ? pickupDate.toLocaleDateString()
-                        : 'Date not set';
-
-                      return (
-                        <div
-                          key={booking.id}
-                          className="space-y-1 rounded-lg bg-white px-2.5 py-2.5 text-xs shadow-sm ring-1 ring-slate-100"
-                        >
-                          <div className="flex items-center justify-between gap-2">
-                            <p className="truncate text-[12px] font-semibold text-slate-900">
-                              {booking.booking_number}
-                            </p>
-                          </div>
-                          <p className="truncate text-[11px] text-slate-500">
-                            {routeLabel}
-                          </p>
-                          <p className="text-[11px] text-slate-500">
-                            Pickup: {pickupLabel}
-                          </p>
-                          <div className="mt-2">
-                            <label className="flex items-center gap-1 text-[10px] text-slate-500">
-                              Status
-                              <select
-                                value={booking.status as string}
-                                onChange={e =>
-                                  handleStatusChange(
-                                    booking.id,
-                                    e.target.value as BoardColumnKey,
-                                  )
-                                }
-                                className="ml-auto rounded-full border border-slate-200 bg-white px-2 py-0.5 text-[10px] text-slate-700 focus:outline-none focus:ring-1 focus:ring-orange-500"
-                              >
-                                <option value="pending">Pending</option>
-                                <option value="confirmed">Confirmed</option>
-                                <option value="in_transit">In transit</option>
-                                <option value="delivered">Delivered</option>
-                                <option value="cancelled">Cancelled</option>
-                              </select>
-                            </label>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {!hasBookings && (
-            <div className="px-4 pb-5">
-              <div className="rounded-xl bg-slate-50 px-4 py-6 text-center">
-                <EmptyState
-                  icon={
-                    <DocumentTextIcon className="h-14 w-14 text-slate-300" />
-                  }
-                  title="No booking board yet"
-                  message={localBookings.length === 0 ? "Once you start capturing bookings, they will appear here." : "Adjust your filters to see more bookings."}
+        <div className="flex gap-3">
+            <div className="relative flex-1">
+                <SearchIcon className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
+                <input 
+                    type="text" 
+                    placeholder="Search bookings..." 
+                    value={searchTerm} 
+                    onChange={e => setSearchTerm(e.target.value)} 
+                    className="w-full pl-9 pr-4 py-2 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:bg-white focus:ring-2 focus:ring-orange-500 focus:outline-none transition-all"
                 />
-              </div>
             </div>
-          )}
+            <select 
+                value={statusFilter} 
+                onChange={e => setStatusFilter(e.target.value as BookingStatus | 'all')} 
+                className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:ring-orange-500 focus:border-orange-500"
+            >
+                <option value="all">All Statuses</option>
+                <option value="pending">Pending</option>
+                <option value="confirmed">Confirmed</option>
+                <option value="in_transit">In Transit</option>
+                <option value="delivered">Delivered</option>
+            </select>
         </div>
-      </section>
+      </div>
+
+      {/* Kanban Board */}
+      <div className="flex-1 overflow-x-auto overflow-y-hidden pb-4 lg:pb-0">
+        <div className="flex h-full gap-4 min-w-max lg:min-w-0">
+            {BOARD_COLUMNS.map(col => (
+                <div key={col.key} className="w-80 flex flex-col h-full rounded-2xl bg-slate-100/50 border border-slate-200/60 overflow-hidden shrink-0 lg:shrink">
+                    {/* Column Header */}
+                    <div className={`p-3 border-t-4 ${col.accent} bg-white border-b border-slate-100`}>
+                        <div className="flex justify-between items-center">
+                            <h3 className="font-bold text-slate-800 text-sm uppercase tracking-wide">{col.title}</h3>
+                            <span className="bg-slate-100 text-slate-600 text-xs font-bold px-2 py-0.5 rounded-md">
+                                {bookingsByStatus[col.key]?.length || 0}
+                            </span>
+                        </div>
+                        <p className="text-[10px] text-slate-400 mt-0.5">{col.subtitle}</p>
+                    </div>
+                    
+                    {/* Column Body */}
+                    <div className="p-3 space-y-3 overflow-y-auto flex-1 custom-scrollbar max-h-[500px] lg:max-h-none">
+                        {bookingsByStatus[col.key]?.map(booking => (
+                            <div 
+                                key={booking.id} 
+                                onClick={() => setSelectedBooking(booking)}
+                                className="group bg-white p-3 rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:border-orange-300 cursor-pointer transition-all duration-200"
+                            >
+                                <div className="flex justify-between items-start mb-2">
+                                    <span className="text-xs font-mono font-medium text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded">{booking.booking_number}</span>
+                                    <span className="text-xs font-bold text-slate-700">${booking.total_price.toLocaleString()}</span>
+                                </div>
+                                <div className="mb-3">
+                                    <div className="flex items-center gap-2 text-sm font-semibold text-slate-900">
+                                        <span className="truncate max-w-[100px] min-w-0">{booking.pickup_city}</span>
+                                        <span className="text-slate-300">→</span>
+                                        <span className="truncate max-w-[100px] min-w-0">{booking.delivery_city}</span>
+                                    </div>
+                                    <p className="text-xs text-slate-500 mt-0.5 truncate">{booking.cargo_description}</p>
+                                </div>
+                                <div className="flex items-center justify-between pt-2 border-t border-slate-50 text-xs text-slate-400">
+                                    <div className="flex items-center gap-1">
+                                        <CalendarDaysIcon className="w-3 h-3" />
+                                        {new Date(booking.pickup_date).toLocaleDateString()}
+                                    </div>
+                                    {booking.driver_id && (
+                                        <div className="flex items-center gap-1 text-indigo-500 bg-indigo-50 px-1.5 py-0.5 rounded">
+                                            <TruckIcon className="w-3 h-3" />
+                                            Driver
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+                        {(!bookingsByStatus[col.key] || bookingsByStatus[col.key].length === 0) && (
+                            <div className="h-24 flex items-center justify-center border-2 border-dashed border-slate-200 rounded-xl text-slate-400 text-xs italic">
+                                No bookings
+                            </div>
+                        )}
+                    </div>
+                </div>
+            ))}
+        </div>
+      </div>
+
+      {isAddModalOpen && <AddBookingModal onClose={() => setIsAddModalOpen(false)} onAddBooking={(b) => { addBooking({...b, id: Date.now(), created_at: new Date().toISOString(), updated_at: new Date().toISOString()}); setIsAddModalOpen(false); }} />}
+      {selectedBooking && <BookingDetailsModal booking={selectedBooking} onClose={() => setSelectedBooking(null)} onUpdateBooking={updateBooking} userRole={user?.role} />}
     </div>
   );
 };

@@ -1,3 +1,4 @@
+
 import React from "react";
 import {
   BarChartIcon,
@@ -49,16 +50,17 @@ const navSections: NavSectionConfig[] = [
   },
   {
     label: "Fleet ops",
-    allowedRoles: ["admin", "dispatcher", "ops_manager"],
+    allowedRoles: ["admin", "dispatcher", "ops_manager", "customer"],
     items: [
-      { view: "fleet", label: "Fleet", icon: <TruckIcon className="h-5 w-5" /> },
+      { view: "fleet", label: "Fleet", icon: <TruckIcon className="h-5 w-5" />, allowedRoles: ["admin", "dispatcher", "ops_manager"] },
       {
         view: "bookings",
         label: "Bookings",
         icon: <DocumentTextIcon className="h-5 w-5" />,
+        allowedRoles: ["admin", "dispatcher", "ops_manager", "customer"],
       },
-      { view: "routes", label: "Routes", icon: <MapIcon className="h-5 w-5" /> },
-      { view: "drivers", label: "Drivers", icon: <DriverIcon className="h-5 w-5" /> },
+      { view: "routes", label: "Routes", icon: <MapIcon className="h-5 w-5" />, allowedRoles: ["admin", "dispatcher", "ops_manager"] },
+      { view: "drivers", label: "Drivers", icon: <DriverIcon className="h-5 w-5" />, allowedRoles: ["admin", "dispatcher", "ops_manager"] },
     ],
   },
   {
@@ -73,7 +75,8 @@ const navSections: NavSectionConfig[] = [
       { 
         view: "customers", 
         label: "Customers", 
-        icon: <UsersIcon className="h-5 w-5" /> 
+        icon: <UsersIcon className="h-5 w-5" />,
+        allowedRoles: ["admin", "ops_manager", "dispatcher"]
       },
     ],
   },
@@ -100,17 +103,19 @@ const navSections: NavSectionConfig[] = [
   },
   {
     label: "Finance",
-    allowedRoles: ["admin", "finance", "ops_manager"],
+    allowedRoles: ["admin", "finance", "ops_manager", "customer"],
     items: [
       {
         view: "financials",
         label: "Financials",
         icon: <CreditCardIcon className="h-5 w-5" />,
+        allowedRoles: ["admin", "finance", "ops_manager", "customer"],
       },
       {
         view: "reports",
         label: "Reports",
         icon: <BarChartIcon className="h-5 w-5" />,
+        allowedRoles: ["admin", "finance", "ops_manager"],
       },
     ],
   },

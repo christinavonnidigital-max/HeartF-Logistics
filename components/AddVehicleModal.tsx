@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Vehicle, VehicleType, VehicleStatus, FuelType } from '../types';
-import { CloseIcon } from './icons/Icons';
+import { CloseIcon, TruckIcon, FuelIcon, GaugeIcon, RoadIcon, CalendarDaysIcon, CurrencyDollarIcon } from './icons/Icons';
 
 interface AddVehicleModalProps {
   onClose: () => void;
@@ -9,19 +9,20 @@ interface AddVehicleModalProps {
 }
 
 const AddVehicleModal: React.FC<AddVehicleModalProps> = ({ onClose, onAddVehicle }) => {
+  // Pre-filled demo data
   const [formData, setFormData] = useState({
-    registration_number: '',
-    make: '',
-    model: '',
-    year: new Date().getFullYear(),
-    vehicle_type: VehicleType.DRY,
-    capacity_tonnes: 30,
+    registration_number: 'AFJ 9922',
+    make: 'Volvo',
+    model: 'FH Globetrotter',
+    year: 2023,
+    vehicle_type: VehicleType.REFRIGERATED,
+    capacity_tonnes: 40,
     status: VehicleStatus.ACTIVE,
-    purchase_date: new Date().toISOString().split('T')[0],
-    purchase_cost: 0,
-    current_km: 0,
-    next_service_due_km: 20000,
-    last_service_date: new Date().toISOString().split('T')[0],
+    purchase_date: '2023-02-15',
+    purchase_cost: 145000,
+    current_km: 45000,
+    next_service_due_km: 60000,
+    last_service_date: '2024-01-10',
     fuel_type: FuelType.DIESEL,
   });
   const [error, setError] = useState('');
@@ -48,81 +49,207 @@ const AddVehicleModal: React.FC<AddVehicleModalProps> = ({ onClose, onAddVehicle
 
   return (
     <div
-      className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center p-4"
+      className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] flex justify-center items-center p-4 animate-in fade-in duration-200"
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-xl shadow-2xl w-full max-w-2xl flex flex-col max-h-[90vh]"
+        className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl flex flex-col max-h-[90vh] border border-slate-200"
         onClick={(e) => e.stopPropagation()}
       >
-        <header className="flex justify-between items-center p-4 border-b border-gray-200">
-          <h2 className="text-xl font-bold text-gray-900">Add New Vehicle</h2>
-          <button onClick={onClose} className="p-1 rounded-full hover:bg-gray-200">
-            <CloseIcon className="w-6 h-6 text-gray-600" />
+        <header className="flex justify-between items-center px-6 py-4 border-b border-slate-100 bg-slate-50/50 rounded-t-2xl flex-shrink-0">
+          <div>
+            <h2 className="text-lg font-bold text-slate-900">Add New Vehicle</h2>
+            <p className="text-xs text-slate-500 mt-0.5">Register a new asset to the fleet</p>
+          </div>
+          <button onClick={onClose} className="p-2 rounded-full hover:bg-slate-200/60 text-slate-500 transition-colors">
+            <CloseIcon className="w-5 h-5" />
           </button>
         </header>
-        <form onSubmit={handleSubmit}>
-          <main className="p-6 overflow-y-auto space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto custom-scrollbar">
+          <main className="p-6 space-y-8">
+            
+            {/* Identity Section */}
+            <div className="space-y-4">
+              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
+                <TruckIcon className="w-4 h-4" />
+                Vehicle Identity
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="sm:col-span-2">
+                    <label className="block text-xs font-medium text-slate-700 mb-1">Registration Number*</label>
+                    <input 
+                        type="text" 
+                        name="registration_number" 
+                        value={formData.registration_number} 
+                        onChange={handleChange} 
+                        placeholder="e.g. ABC-1234"
+                        className="block w-full rounded-lg border-slate-200 bg-slate-50 focus:bg-white text-sm focus:border-orange-500 focus:ring-orange-500 transition-colors font-mono" 
+                    />
+                </div>
                 <div>
-                    <label htmlFor="registration_number" className="block text-sm font-medium text-gray-700">Registration Number*</label>
-                    <input type="text" name="registration_number" id="registration_number" value={formData.registration_number} onChange={handleChange} required className="mt-1 block w-full rounded-md border border-gray-300 bg-white text-gray-900 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm" />
+                    <label className="block text-xs font-medium text-slate-700 mb-1">Make*</label>
+                    <input 
+                        type="text" 
+                        name="make" 
+                        value={formData.make} 
+                        onChange={handleChange} 
+                        placeholder="e.g. Scania"
+                        className="block w-full rounded-lg border-slate-200 bg-white text-sm focus:border-orange-500 focus:ring-orange-500 transition-colors" 
+                    />
+                </div>
+                <div>
+                    <label className="block text-xs font-medium text-slate-700 mb-1">Model*</label>
+                    <input 
+                        type="text" 
+                        name="model" 
+                        value={formData.model} 
+                        onChange={handleChange} 
+                        placeholder="e.g. R450"
+                        className="block w-full rounded-lg border-slate-200 bg-white text-sm focus:border-orange-500 focus:ring-orange-500 transition-colors" 
+                    />
+                </div>
+                <div>
+                    <label className="block text-xs font-medium text-slate-700 mb-1">Year</label>
+                    <input 
+                        type="number" 
+                        name="year" 
+                        value={formData.year} 
+                        onChange={handleNumberChange} 
+                        className="block w-full rounded-lg border-slate-200 bg-white text-sm focus:border-orange-500 focus:ring-orange-500 transition-colors" 
+                    />
                 </div>
                  <div>
-                    <label htmlFor="make" className="block text-sm font-medium text-gray-700">Make*</label>
-                    <input type="text" name="make" id="make" value={formData.make} onChange={handleChange} required className="mt-1 block w-full rounded-md border border-gray-300 bg-white text-gray-900 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm" />
-                </div>
-                <div>
-                    <label htmlFor="model" className="block text-sm font-medium text-gray-700">Model*</label>
-                    <input type="text" name="model" id="model" value={formData.model} onChange={handleChange} required className="mt-1 block w-full rounded-md border border-gray-300 bg-white text-gray-900 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm" />
-                </div>
-                 <div>
-                    <label htmlFor="year" className="block text-sm font-medium text-gray-700">Year</label>
-                    <input type="number" name="year" id="year" value={formData.year} onChange={handleNumberChange} className="mt-1 block w-full rounded-md border border-gray-300 bg-white text-gray-900 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm" />
-                </div>
-                <div>
-                    <label htmlFor="vehicle_type" className="block text-sm font-medium text-gray-700">Vehicle Type</label>
-                    <select name="vehicle_type" id="vehicle_type" value={formData.vehicle_type} onChange={handleChange} className="mt-1 block w-full rounded-md border border-gray-300 bg-white text-gray-900 pl-3 pr-10 py-2 text-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500">
-                        {Object.values(VehicleType).map(type => <option key={type} value={type}>{type.charAt(0).toUpperCase() + type.slice(1)}</option>)}
+                    <label className="block text-xs font-medium text-slate-700 mb-1">Status</label>
+                    <select 
+                        name="status" 
+                        value={formData.status} 
+                        onChange={handleChange} 
+                        className="block w-full rounded-lg border-slate-200 bg-white text-sm focus:border-orange-500 focus:ring-orange-500 transition-colors capitalize"
+                    >
+                        {Object.values(VehicleStatus).map(s => (
+                            <option key={s} value={s}>{s.replace(/_/g, ' ')}</option>
+                        ))}
                     </select>
                 </div>
-                 <div>
-                    <label htmlFor="capacity_tonnes" className="block text-sm font-medium text-gray-700">Capacity (Tonnes)</label>
-                    <input type="number" name="capacity_tonnes" id="capacity_tonnes" value={formData.capacity_tonnes} onChange={handleNumberChange} className="mt-1 block w-full rounded-md border border-gray-300 bg-white text-gray-900 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm" />
-                </div>
-                 <div>
-                    <label htmlFor="fuel_type" className="block text-sm font-medium text-gray-700">Fuel Type</label>
-                    <select name="fuel_type" id="fuel_type" value={formData.fuel_type} onChange={handleChange} className="mt-1 block w-full rounded-md border border-gray-300 bg-white text-gray-900 pl-3 pr-10 py-2 text-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500">
-                        {Object.values(FuelType).map(type => <option key={type} value={type}>{type.charAt(0).toUpperCase() + type.slice(1)}</option>)}
-                    </select>
-                </div>
-                <div>
-                    <label htmlFor="current_km" className="block text-sm font-medium text-gray-700">Current Kilometers</label>
-                    <input type="number" name="current_km" id="current_km" value={formData.current_km} onChange={handleNumberChange} className="mt-1 block w-full rounded-md border border-gray-300 bg-white text-gray-900 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm" />
-                </div>
-                <div>
-                    <label htmlFor="purchase_date" className="block text-sm font-medium text-gray-700">Purchase Date</label>
-                    <input type="date" name="purchase_date" id="purchase_date" value={formData.purchase_date} onChange={handleChange} className="mt-1 block w-full rounded-md border border-gray-300 bg-white text-gray-900 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm" />
-                </div>
+              </div>
             </div>
-            {error && <p className="text-sm text-red-600">{error}</p>}
+
+            {/* Specs Section Panel */}
+            <div className="space-y-3">
+              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
+                <GaugeIcon className="w-4 h-4" />
+                Technical Specs
+              </h3>
+              <div className="bg-slate-50 rounded-xl p-5 border border-slate-200 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                    <label className="block text-xs font-medium text-slate-500 mb-1">Type</label>
+                    <select 
+                        name="vehicle_type" 
+                        value={formData.vehicle_type} 
+                        onChange={handleChange} 
+                        className="block w-full rounded-lg border-slate-200 text-sm focus:border-orange-500 focus:ring-orange-500 bg-white"
+                    >
+                        {Object.values(VehicleType).map(type => (
+                            <option key={type} value={type}>{type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</option>
+                        ))}
+                    </select>
+                </div>
+                <div>
+                    <label className="block text-xs font-medium text-slate-500 mb-1 flex items-center gap-1"><FuelIcon className="w-3 h-3"/> Fuel</label>
+                    <select 
+                        name="fuel_type" 
+                        value={formData.fuel_type} 
+                        onChange={handleChange} 
+                        className="block w-full rounded-lg border-slate-200 text-sm focus:border-orange-500 focus:ring-orange-500 bg-white"
+                    >
+                        {Object.values(FuelType).map(type => (
+                            <option key={type} value={type}>{type.charAt(0).toUpperCase() + type.slice(1)}</option>
+                        ))}
+                    </select>
+                </div>
+                <div>
+                    <label className="block text-xs font-medium text-slate-500 mb-1">Capacity (t)</label>
+                    <input 
+                        type="number" 
+                        name="capacity_tonnes" 
+                        value={formData.capacity_tonnes} 
+                        onChange={handleNumberChange} 
+                        className="block w-full rounded-lg border-slate-200 text-sm focus:border-orange-500 focus:ring-orange-500 bg-white" 
+                    />
+                </div>
+              </div>
+            </div>
+
+            {/* History Section Panel */}
+            <div className="space-y-3">
+              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
+                <RoadIcon className="w-4 h-4" />
+                History & Financials
+              </h3>
+              <div className="bg-slate-50 rounded-xl p-5 border border-slate-200 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="relative">
+                    <label className="block text-xs font-medium text-slate-700 mb-1">Current Odometer</label>
+                    <div className="relative">
+                        <input 
+                            type="number" 
+                            name="current_km" 
+                            value={formData.current_km} 
+                            onChange={handleNumberChange} 
+                            className="block w-full rounded-lg border-slate-200 pl-3 pr-8 text-sm focus:border-orange-500 focus:ring-orange-500 bg-white" 
+                        />
+                        <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                            <span className="text-gray-400 text-xs">km</span>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <label className="block text-xs font-medium text-slate-700 mb-1 flex items-center gap-1"><CalendarDaysIcon className="w-3 h-3"/> Purchase Date</label>
+                    <input 
+                        type="date" 
+                        name="purchase_date" 
+                        value={formData.purchase_date} 
+                        onChange={handleChange} 
+                        className="block w-full rounded-lg border-slate-200 text-sm focus:border-orange-500 focus:ring-orange-500 text-slate-600 bg-white" 
+                    />
+                </div>
+                <div className="relative">
+                    <label className="block text-xs font-medium text-slate-700 mb-1 flex items-center gap-1"><CurrencyDollarIcon className="w-3 h-3"/> Purchase Cost</label>
+                    <input 
+                        type="number" 
+                        name="purchase_cost" 
+                        value={formData.purchase_cost} 
+                        onChange={handleNumberChange} 
+                        className="block w-full rounded-lg border-slate-200 text-sm focus:border-orange-500 focus:ring-orange-500 bg-white" 
+                    />
+                </div>
+              </div>
+            </div>
+
+            {error && (
+              <div className="bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-lg text-sm text-center">
+                {error}
+              </div>
+            )}
           </main>
-          <footer className="p-4 bg-gray-50 border-t border-gray-200 flex justify-end space-x-3">
+        </form>
+        
+        <footer className="px-6 py-4 border-t border-slate-100 bg-slate-50/50 rounded-b-2xl flex justify-end gap-3 flex-shrink-0">
             <button
               type="button"
               onClick={onClose}
-              className="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
+              className="px-4 py-2 rounded-lg border border-slate-200 bg-white text-slate-700 text-sm font-medium hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-200 transition-colors"
             >
               Cancel
             </button>
             <button
-              type="submit"
-              className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
+              type="button"
+              onClick={handleSubmit}
+              className="px-6 py-2 rounded-lg bg-orange-500 text-white text-sm font-semibold hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 shadow-sm shadow-orange-200 transition-all"
             >
               Add Vehicle
             </button>
-          </footer>
-        </form>
+        </footer>
       </div>
     </div>
   );
