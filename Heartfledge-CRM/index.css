@@ -1,0 +1,14 @@
+.root {
+  --bg: #ffffff;
+  --text: #0f172a;
+}
+
+/* App base reset and sensible defaults */
+* { box-sizing: border-box; }
+html, body, #root { height: 100%; margin: 0; }
+body { background: var(--bg); color: var(--text); font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; }
+
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+
+/* small helper classes used across the app */
+.container { max-width: 1200px; margin: 0 auto; padding: 0 16px; }
