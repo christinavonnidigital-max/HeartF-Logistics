@@ -1,7 +1,0 @@
-{
-  "name": "Heartfledge Logistics Manager",
-  "description": "The official internal management system for Heartfledge Logistics, designed to streamline fleet, CRM, and financial operations.",
-  "requestFramePermissions": [
-    "geolocation"
-  ]
-}
