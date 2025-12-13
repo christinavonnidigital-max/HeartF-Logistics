@@ -18,6 +18,7 @@ import {
 } from "./icons/Icons";
 import { View } from "../App";
 import { useAuth, UserRole } from "../auth/AuthContext";
+import useTheme from "../src/theme/useTheme";
 
 type SidebarProps = {
   activeView: View;
@@ -36,6 +37,20 @@ type NavItem = {
 type NavSection = {
   title: string;
   items: NavItem[];
+};
+
+const ThemeToggle: React.FC = () => {
+  const { theme, toggle } = useTheme();
+  return (
+    <button
+      onClick={toggle}
+      aria-label="Toggle theme"
+      title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+      className="rounded-lg border border-white/10 p-2 text-white/80 hover:bg-white/10"
+    >
+      {theme === "dark" ? "☀️" : "🌙"}
+    </button>
+  );
 };
 
 const viewPermissions: Partial<Record<View, UserRole[]>> = {
@@ -141,13 +156,17 @@ const Sidebar: React.FC<SidebarProps> = ({
               <p className="text-sm font-semibold">Logistics</p>
             </div>
           </div>
-          <button
-            className="md:hidden rounded-lg border border-white/10 p-2 text-white/80 hover:bg-white/10"
-            onClick={() => setIsOpen(false)}
-            aria-label="Close navigation"
-          >
-            <CloseIcon className="h-5 w-5" />
-          </button>
+          <div className="flex items-center gap-2">
+            {/* Theme toggle */}
+            <ThemeToggle />
+            <button
+              className="md:hidden rounded-lg border border-white/10 p-2 text-white/80 hover:bg-white/10"
+              onClick={() => setIsOpen(false)}
+              aria-label="Close navigation"
+            >
+              <CloseIcon className="h-5 w-5" />
+            </button>
+          </div>
         </div>
 
         <div className="px-4 py-3 md:hidden">
