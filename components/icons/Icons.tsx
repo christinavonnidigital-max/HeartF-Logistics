@@ -15,10 +15,13 @@ const IconBase = ({ className, children, ...props }: IconBaseProps) => (
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
-    strokeWidth={1.8}
+    strokeWidth={2.5}
     strokeLinecap="round"
     strokeLinejoin="round"
     className={className}
+    aria-hidden="true"
+    focusable="false"
+    shapeRendering="geometricPrecision"
     {...props}
   >
     {children}
@@ -39,6 +42,18 @@ export const CloseIcon = (props: IconProps) => (
   <IconBase {...props}>
     <path d="M6 6l12 12" />
     <path d="M18 6L6 18" />
+  </IconBase>
+);
+
+export const ChevronLeftIcon = (props: IconProps) => (
+  <IconBase {...props}>
+    <path d="M15 18l-6-6 6-6" />
+  </IconBase>
+);
+
+export const ChevronRightIcon = (props: IconProps) => (
+  <IconBase {...props}>
+    <path d="M9 18l6-6-6-6" />
   </IconBase>
 );
 
@@ -214,6 +229,37 @@ export const CampaignIcon = (props: IconProps) => (
   </IconBase>
 );
 
+export const MegaphoneIcon = (props: IconProps) => (
+  <IconBase {...props}>
+    <path d="M3 11l18-5v12L3 13v-2z" />
+    <path d="M11.6 16.8a3 3 0 1 1-5.8-1.6" />
+  </IconBase>
+);
+
+export const WorkflowIcon = (props: IconProps) => (
+  <IconBase {...props}>
+    <rect x={3} y={3} width={6} height={6} rx={1} />
+    <rect x={15} y={3} width={6} height={6} rx={1} />
+    <rect x={3} y={15} width={6} height={6} rx={1} />
+    <rect x={15} y={15} width={6} height={6} rx={1} />
+    <path d="M9 6h6" />
+    <path d="M9 18h6" />
+    <path d="M6 9v6" />
+    <path d="M18 9v6" />
+  </IconBase>
+);
+
+export const AnalyticsIcon = (props: IconProps) => (
+  <IconBase {...props}>
+    <path d="M3 3v16a2 2 0 0 0 2 2h16" />
+    <path d="M7 16l4-4 4 4 5-5" />
+    <circle cx={7} cy={16} r={1} fill="currentColor" />
+    <circle cx={11} cy={12} r={1} fill="currentColor" />
+    <circle cx={15} cy={16} r={1} fill="currentColor" />
+    <circle cx={20} cy={11} r={1} fill="currentColor" />
+  </IconBase>
+);
+
 export const ChartPieIcon = (props: IconProps) => (
   <IconBase {...props}>
     <path d="M12 4a8 8 0 1 1-6.36 3.18" />
@@ -248,8 +294,8 @@ export const CreditCardIcon = (props: IconProps) => (
 
 export const CurrencyDollarIcon = (props: IconProps) => (
   <IconBase {...props}>
-    <path d="M12 4v16" />
-    <path d="M9 8.5A2.5 2.5 0 0 1 12 6h1a3 3 0 0 1 0 6h-2a3 3 0 0 0 0 6h1a2.5 2.5 0 0 0 3-2.5" />
+    <line x1="12" y1="2" x2="12" y2="22" />
+    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
   </IconBase>
 );
 
@@ -500,6 +546,35 @@ export const SparklesIcon = (props: IconProps) => (
     <path d="M6 14l0.8 2 2 0.8-2 0.8L6 20l-0.8-2.4L3 16.8l2-0.8L6 14z" />
     <path d="M17.5 10l0.7 1.6 1.6 0.7-1.6 0.7-0.7 1.6-0.7-1.6-1.6-0.7 1.6-0.7 0.7-1.6z" />
   </IconBase>
+);
+
+// Solid truck icon for AI Assistant
+export const BoxTruckIconBold = (props: IconProps) => (
+  <svg
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    className={props.className}
+    {...props}
+  >
+    {/* Main cargo box */}
+    <rect x="2" y="6" width="12" height="9" rx="1.5" />
+    {/* Truck cabin */}
+    <path d="M14 8h5.5l1.5 3v4h-7V8z" />
+    {/* Windshield detail - lighter */}
+    <path d="M15 9h3.5l0.5 1h-4V9z" fillOpacity="0.3" />
+    {/* Cargo door seam */}
+    <rect x="7.5" y="6" width="0.5" height="9" fillOpacity="0.25" />
+    {/* Bottom chassis */}
+    <rect x="2" y="15" width="19" height="1.5" rx="0.5" />
+    {/* Front wheel - solid */}
+    <circle cx="6" cy="18.5" r="2.5" />
+    <circle cx="6" cy="18.5" r="1.2" fill="white" fillOpacity="0.3" />
+    {/* Back wheel - solid */}
+    <circle cx="16.5" cy="18.5" r="2.5" />
+    <circle cx="16.5" cy="18.5" r="1.2" fill="white" fillOpacity="0.3" />
+    {/* Headlight */}
+    <circle cx="20" cy="12" r="0.7" fillOpacity="0.5" />
+  </svg>
 );
 
 // Large illustrations for empty states

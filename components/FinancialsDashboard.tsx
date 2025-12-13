@@ -51,6 +51,7 @@ const FinancialsDashboard: React.FC = () => {
     const [filteredExpenses, setFilteredExpenses] = useState<Expense[]>([]);
     const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
     const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
+    const [activeTab, setActiveTab] = useState<'invoices' | 'expenses'>('invoices');
 
     useEffect(() => {
         if (user?.role === 'customer') {
@@ -183,19 +184,53 @@ const FinancialsDashboard: React.FC = () => {
                     </ShellCard>
                 </div>
 
-                <div className={`grid grid-cols-1 ${isCustomer ? '' : 'lg:grid-cols-2'} gap-6 min-w-0`}>
-                     <div className="min-w-0">
-                        <InvoiceList 
-                            invoices={filteredInvoices} 
-                            onAddInvoiceClick={() => !isCustomer && setIsInvoiceModalOpen(true)} 
-                        />
-                     </div>
-                     {!isCustomer && (
-                        <div className="min-w-0">
-                            <ExpenseList expenses={filteredExpenses} onAddExpenseClick={() => setIsExpenseModalOpen(true)} />
+                <ShellCard className="p-0 overflow-hidden">
+                    <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 bg-slate-50/60">
+                        <div className="flex gap-2">
+                            <button
+                                onClick={() => setActiveTab('invoices')}
+                                className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition ${activeTab === 'invoices' ? 'bg-white text-slate-900 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-700'}`}
+                            >
+                                Invoices
+                            </button>
+                            {!isCustomer && (
+                                <button
+                                    onClick={() => setActiveTab('expenses')}
+                                    className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition ${activeTab === 'expenses' ? 'bg-white text-slate-900 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-700'}`}
+                                >
+                                    Expenses
+                                </button>
+                            )}
                         </div>
-                     )}
-                </div>
+                        {!isCustomer && activeTab === 'invoices' && (
+                            <button
+                                onClick={() => setIsInvoiceModalOpen(true)}
+                                className="px-3 py-1.5 rounded-lg bg-orange-600 text-white text-sm font-bold shadow-sm hover:bg-orange-700 transition"
+                            >
+                                Add Invoice
+                            </button>
+                        )}
+                        {!isCustomer && activeTab === 'expenses' && (
+                            <button
+                                onClick={() => setIsExpenseModalOpen(true)}
+                                className="px-3 py-1.5 rounded-lg bg-orange-600 text-white text-sm font-bold shadow-sm hover:bg-orange-700 transition"
+                            >
+                                Add Expense
+                            </button>
+                        )}
+                    </div>
+                    <div className="p-4">
+                        {activeTab === 'invoices' && (
+                            <InvoiceList 
+                                invoices={filteredInvoices} 
+                                onAddInvoiceClick={() => !isCustomer && setIsInvoiceModalOpen(true)} 
+                            />
+                        )}
+                        {!isCustomer && activeTab === 'expenses' && (
+                            <ExpenseList expenses={filteredExpenses} onAddExpenseClick={() => setIsExpenseModalOpen(true)} />
+                        )}
+                    </div>
+                </ShellCard>
             </div>
             
             {isInvoiceModalOpen && !isCustomer && (

@@ -18,3 +18,5 @@ View your app in AI Studio: https://ai.studio/apps/drive/1FR7MK0hWaKyC1XlXoI1bNg
 2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
 3. Run the app:
    `npm run dev`
+
+https://github.com/christinavonnidigital-max/HeartF-Logistics

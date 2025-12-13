@@ -49,7 +49,7 @@ const AddVehicleModal: React.FC<AddVehicleModalProps> = ({ onClose, onAddVehicle
 
   return (
     <div
-      className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] flex justify-center items-center p-4 animate-in fade-in duration-200"
+      className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex justify-center md:pl-64 items-center p-4 animate-in fade-in duration-200"
       onClick={onClose}
     >
       <div
@@ -95,7 +95,7 @@ const AddVehicleModal: React.FC<AddVehicleModalProps> = ({ onClose, onAddVehicle
                         value={formData.make} 
                         onChange={handleChange} 
                         placeholder="e.g. Scania"
-                        className="block w-full rounded-lg border-slate-200 bg-white text-sm focus:border-orange-500 focus:ring-orange-500 transition-colors" 
+                        className="block w-full rounded-lg border-slate-400 bg-slate-50 text-sm focus:border-orange-500 focus:ring-orange-500 transition-colors" 
                     />
                 </div>
                 <div>
@@ -106,7 +106,7 @@ const AddVehicleModal: React.FC<AddVehicleModalProps> = ({ onClose, onAddVehicle
                         value={formData.model} 
                         onChange={handleChange} 
                         placeholder="e.g. R450"
-                        className="block w-full rounded-lg border-slate-200 bg-white text-sm focus:border-orange-500 focus:ring-orange-500 transition-colors" 
+                        className="block w-full rounded-lg border-slate-400 bg-slate-50 text-sm focus:border-orange-500 focus:ring-orange-500 transition-colors" 
                     />
                 </div>
                 <div>
@@ -116,7 +116,7 @@ const AddVehicleModal: React.FC<AddVehicleModalProps> = ({ onClose, onAddVehicle
                         name="year" 
                         value={formData.year} 
                         onChange={handleNumberChange} 
-                        className="block w-full rounded-lg border-slate-200 bg-white text-sm focus:border-orange-500 focus:ring-orange-500 transition-colors" 
+                        className="block w-full rounded-lg border-slate-400 bg-slate-50 text-sm focus:border-orange-500 focus:ring-orange-500 transition-colors" 
                     />
                 </div>
                  <div>
@@ -125,7 +125,7 @@ const AddVehicleModal: React.FC<AddVehicleModalProps> = ({ onClose, onAddVehicle
                         name="status" 
                         value={formData.status} 
                         onChange={handleChange} 
-                        className="block w-full rounded-lg border-slate-200 bg-white text-sm focus:border-orange-500 focus:ring-orange-500 transition-colors capitalize"
+                        className="block w-full rounded-lg border-slate-400 bg-slate-50 text-sm focus:border-orange-500 focus:ring-orange-500 transition-colors capitalize"
                     >
                         {Object.values(VehicleStatus).map(s => (
                             <option key={s} value={s}>{s.replace(/_/g, ' ')}</option>

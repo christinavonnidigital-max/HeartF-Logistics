@@ -125,6 +125,12 @@ const CampaignsPage: React.FC<CampaignsPageProps> = ({ setActiveView }) => {
                         ))}
                     </select>
                     <button
+                        onClick={() => setActiveView('analytics')}
+                        className="px-4 py-2 rounded-xl border border-slate-200 text-slate-700 text-sm font-semibold hover:border-orange-300 hover:text-orange-700 transition"
+                    >
+                        View All
+                    </button>
+                    <button
                         onClick={() => setActiveView('new-campaign')}
                         className="flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-orange-600 text-white text-sm font-bold shadow-md shadow-orange-200 hover:bg-orange-700 transition-all hover:scale-105 active:scale-95"
                     >
@@ -146,7 +152,8 @@ const CampaignsPage: React.FC<CampaignsPageProps> = ({ setActiveView }) => {
                         return (
                             <div 
                                 key={campaign.id} 
-                                className="group relative bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all duration-300 hover:border-orange-200"
+                                className="group relative bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all duration-300 hover:border-orange-200 cursor-pointer"
+                                onClick={() => setActiveView('analytics')}
                             >
                                 <div className="flex flex-col md:flex-row justify-between items-start gap-4 mb-6">
                                     <div className="flex items-start gap-4">
@@ -167,23 +174,23 @@ const CampaignsPage: React.FC<CampaignsPageProps> = ({ setActiveView }) => {
 
                                     <div className="flex items-center gap-2 self-end md:self-start">
                                         {campaign.status === CampaignStatus.ACTIVE ? (
-                                            <button className="p-2 rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100 transition" title="Pause">
+                                            <button className="p-2 rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100 transition" title="Pause" onClick={(e) => { e.stopPropagation(); }}>
                                                 <PauseIcon className="w-5 h-5" />
                                             </button>
                                         ) : (
-                                            <button className="p-2 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition" title="Start">
+                                            <button className="p-2 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition" title="Start" onClick={(e) => { e.stopPropagation(); }}>
                                                 <PlayIcon className="w-5 h-5" />
                                             </button>
                                         )}
                                         <button 
-                                            onClick={() => handleDuplicateCampaign(campaign.id)}
+                                            onClick={(e) => { e.stopPropagation(); handleDuplicateCampaign(campaign.id); }}
                                             className="p-2 rounded-lg bg-slate-50 text-slate-500 hover:bg-sky-50 hover:text-sky-600 transition"
                                             title="Duplicate"
                                         >
                                             <DuplicateIcon className="w-5 h-5" />
                                         </button>
                                         <button 
-                                            onClick={() => setCampaignToDelete(campaign.id)}
+                                            onClick={(e) => { e.stopPropagation(); setCampaignToDelete(campaign.id); }}
                                             className="p-2 rounded-lg bg-slate-50 text-slate-500 hover:bg-rose-50 hover:text-rose-600 transition"
                                             title="Delete"
                                         >

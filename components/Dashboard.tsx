@@ -189,6 +189,23 @@ const getBookingStatusClass = (status: Booking['status']): string => {
   }
 };
 
+const getBookingCounts = (bookings: Booking[]) => {
+  const counts = {
+    pending: 0,
+    confirmed: 0,
+    in_transit: 0,
+    delivered: 0,
+  };
+  bookings.forEach(b => {
+    if (b.status in counts) {
+      // @ts-expect-error - safe index by known keys
+      counts[b.status] += 1;
+    }
+  });
+  const total = Object.values(counts).reduce((sum, val) => sum + val, 0);
+  return { ...counts, total };
+};
+
 const processRevenueTrendData = (invoices: Invoice[]) => {
   const dataByMonth: { [key: string]: number } = {};
   const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -339,6 +356,15 @@ const Dashboard: React.FC<DashboardProps> = ({ data, settings, userRole }) => {
 
   const openInvoices = invoices?.filter((inv) => !['paid', 'refunded', 'cancelled'].includes(inv.status)) || [];
   const paidInvoices = invoices?.filter((inv) => inv.status === 'paid') || [];
+  const bookingCounts = getBookingCounts(bookings || []);
+  const utilizationPct = totalVehicles > 0 ? Math.round((vehicles.filter(v => v.status === 'active').length / totalVehicles) * 100) : 0;
+  const revenuePaid = invoices?.reduce((sum: number, inv: Invoice) => sum + (inv.status === 'paid' || inv.status === 'partial' ? inv.amount_paid : 0), 0) || 0;
+  const revenueOutstanding = invoices?.reduce((sum: number, inv: Invoice) => {
+    if (['paid', 'refunded', 'cancelled'].includes(inv.status)) return sum;
+    return sum + Math.max(inv.total_amount - (inv.amount_paid || 0), 0);
+  }, 0) || 0;
+  const revenueTotal = revenuePaid + revenueOutstanding;
+  const revenueCustomers = invoices ? new Set(invoices.map(i => i.customer_id)).size : 0;
 
   const invoicedAmount = invoices?.reduce((sum: number, inv: Invoice) => sum + (inv.total_amount || 0), 0) || 0;
 
@@ -347,24 +373,137 @@ const Dashboard: React.FC<DashboardProps> = ({ data, settings, userRole }) => {
   const recentBookings = [...(bookings || [])].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 4);
 
   return (
-    <div className="pb-8">
+    <div className="pb-10">
       <DashboardHeader user={user} />
 
       {/* Quick Actions Toolbar */}
       {!isCustomer && (
-          <div className="flex flex-wrap gap-3 mb-8">
+          <div className="flex flex-wrap gap-4 mb-10">
               <QuickAction icon={<DocumentTextIcon className="w-4 h-4"/>} label="New Booking" onClick={() => setIsBookingModalOpen(true)} />
               <QuickAction icon={<UserPlusIcon className="w-4 h-4"/>} label="Add Lead" onClick={() => setIsLeadModalOpen(true)} />
               <QuickAction icon={<PlusIcon className="w-4 h-4"/>} label="Record Expense" onClick={() => setIsExpenseModalOpen(true)} />
           </div>
       )}
       {isCustomer && (
-          <div className="flex flex-wrap gap-3 mb-8">
+          <div className="flex flex-wrap gap-4 mb-10">
               <QuickAction icon={<PlusIcon className="w-4 h-4"/>} label="Request Booking" onClick={() => setIsBookingModalOpen(true)} />
           </div>
       )}
 
-      <div className="space-y-8">
+      <div className="space-y-10">
+        {/* Operations Pulse */}
+        <section className="grid grid-cols-1 xl:grid-cols-[1.2fr_0.8fr] gap-8">
+          <div className="rounded-2xl bg-white border border-slate-200 shadow-sm p-7 space-y-6 min-w-0">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Operations Pulse</p>
+                <h2 className="text-xl font-bold text-slate-900 mt-1">Fleet + Bookings Snapshot</h2>
+              </div>
+              <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-100 px-2 py-1 rounded-lg">Live</span>
+            </div>
+
+            <div className="grid sm:grid-cols-3 gap-3">
+              <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Fleet Utilization</p>
+                <p className="text-2xl font-bold text-slate-900 mt-1">{utilizationPct}%</p>
+                <p className="text-xs text-slate-500">1 in maintenance</p>
+              </div>
+              <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Pending Bookings</p>
+                <p className="text-2xl font-bold text-slate-900 mt-1">{bookingCounts.pending}</p>
+                <p className="text-xs text-slate-500">Awaiting confirmation</p>
+              </div>
+              <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Out of Service</p>
+                <p className="text-2xl font-bold text-slate-900 mt-1">{vehicles.filter(v => v.status === 'out_of_service').length}</p>
+                <p className="text-xs text-slate-500">Requires attention</p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm font-bold text-slate-900">Bookings pipeline</h3>
+                  <span className="text-xs text-slate-500">{bookingCounts.total} bookings</span>
+                </div>
+                {[
+                  { label: 'Pending', key: 'pending', color: 'bg-slate-900' },
+                  { label: 'Confirmed', key: 'confirmed', color: 'bg-orange-500' },
+                  { label: 'In transit', key: 'in_transit', color: 'bg-sky-500' },
+                  { label: 'Delivered', key: 'delivered', color: 'bg-emerald-500' },
+                ].map((row) => {
+                  const value = bookingCounts[row.key as keyof typeof bookingCounts] as number;
+                  const percent = bookingCounts.total ? Math.round((value / bookingCounts.total) * 100) : 0;
+                  return (
+                    <div key={row.key} className="space-y-1 mb-2 last:mb-0">
+                      <div className="flex items-center justify-between text-xs text-slate-600">
+                        <span>{row.label}</span>
+                        <span>{percent}%</span>
+                      </div>
+                      <div className="h-2 rounded-full bg-white border border-slate-200 overflow-hidden">
+                        <div className={`h-full ${row.color}`} style={{ width: `${percent}%` }} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm font-bold text-slate-900">Revenue pulse</h3>
+                  <span className="text-xs text-slate-500">Currency: {settings.currency}</span>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {[
+                    { label: 'Paid', value: revenuePaid },
+                    { label: 'Outstanding', value: revenueOutstanding },
+                    { label: 'Total', value: revenueTotal },
+                    { label: 'Customers', value: revenueCustomers },
+                  ].map(item => (
+                    <div key={item.label} className="rounded-lg bg-white border border-slate-200 px-3 py-2 min-w-0">
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">{item.label}</p>
+                      <p className="text-base font-bold text-slate-900 mt-1 leading-tight break-words">
+                        {typeof item.value === 'number' && item.label !== 'Customers'
+                          ? new Intl.NumberFormat('en-US', { style: 'currency', currency: settings.currency }).format(item.value)
+                          : item.value.toLocaleString()}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-2xl bg-white border border-slate-200 shadow-sm p-6 min-w-0">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Recent Bookings</p>
+                <h2 className="text-lg font-bold text-slate-900">Latest moves</h2>
+              </div>
+              <button className="text-xs font-semibold text-orange-600 hover:text-orange-700" onClick={() => setIsBookingModalOpen(true)}>View all</button>
+            </div>
+            <div className="space-y-3">
+              {recentBookings.length === 0 && (
+                <div className="text-sm text-slate-500">No bookings captured yet.</div>
+              )}
+              {recentBookings.map((booking) => {
+                const statusClass = getBookingStatusClass(booking.status);
+                return (
+                  <div key={booking.id} className="flex items-center justify-between gap-3 p-3 rounded-xl border border-slate-100 bg-slate-50 hover:bg-white transition">
+                    <div className="min-w-0">
+                      <p className="text-sm font-bold text-slate-900">{booking.booking_number}</p>
+                      <p className="text-xs text-slate-500 truncate">{`${booking.pickup_city} -> ${booking.delivery_city}`}</p>
+                    </div>
+                    <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium capitalize flex-shrink-0 ${statusClass}`}>
+                      {booking.status.replace('_', ' ')}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+
         {/* Top stats */}
         <section className={`grid gap-6 ${isCustomer ? 'md:grid-cols-3' : 'md:grid-cols-2 xl:grid-cols-4'}`}>
             {!isCustomer && (
@@ -470,37 +609,40 @@ const Dashboard: React.FC<DashboardProps> = ({ data, settings, userRole }) => {
                 </div>
             )}
 
-            {/* Bookings */}
-            <div className="rounded-2xl bg-white shadow-md border border-slate-200/60 overflow-hidden min-w-0">
-                <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4 bg-slate-50/30">
-                    <h2 className="text-sm font-bold text-slate-900 tracking-tight">Recent Bookings</h2>
-                    <span className="text-xs font-medium text-slate-500 bg-slate-100 px-2 py-1 rounded-md">{bookings?.length || 0} total</span>
-                </div>
-                <div className="divide-y divide-slate-50">
-                    {recentBookings.length === 0 && (
-                    <div className="px-6 py-8 text-center text-sm text-slate-500">No bookings captured yet.</div>
-                    )}
-                    {recentBookings.map((booking) => {
-                        const route = `${booking.pickup_city} → ${booking.delivery_city}`;
-                        const statusClass = getBookingStatusClass(booking.status);
+            {/* Bookings - show here only for customers to avoid duplication */}
+            {isCustomer && (
+                <div className="rounded-2xl bg-white shadow-md border border-slate-200/60 overflow-hidden min-w-0">
+                    <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4 bg-slate-50/30">
+                        <h2 className="text-sm font-bold text-slate-900 tracking-tight">Recent Bookings</h2>
+                        <span className="text-xs font-medium text-slate-500 bg-slate-100 px-2 py-1 rounded-md">{bookings?.length || 0} total</span>
+                    </div>
+                    <div className="divide-y divide-slate-50">
+                        {recentBookings.length === 0 && (
+                        <div className="px-6 py-8 text-center text-sm text-slate-500">No bookings captured yet.</div>
+                        )}
+                        {recentBookings.map((booking) => {
+                            // Use ASCII arrow to avoid rendering issues in some fonts
+                            const route = `${booking.pickup_city} -> ${booking.delivery_city}`;
+                            const statusClass = getBookingStatusClass(booking.status);
 
-                        return (
-                            <div key={booking.id} className="flex items-center justify-between gap-4 px-6 py-4 hover:bg-slate-50/50 transition-colors">
-                                <div className="min-w-0">
-                                    <p className="text-sm font-bold text-slate-900">{booking.booking_number}</p>
-                                    <div className="flex items-center gap-1.5 mt-0.5">
-                                        <TruckIcon className="w-3 h-3 text-slate-400 flex-shrink-0" />
-                                        <p className="text-xs text-slate-500 truncate">{route}</p>
+                            return (
+                                <div key={booking.id} className="flex items-center justify-between gap-4 px-6 py-4 hover:bg-slate-50/50 transition-colors">
+                                    <div className="min-w-0">
+                                        <p className="text-sm font-bold text-slate-900">{booking.booking_number}</p>
+                                        <div className="flex items-center gap-1.5 mt-0.5">
+                                            <TruckIcon className="w-3 h-3 text-slate-400 flex-shrink-0" />
+                                            <p className="text-xs text-slate-500 truncate">{route}</p>
+                                        </div>
                                     </div>
+                                    <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium capitalize flex-shrink-0 ${statusClass}`}>
+                                        {booking.status.replace('_', ' ')}
+                                    </span>
                                 </div>
-                                <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium capitalize flex-shrink-0 ${statusClass}`}>
-                                    {booking.status.replace('_', ' ')}
-                                </span>
-                            </div>
-                        );
-                    })}
+                            );
+                        })}
+                    </div>
                 </div>
-            </div>
+            )}
         </section>
       </div>
 

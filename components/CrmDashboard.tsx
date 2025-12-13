@@ -7,7 +7,7 @@ import LeadList from './LeadList';
 import LeadScoringRules from './LeadScoringRules';
 import LeadDetailsModal from './LeadDetailsModal';
 import OpportunityDetailsModal from './OpportunityDetailsModal';
-import { Lead, LeadScoringRule, Opportunity } from '../types';
+import { Lead, LeadScoringRule, Opportunity, OpportunityStage } from '../types';
 import AddLeadModal from './AddLeadModal';
 import AddLeadScoringRuleModal from './AddLeadScoringRuleModal';
 import ImportLeadsModal from './ImportLeadsModal';
@@ -30,7 +30,7 @@ const StatCard = ({ label, value, icon }: { label: string, value: string | numbe
 
 
 const CrmDashboard: React.FC = () => {
-    const { leads, opportunities, addLead, deleteLead, updateLead } = useData();
+    const { leads, opportunities, addLead, deleteLead, updateLead, updateOpportunity } = useData();
     // Rules are still local for now as they weren't part of the initial global scope request
     const [rules, setRules] = useState<LeadScoringRule[]>(mockLeadScoringRules);
     const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
@@ -64,6 +64,13 @@ const CrmDashboard: React.FC = () => {
     
     const handleOpportunityClick = (opportunity: Opportunity) => {
         setSelectedOpportunity(opportunity);
+    };
+
+    const handleStageChange = (opportunityId: number, newStage: OpportunityStage) => {
+        const opportunity = opportunities.find(opp => opp.id === opportunityId);
+        if (opportunity) {
+            updateOpportunity({ ...opportunity, stage: newStage });
+        }
     };
 
     const handleCloseModal = () => {
@@ -117,8 +124,8 @@ const CrmDashboard: React.FC = () => {
 
   return (
     <>
-        <div className="flex flex-col gap-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="flex flex-col gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <StatCard 
                     label="Total Pipeline Value" 
                     value={`$${new Intl.NumberFormat().format(totalPipelineValue)}`}
@@ -135,8 +142,12 @@ const CrmDashboard: React.FC = () => {
                     icon={<UsersIcon className="w-5 h-5" />}
                 />
             </div>
-            <SalesPipeline opportunities={opportunities} onOpportunityClick={handleOpportunityClick} />
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <SalesPipeline
+                opportunities={opportunities}
+                onOpportunityClick={handleOpportunityClick}
+                onStageChange={handleStageChange}
+            />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <LeadList 
                   leads={leads} 
                   onSelectLead={handleSelectLead} 

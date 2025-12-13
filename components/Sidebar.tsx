@@ -1,243 +1,100 @@
-
 import React from "react";
 import {
-  BarChartIcon,
-  BriefcaseIcon,
-  CreditCardIcon,
+  GridIcon,
+  TruckIcon,
+  DocumentTextIcon,
   DriverIcon,
   UsersIcon,
-  TruckIcon,
-  GridIcon,
-  SettingsIcon,
   MapIcon,
-  DocumentTextIcon,
+  BarChartIcon,
   CampaignIcon,
-  ChartPieIcon,
+  MegaphoneIcon,
+  WorkflowIcon,
+  AnalyticsIcon,
+  CreditCardIcon,
+  SettingsIcon,
+  CloseIcon,
+  MenuIcon,
 } from "./icons/Icons";
 import { View } from "../App";
 import { useAuth, UserRole } from "../auth/AuthContext";
 
-interface SidebarProps {
+type SidebarProps = {
   activeView: View;
   setActiveView: (view: View) => void;
   isOpen: boolean;
-  setIsOpen: (isOpen: boolean) => void;
-}
+  setIsOpen: (open: boolean) => void;
+};
 
-type NavItemConfig = {
+type NavItem = {
+  label: string;
   view: View;
-  label: string;
-  icon: React.ReactNode;
-  allowedRoles?: UserRole[];
+  icon: React.ComponentType<{ className?: string }>;
+  badge?: string;
 };
 
-type NavSectionConfig = {
-  label: string;
-  allowedRoles?: UserRole[];
-  items: NavItemConfig[];
+type NavSection = {
+  title: string;
+  items: NavItem[];
 };
 
-const navSections: NavSectionConfig[] = [
+const viewPermissions: Partial<Record<View, UserRole[]>> = {
+  fleet: ["admin", "dispatcher", "ops_manager"],
+  bookings: ["admin", "dispatcher", "ops_manager", "customer"],
+  drivers: ["admin", "dispatcher", "ops_manager"],
+  routes: ["admin", "dispatcher", "ops_manager"],
+  leads: ["admin", "ops_manager", "dispatcher"],
+  marketing: ["admin", "ops_manager"],
+  campaigns: ["admin", "ops_manager"],
+  "new-campaign": ["admin", "ops_manager"],
+  analytics: ["admin", "ops_manager"],
+  financials: ["admin", "finance", "ops_manager", "customer"],
+  reports: ["admin", "finance", "ops_manager"],
+  settings: ["admin"],
+};
+
+const navSections: NavSection[] = [
   {
-    label: "Command center",
+    title: "Overview",
+    items: [{ label: "Dashboard", view: "dashboard", icon: GridIcon }],
+  },
+  {
+    title: "Operations",
     items: [
-      {
-        view: "dashboard",
-        label: "Overview",
-        icon: <GridIcon className="h-5 w-5" />,
-      },
+      { label: "Fleet", view: "fleet", icon: TruckIcon },
+      { label: "Bookings", view: "bookings", icon: DocumentTextIcon },
+      { label: "Drivers", view: "drivers", icon: DriverIcon },
+      { label: "Routes", view: "routes", icon: MapIcon },
     ],
   },
   {
-    label: "Fleet ops",
-    allowedRoles: ["admin", "dispatcher", "ops_manager", "customer"],
+    title: "CRM",
     items: [
-      { view: "fleet", label: "Fleet", icon: <TruckIcon className="h-5 w-5" />, allowedRoles: ["admin", "dispatcher", "ops_manager"] },
-      {
-        view: "bookings",
-        label: "Bookings",
-        icon: <DocumentTextIcon className="h-5 w-5" />,
-        allowedRoles: ["admin", "dispatcher", "ops_manager", "customer"],
-      },
-      { view: "routes", label: "Routes", icon: <MapIcon className="h-5 w-5" />, allowedRoles: ["admin", "dispatcher", "ops_manager"] },
-      { view: "drivers", label: "Drivers", icon: <DriverIcon className="h-5 w-5" />, allowedRoles: ["admin", "dispatcher", "ops_manager"] },
+      { label: "Leads", view: "leads", icon: UsersIcon },
+      { label: "Customers", view: "customers", icon: UsersIcon },
     ],
   },
   {
-    label: "Customers",
+    title: "Marketing",
     items: [
-      { 
-        view: "leads", 
-        label: "Leads", 
-        icon: <BriefcaseIcon className="h-5 w-5" />,
-        allowedRoles: ["admin", "ops_manager", "dispatcher"] 
-      },
-      { 
-        view: "customers", 
-        label: "Customers", 
-        icon: <UsersIcon className="h-5 w-5" />,
-        allowedRoles: ["admin", "ops_manager", "dispatcher"]
-      },
+      { label: "Campaigns", view: "campaigns", icon: CampaignIcon },
+      { label: "Sequences", view: "new-campaign", icon: WorkflowIcon },
+      { label: "Analytics", view: "analytics", icon: AnalyticsIcon },
+      { label: "Marketing", view: "marketing", icon: MegaphoneIcon },
     ],
   },
   {
-    label: "Growth",
-    allowedRoles: ["admin", "ops_manager"],
+    title: "Finance",
     items: [
-      {
-        view: "marketing",
-        label: "Campaigns",
-        icon: <CampaignIcon className="h-5 w-5" />,
-      },
-      {
-        view: "campaigns",
-        label: "Sequences",
-        icon: <DocumentTextIcon className="h-5 w-5" />,
-      },
-      {
-        view: "analytics",
-        label: "Performance",
-        icon: <ChartPieIcon className="h-5 w-5" />,
-      },
+      { label: "Financials", view: "financials", icon: CreditCardIcon },
+      { label: "Reports", view: "reports", icon: BarChartIcon },
     ],
   },
   {
-    label: "Finance",
-    allowedRoles: ["admin", "finance", "ops_manager", "customer"],
-    items: [
-      {
-        view: "financials",
-        label: "Financials",
-        icon: <CreditCardIcon className="h-5 w-5" />,
-        allowedRoles: ["admin", "finance", "ops_manager", "customer"],
-      },
-      {
-        view: "reports",
-        label: "Reports",
-        icon: <BarChartIcon className="h-5 w-5" />,
-        allowedRoles: ["admin", "finance", "ops_manager"],
-      },
-    ],
-  },
-  {
-    label: "System",
-    allowedRoles: ["admin"],
-    items: [
-      {
-        view: "settings",
-        label: "Settings",
-        icon: <SettingsIcon className="h-5 w-5" />,
-        allowedRoles: ["admin"],
-      },
-    ],
+    title: "Admin",
+    items: [{ label: "Settings", view: "settings", icon: SettingsIcon }],
   },
 ];
-
-interface NavItemProps {
-  item: NavItemConfig;
-  activeView: View;
-  onClick: (view: View) => void;
-}
-
-const NavItem: React.FC<NavItemProps> = ({ item, activeView, onClick }) => {
-  const isActive = item.view === activeView;
-
-  return (
-    <button
-      type="button"
-      onClick={() => onClick(item.view)}
-      className={[
-        "group flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm transition-all",
-        isActive
-          ? "bg-[#273465] text-white font-semibold ring-1 ring-orange-400/70"
-          : "text-slate-200 hover:bg-[#273465] hover:text-white",
-      ].join(" ")}
-    >
-      <span
-        className={[
-          "inline-flex h-8 w-8 items-center justify-center rounded-lg border text-sm transition-colors",
-          isActive
-            ? "border-orange-300 bg-orange-500 text-white"
-            : "border-slate-700 bg-transparent text-slate-200 group-hover:border-slate-500",
-        ].join(" ")}
-      >
-        {item.icon}
-      </span>
-      <span className="truncate">{item.label}</span>
-    </button>
-  );
-};
-
-const SidebarShell: React.FC<SidebarProps> = ({
-  activeView,
-  setActiveView,
-  setIsOpen,
-}) => {
-  const { user } = useAuth();
-
-  const handleNavClick = (view: View) => {
-    setActiveView(view);
-    setIsOpen(false);
-  };
-
-  const hasAccess = (allowedRoles?: UserRole[]) => {
-    if (!allowedRoles) return true;
-    if (!user) return false;
-    return allowedRoles.includes(user.role);
-  };
-
-  return (
-    <div className="flex h-full w-64 flex-col bg-[#202A56] text-slate-100 shadow-2xl">
-      {/* Brand */}
-      <div className="flex h-16 items-center justify-center border-b border-slate-800/60 px-4">
-        <img
-          src="/heartfledge-logo-transparent-white.png"
-          alt="Heartfledge Logistics"
-          className="h-10 object-contain"
-          onError={(e) => {
-            (e.currentTarget as HTMLImageElement).style.display = 'none';
-          }}
-        />
-      </div>
-
-      {/* Nav */}
-      <nav className="flex-1 space-y-4 overflow-y-auto px-3 py-4 custom-scrollbar">
-        {navSections.map((section) => {
-          if (!hasAccess(section.allowedRoles)) return null;
-
-          const visibleItems = section.items.filter(item => hasAccess(item.allowedRoles));
-          if (visibleItems.length === 0) return null;
-
-          return (
-            <div key={section.label}>
-              <p className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wide text-slate-500/80">
-                {section.label}
-              </p>
-              <div className="space-y-1.5">
-                {visibleItems.map((item) => (
-                  <NavItem
-                    key={item.view}
-                    item={item}
-                    activeView={activeView}
-                    onClick={handleNavClick}
-                  />
-                ))}
-              </div>
-            </div>
-          );
-        })}
-      </nav>
-
-      {/* Footer */}
-      <div className="border-t border-slate-800 px-4 py-3 text-[11px] text-slate-500">
-        <p className="truncate">Signed in as</p>
-        <p className="truncate font-medium text-slate-200">
-          {user?.email || "Guest"}
-        </p>
-      </div>
-    </div>
-  );
-};
 
 const Sidebar: React.FC<SidebarProps> = ({
   activeView,
@@ -245,44 +102,114 @@ const Sidebar: React.FC<SidebarProps> = ({
   isOpen,
   setIsOpen,
 }) => {
+  const { user } = useAuth();
+
+  const isAllowed = (view: View) => {
+    if (!user) return false;
+    const roles = viewPermissions[view];
+    return !roles || roles.includes(user.role);
+  };
+
+  const handleSelect = (view: View) => {
+    setActiveView(view);
+    setIsOpen(false);
+  };
+
   return (
     <>
-      {/* Mobile overlay */}
-      <div
-        className={`fixed inset-0 z-40 md:hidden ${
-          isOpen ? "pointer-events-auto" : "pointer-events-none"
-        }`}
-      >
+      {isOpen && (
         <div
-          className={`absolute inset-0 bg-black/40 transition-opacity ${
-            isOpen ? "opacity-100" : "opacity-0"
-          }`}
+          className="fixed inset-0 z-30 bg-slate-900/50 backdrop-blur-sm md:hidden"
           onClick={() => setIsOpen(false)}
         />
+      )}
 
-        <div
-          className={`absolute inset-y-0 left-0 w-64 transform transition-transform duration-200 ease-out ${
-            isOpen ? "translate-x-0" : "-translate-x-full"
-          }`}
-        >
-          <SidebarShell
-            activeView={activeView}
-            setActiveView={setActiveView}
-            isOpen={isOpen}
-            setIsOpen={setIsOpen}
-          />
+      <aside
+        className={`fixed inset-y-0 left-0 z-40 w-64 transform bg-slate-950 text-white shadow-xl transition-transform duration-300 md:translate-x-0 ${
+          isOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        <div className="flex items-center justify-between px-4 py-4 border-b border-white/10">
+          <div className="flex items-center gap-3">
+            <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-orange-400 to-amber-500 flex items-center justify-center text-sm font-semibold shadow-lg shadow-orange-500/25">
+              HF
+            </div>
+            <div>
+              <p className="text-xs uppercase tracking-[0.18em] text-slate-200/70">
+                Heartfledge
+              </p>
+              <p className="text-sm font-semibold">Logistics</p>
+            </div>
+          </div>
+          <button
+            className="md:hidden rounded-lg border border-white/10 p-2 text-white/80 hover:bg-white/10"
+            onClick={() => setIsOpen(false)}
+            aria-label="Close navigation"
+          >
+            <CloseIcon className="h-5 w-5" />
+          </button>
         </div>
-      </div>
 
-      {/* Desktop sidebar */}
-      <div className="hidden md:fixed md:inset-y-0 md:left-0 md:z-30 md:flex md:w-64">
-        <SidebarShell
-          activeView={activeView}
-          setActiveView={setActiveView}
-          isOpen={isOpen}
-          setIsOpen={setIsOpen}
-        />
-      </div>
+        <div className="px-4 py-3 md:hidden">
+          {user ? (
+            <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+              <p className="text-sm font-semibold">{user.name}</p>
+              <p className="text-xs text-slate-200/70 capitalize">
+                {user.role.replace("_", " ")}
+              </p>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 text-sm text-slate-200/80">
+              <MenuIcon className="h-4 w-4" /> Not signed in
+            </div>
+          )}
+        </div>
+
+        <nav className="mt-2 space-y-6 overflow-y-auto px-4 pb-10">
+          {navSections.map((section) => {
+            const visibleItems = section.items.filter((item) =>
+              isAllowed(item.view)
+            );
+            if (!visibleItems.length) return null;
+            return (
+              <div key={section.title} className="space-y-2">
+                <p className="px-2 text-[11px] uppercase tracking-[0.16em] text-slate-200/50">
+                  {section.title}
+                </p>
+                <div className="space-y-1">
+                  {visibleItems.map((item) => {
+                    const Icon = item.icon;
+                    const isActive = activeView === item.view;
+                    return (
+                      <button
+                        key={item.view}
+                        onClick={() => handleSelect(item.view)}
+                        className={`group flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium transition ${
+                          isActive
+                            ? "bg-white text-slate-900 shadow-md shadow-orange-500/10"
+                            : "text-slate-200 hover:bg-white/10"
+                        }`}
+                      >
+                        <Icon
+                          className={`h-5 w-5 inline-block align-middle shrink-0 ${
+                            isActive ? "text-orange-600" : "text-orange-200"
+                          }`}
+                        />
+                        <span className="flex-1">{item.label}</span>
+                        {item.badge && (
+                          <span className="rounded-full bg-orange-500/10 px-2 py-0.5 text-[11px] font-semibold text-orange-200">
+                            {item.badge}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </nav>
+      </aside>
     </>
   );
 };

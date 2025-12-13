@@ -45,7 +45,7 @@ const AddLeadModal: React.FC<AddLeadModalProps> = ({ onClose, onAddLead }) => {
     };
 
     return (
-    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] flex justify-center items-center p-4 animate-in fade-in duration-200" onClick={onClose}>
+    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex justify-center md:pl-64 items-center p-4 animate-in fade-in duration-200" onClick={onClose}>
         <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl flex flex-col max-h-[90vh] border border-slate-200 overflow-hidden animate-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
             <header className="flex justify-between items-center px-6 py-4 border-b border-slate-100 bg-slate-50/50 rounded-t-2xl flex-shrink-0">
                 <div>
@@ -69,11 +69,11 @@ const AddLeadModal: React.FC<AddLeadModalProps> = ({ onClose, onAddLead }) => {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-xs font-medium text-slate-700 mb-1">First Name*</label>
-                                <input type="text" name="first_name" value={formData.first_name} onChange={handleChange} className="block w-full rounded-lg border-slate-200 bg-white focus:bg-white text-sm focus:border-orange-500 focus:ring-orange-500 transition-colors" placeholder="Jane" />
+                                <input type="text" name="first_name" value={formData.first_name} onChange={handleChange} className="block w-full rounded-lg border-slate-400 bg-slate-50 focus:bg-white text-sm focus:border-orange-500 focus:ring-orange-500 transition-colors" placeholder="Jane" />
                             </div>
                             <div>
                                 <label className="block text-xs font-medium text-slate-700 mb-1">Last Name</label>
-                                <input type="text" name="last_name" value={formData.last_name} onChange={handleChange} className="block w-full rounded-lg border-slate-200 bg-white focus:bg-white text-sm focus:border-orange-500 focus:ring-orange-500 transition-colors" placeholder="Doe" />
+                                <input type="text" name="last_name" value={formData.last_name} onChange={handleChange} className="block w-full rounded-lg border-slate-400 bg-slate-50 focus:bg-white text-sm focus:border-orange-500 focus:ring-orange-500 transition-colors" placeholder="Doe" />
                             </div>
                             <div>
                                 <label className="block text-xs font-medium text-slate-700 mb-1">Email*</label>
@@ -81,7 +81,7 @@ const AddLeadModal: React.FC<AddLeadModalProps> = ({ onClose, onAddLead }) => {
                                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                         <EnvelopeIcon className="h-4 w-4 text-slate-400" />
                                     </div>
-                                    <input type="email" name="email" value={formData.email} onChange={handleChange} className="block w-full rounded-lg border-slate-200 bg-white pl-9 focus:bg-white text-sm focus:border-orange-500 focus:ring-orange-500 transition-colors" placeholder="jane@company.com" />
+                                    <input type="email" name="email" value={formData.email} onChange={handleChange} className="block w-full rounded-lg border-slate-400 bg-slate-50 pl-9 focus:bg-white text-sm focus:border-orange-500 focus:ring-orange-500 transition-colors" placeholder="jane@company.com" />
                                 </div>
                             </div>
                             <div>

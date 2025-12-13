@@ -1,11 +1,9 @@
 import { GoogleGenAI, GenerateContentParameters } from "@google/genai";
 import { Vehicle, VehicleMaintenance, VehicleExpense, Lead, Opportunity, Invoice, Expense, LeadScoringRule, Route, RouteWaypoint } from '../types';
 
-if (!process.env.API_KEY) {
-  throw new Error("API_KEY environment variable is not set");
-}
-
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// Gracefully handle missing API key in local/dev to avoid crashing the app
+const apiKey = process.env.API_KEY || process.env.GEMINI_API_KEY;
+const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
 
 const FLEET_DATA_CONTEXT = `You are a Fleet Management Assistant for Heartfledge Logistics. Use the provided JSON data about the fleet to answer questions. The data includes vehicles, maintenance schedules, and expenses. If the question is about real-world information like regulations, news, or locations not in the data, use the provided tools. Be concise and helpful.`;
 const CRM_DATA_CONTEXT = `You are a CRM Assistant for Heartfledge Logistics. Use the provided JSON data about leads, opportunities, and lead scoring rules to answer questions. Analyze the sales pipeline, lead status, and scoring logic. If the question is about real-world information like company news or market trends not in the data, use the provided tools. Be concise and helpful.`;
@@ -93,6 +91,13 @@ export const getGeminiResponse = async (
   contextType: ContextType,
   location: { latitude: number, longitude: number } | null
 ) => {
+  if (!ai) {
+    return {
+      text: "AI assistant is disabled because no API key is configured. Set API_KEY or GEMINI_API_KEY to enable responses.",
+      candidates: []
+    };
+  }
+
   const { model, tools, config: analyzedConfig } = analyzePrompt(prompt);
 
   const dataContext = `\n\nCURRENT DATA CONTEXT:\n${JSON.stringify(contextData, null, 2)}`;

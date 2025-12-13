@@ -54,7 +54,7 @@ const AddDocumentModal: React.FC<AddDocumentModalProps> = ({ onClose, onAddDocum
     };
 
     return (
-    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] flex justify-center items-center p-4 animate-in fade-in duration-200" onClick={onClose}>
+    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex justify-center md:pl-64 items-center p-4 animate-in fade-in duration-200" onClick={onClose}>
         <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg flex flex-col overflow-hidden animate-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
             <header className="flex justify-between items-center p-4 border-b border-slate-100">
                 <h2 className="text-xl font-bold text-slate-900">Upload Document</h2>
@@ -64,17 +64,17 @@ const AddDocumentModal: React.FC<AddDocumentModalProps> = ({ onClose, onAddDocum
                 <main className="p-6 space-y-4">
                     <div>
                         <label className="block text-xs font-medium text-slate-700 mb-1">Document Type</label>
-                        <select name="document_type" value={formData.document_type} onChange={handleChange} className="block w-full rounded-lg border-slate-200 bg-white text-slate-900 text-sm focus:border-orange-500 focus:ring-orange-500 capitalize">
+                        <select name="document_type" value={formData.document_type} onChange={handleChange} className="block w-full rounded-lg border-slate-400 bg-slate-50 text-slate-900 text-sm focus:border-orange-500 focus:ring-orange-500 capitalize">
                             {Object.values(DocumentType).map(t => <option key={t} value={t}>{t.replace(/_/g, ' ')}</option>)}
                         </select>
                     </div>
                     <div>
                         <label className="block text-xs font-medium text-slate-700 mb-1">Document Name*</label>
-                        <input type="text" name="document_name" value={formData.document_name} onChange={handleChange} placeholder="e.g. Insurance Policy 2024" className="block w-full rounded-lg border-slate-200 bg-white text-slate-900 text-sm focus:border-orange-500 focus:ring-orange-500" />
+                        <input type="text" name="document_name" value={formData.document_name} onChange={handleChange} placeholder="e.g. Insurance Policy 2024" className="block w-full rounded-lg border-slate-400 bg-slate-50 text-slate-900 text-sm focus:border-orange-500 focus:ring-orange-500" />
                     </div>
                     <div>
                         <label className="block text-xs font-medium text-slate-700 mb-1">Expiry Date (Optional)</label>
-                        <input type="date" name="expiry_date" value={formData.expiry_date} onChange={handleChange} className="block w-full rounded-lg border-slate-200 bg-white text-slate-900 text-sm focus:border-orange-500 focus:ring-orange-500 text-slate-600" />
+                        <input type="date" name="expiry_date" value={formData.expiry_date} onChange={handleChange} className="block w-full rounded-lg border-slate-400 bg-slate-50 text-slate-900 text-sm focus:border-orange-500 focus:ring-orange-500 text-slate-600" />
                     </div>
                     <div>
                         <label className="block text-xs font-medium text-slate-700 mb-1">File</label>

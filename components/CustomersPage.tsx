@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Customer, LoyaltyTier } from '../types';
 import { SearchIcon, UsersIcon, EnvelopeIcon, MapPinIcon, TrashIcon, PlusIcon, CurrencyDollarIcon } from './icons/Icons';
 import { ShellCard, SectionHeader, StatusPill } from './UiKit';
@@ -28,15 +28,20 @@ const CustomersPage: React.FC = () => {
     // WAIT: The user previously asked to "make it work". I should have updated DataContext then.
     // I will update DataContext in this response too to be safe.
     
-    const [localCustomers, setLocalCustomers] = useState<Customer[]>(customers);
     const [searchTerm, setSearchTerm] = useState('');
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [customerToDelete, setCustomerToDelete] = useState<number | null>(null);
+    const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
 
-    // Sync with context if context updates (optional, but good practice)
-    useMemo(() => {
-        setLocalCustomers(customers);
-    }, [customers]);
+    // Use customers directly from context - don't copy to local state
+    const localCustomers = customers;
+
+    // Set selected customer when customers load
+    useEffect(() => {
+        if (!selectedCustomer && customers.length > 0) {
+            setSelectedCustomer(customers[0]);
+        }
+    }, [customers, selectedCustomer]);
 
     const handleAddCustomer = (customerData: Omit<Customer, 'id' | 'created_at' | 'updated_at' | 'user_id' | 'total_spent' | 'total_bookings' | 'loyalty_points' | 'is_verified'>) => {
         const newCustomer: Customer = {
@@ -70,6 +75,16 @@ const CustomersPage: React.FC = () => {
             c.city.toLowerCase().includes(lowerTerm)
         );
     }, [localCustomers, searchTerm]);
+
+    useEffect(() => {
+        if (filteredCustomers.length === 0) {
+            setSelectedCustomer(null);
+            return;
+        }
+        if (!selectedCustomer || !filteredCustomers.find(c => c.id === selectedCustomer.id)) {
+            setSelectedCustomer(filteredCustomers[0]);
+        }
+    }, [filteredCustomers, selectedCustomer]);
 
     const getLoyaltyColor = (tier: LoyaltyTier) => {
         switch(tier) {
@@ -132,8 +147,14 @@ const CustomersPage: React.FC = () => {
         
         {filteredCustomers.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-            {filteredCustomers.map(customer => (
-                <div key={customer.id} className={`group bg-white rounded-xl shadow-sm border border-slate-200 p-5 hover:shadow-md transition-all duration-300 ${getTierAccent(customer.loyalty_tier)} relative`}>
+            {filteredCustomers.map(customer => {
+                const isSelected = selectedCustomer?.id === customer.id;
+                return (
+                <div 
+                    key={customer.id} 
+                    onClick={() => setSelectedCustomer(customer)}
+                    className={`group bg-white rounded-xl shadow-sm border p-5 hover:shadow-md transition-all duration-300 relative cursor-pointer ${getTierAccent(customer.loyalty_tier)} ${isSelected ? 'border-orange-300 ring-2 ring-orange-100' : 'border-slate-200'}`}
+                >
                     <div className="flex justify-between items-start mb-4">
                         <div className="flex items-center gap-3">
                             <div className="h-10 w-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 border border-slate-100">
@@ -172,14 +193,14 @@ const CustomersPage: React.FC = () => {
                     </div>
                     
                     <button 
-                        onClick={() => setCustomerToDelete(customer.id)}
+                        onClick={(e) => { e.stopPropagation(); setCustomerToDelete(customer.id); }}
                         className="absolute top-4 right-4 p-1.5 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
                         title="Delete Customer"
                     >
                         <TrashIcon className="w-4 h-4" />
                     </button>
                 </div>
-            ))}
+            )})}
             </div>
         ) : (
             <div className="h-96 flex items-center justify-center">
@@ -189,6 +210,37 @@ const CustomersPage: React.FC = () => {
                     message="Adjust search terms or add a new customer."
                 />
             </div>
+        )}
+
+        {selectedCustomer && (
+            <ShellCard className="p-5">
+                <div className="flex items-center justify-between mb-3">
+                    <div>
+                        <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Customer Profile</p>
+                        <h3 className="text-lg font-bold text-slate-900">{selectedCustomer.company_name}</h3>
+                        <p className="text-xs text-slate-500">{selectedCustomer.city}</p>
+                    </div>
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide border ${getLoyaltyColor(selectedCustomer.loyalty_tier)}`}>
+                        {selectedCustomer.loyalty_tier}
+                    </span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="rounded-lg bg-slate-50 border border-slate-100 p-3">
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Billing Email</p>
+                        <p className="text-sm font-semibold text-slate-900 truncate">{selectedCustomer.billing_email}</p>
+                    </div>
+                    <div className="rounded-lg bg-slate-50 border border-slate-100 p-3">
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Lifetime Value</p>
+                        <p className="text-lg font-bold text-slate-900">
+                            {new Intl.NumberFormat('en-US', { style: 'currency', currency: selectedCustomer.preferred_currency }).format(selectedCustomer.total_spent)}
+                        </p>
+                    </div>
+                    <div className="rounded-lg bg-slate-50 border border-slate-100 p-3">
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Bookings</p>
+                        <p className="text-lg font-bold text-slate-900">{selectedCustomer.total_bookings}</p>
+                    </div>
+                </div>
+            </ShellCard>
         )}
 
         {isAddModalOpen && (

@@ -50,7 +50,7 @@ const AddRouteModal: React.FC<AddRouteModalProps> = ({ onClose, onAddRoute }) =>
     };
 
     return (
-    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] flex justify-center items-center p-4 animate-in fade-in duration-200" onClick={onClose}>
+    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex justify-center md:pl-64 items-center p-4 animate-in fade-in duration-200" onClick={onClose}>
         <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl flex flex-col max-h-[90vh] border border-slate-200 overflow-hidden animate-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
             <header className="flex justify-between items-center px-6 py-4 border-b border-slate-100 bg-slate-50/50 rounded-t-2xl flex-shrink-0">
                 <div>
@@ -74,15 +74,15 @@ const AddRouteModal: React.FC<AddRouteModalProps> = ({ onClose, onAddRoute }) =>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="md:col-span-2">
                                 <label className="block text-xs font-medium text-slate-700 mb-1">Route Name*</label>
-                                <input type="text" name="route_name" placeholder="e.g., Harare - Bulawayo" value={formData.route_name} onChange={handleChange} className="block w-full rounded-lg border-slate-200 bg-white text-slate-900 text-sm focus:border-orange-500 focus:ring-orange-500 transition-colors" />
+                                <input type="text" name="route_name" placeholder="e.g., Harare - Bulawayo" value={formData.route_name} onChange={handleChange} className="block w-full rounded-lg border-slate-400 bg-slate-50 text-slate-900 text-sm focus:border-orange-500 focus:ring-orange-500 transition-colors" />
                             </div>
                             <div>
                                 <label className="block text-xs font-medium text-slate-700 mb-1">Origin City*</label>
-                                <input type="text" name="origin_city" placeholder="e.g., Harare" value={formData.origin_city} onChange={handleChange} className="block w-full rounded-lg border-slate-200 bg-white text-slate-900 text-sm focus:border-orange-500 focus:ring-orange-500" />
+                                <input type="text" name="origin_city" placeholder="e.g., Harare" value={formData.origin_city} onChange={handleChange} className="block w-full rounded-lg border-slate-400 bg-slate-50 text-slate-900 text-sm focus:border-orange-500 focus:ring-orange-500" />
                             </div>
                             <div>
                                 <label className="block text-xs font-medium text-slate-700 mb-1">Destination City*</label>
-                                <input type="text" name="destination_city" placeholder="e.g., Bulawayo" value={formData.destination_city} onChange={handleChange} className="block w-full rounded-lg border-slate-200 bg-white text-slate-900 text-sm focus:border-orange-500 focus:ring-orange-500" />
+                                <input type="text" name="destination_city" placeholder="e.g., Bulawayo" value={formData.destination_city} onChange={handleChange} className="block w-full rounded-lg border-slate-400 bg-slate-50 text-slate-900 text-sm focus:border-orange-500 focus:ring-orange-500" />
                             </div>
                         </div>
                     </div>
@@ -96,27 +96,27 @@ const AddRouteModal: React.FC<AddRouteModalProps> = ({ onClose, onAddRoute }) =>
                         <div className="bg-slate-50 rounded-xl p-5 border border-slate-200 grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-xs font-medium text-slate-700 mb-1">Distance (km)*</label>
-                                <input type="number" name="distance_km" placeholder="e.g., 440" value={formData.distance_km} onChange={handleChange} className="block w-full rounded-lg border-slate-200 bg-white text-slate-900 text-sm focus:border-orange-500 focus:ring-orange-500" />
+                                <input type="number" name="distance_km" placeholder="e.g., 440" value={formData.distance_km} onChange={handleChange} className="block w-full rounded-lg border-slate-400 bg-slate-50 text-slate-900 text-sm focus:border-orange-500 focus:ring-orange-500" />
                             </div>
                             <div>
                                 <label className="block text-xs font-medium text-slate-700 mb-1">Est. Duration (hours)</label>
-                                <input type="number" name="estimated_duration_hours" placeholder="e.g., 6" value={formData.estimated_duration_hours} onChange={handleChange} className="block w-full rounded-lg border-slate-200 bg-white text-slate-900 text-sm focus:border-orange-500 focus:ring-orange-500" />
+                                <input type="number" name="estimated_duration_hours" placeholder="e.g., 6" value={formData.estimated_duration_hours} onChange={handleChange} className="block w-full rounded-lg border-slate-400 bg-slate-50 text-slate-900 text-sm focus:border-orange-500 focus:ring-orange-500" />
                             </div>
                             <div>
                                 <label className="block text-xs font-medium text-slate-700 mb-1">Route Type</label>
-                                <select name="route_type" value={formData.route_type} onChange={handleChange} className="block w-full rounded-lg border-slate-200 bg-white text-slate-900 text-sm focus:border-orange-500 focus:ring-orange-500 capitalize">
+                                <select name="route_type" value={formData.route_type} onChange={handleChange} className="block w-full rounded-lg border-slate-400 bg-slate-50 text-slate-900 text-sm focus:border-orange-500 focus:ring-orange-500 capitalize">
                                     {Object.values(RouteType).map(s => <option key={s} value={s}>{s.replace(/_/g, ' ')}</option>)}
                                 </select>
                             </div>
                             <div>
                                 <label className="block text-xs font-medium text-slate-700 mb-1">Road Conditions</label>
-                                <select name="road_conditions" value={formData.road_conditions} onChange={handleChange} className="block w-full rounded-lg border-slate-200 bg-white text-slate-900 text-sm focus:border-orange-500 focus:ring-orange-500 capitalize">
+                                <select name="road_conditions" value={formData.road_conditions} onChange={handleChange} className="block w-full rounded-lg border-slate-400 bg-slate-50 text-slate-900 text-sm focus:border-orange-500 focus:ring-orange-500 capitalize">
                                     {Object.values(RoadConditions).map(s => <option key={s} value={s}>{s.replace(/_/g, ' ')}</option>)}
                                 </select>
                             </div>
                             <div className="md:col-span-2">
                                 <label className="block text-xs font-medium text-slate-700 mb-1 flex items-center gap-1"><DocumentTextIcon className="w-3 h-3"/> Notes</label>
-                                <textarea name="notes" value={formData.notes} onChange={handleChange} rows={3} className="block w-full rounded-lg border-slate-200 bg-white text-slate-900 text-sm focus:border-orange-500 focus:ring-orange-500 resize-none" placeholder="Additional details about the route..."></textarea>
+                                <textarea name="notes" value={formData.notes} onChange={handleChange} rows={3} className="block w-full rounded-lg border-slate-400 bg-slate-50 text-slate-900 text-sm focus:border-orange-500 focus:ring-orange-500 resize-none" placeholder="Additional details about the route..."></textarea>
                             </div>
                         </div>
                     </div>

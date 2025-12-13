@@ -3,6 +3,11 @@
   --text: #0f172a;
 }
 
+/* Tailwind base/utilities - inserted to use local Tailwind build instead of CDN */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 /* App base reset and sensible defaults */
 * { box-sizing: border-box; }
 html, body, #root { height: 100%; margin: 0; }
@@ -12,3 +17,18 @@ body { background: var(--bg); color: var(--text); font-family: Inter, system-ui,
 
 /* small helper classes used across the app */
 .container { max-width: 1200px; margin: 0 auto; padding: 0 16px; }
+
+/* Leaflet map z-index overrides to prevent overlapping modals */
+.leaflet-pane,
+.leaflet-top,
+.leaflet-bottom {
+  z-index: 1 !important;
+}
+
+.leaflet-control-container {
+  z-index: 10 !important;
+}
+
+.leaflet-popup {
+  z-index: 50 !important;
+}

@@ -4,17 +4,19 @@ import { Vehicle, VehicleStatus, VehicleExpense } from '../types';
 import { useData } from '../contexts/DataContext';
 import { mockExpenses } from '../data/mockData'; 
 import VehicleDetails from './VehicleDetails';
-import { PlusIcon, SearchIcon, IllustrationTruckIcon, GaugeIcon, TruckIcon, WrenchIcon, TrendingUpIcon } from './icons/Icons';
+import { PlusIcon, SearchIcon, IllustrationTruckIcon, GaugeIcon, TruckIcon, WrenchIcon, TrendingUpIcon, ChevronLeftIcon, ChevronRightIcon } from './icons/Icons';
 import EmptyState from './EmptyState';
 import AddExpenseModal from './AddExpenseModal';
 import AddVehicleModal from './AddVehicleModal';
 import { ShellCard, SectionHeader, StatusPill } from "./UiKit";
 
 const FleetDashboard: React.FC = () => {
-  const { vehicles, addVehicle, deleteVehicle } = useData();
+  const { vehicles, addVehicle, deleteVehicle, updateVehicle } = useData();
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [expenses, setExpenses] = useState<VehicleExpense[]>(() => 
+  const [isRosterOpen, setIsRosterOpen] = useState(true);
+  const [isLeftPanelCollapsed, setIsLeftPanelCollapsed] = useState(false);
+  const [expenses, setExpenses] = useState<VehicleExpense[]>(() =>
     [...mockExpenses].sort((a, b) => new Date(b.expense_date).getTime() - new Date(a.expense_date).getTime())
   );
   const [isAddExpenseModalOpen, setIsAddExpenseModalOpen] = useState(false);
@@ -71,6 +73,15 @@ const FleetDashboard: React.FC = () => {
     setIsAddExpenseModalOpen(false);
   };
 
+  const handleArchiveVehicle = (vehicle: Vehicle) => {
+    updateVehicle({
+      ...vehicle,
+      status: VehicleStatus.OUT_OF_SERVICE,
+      updated_at: new Date().toISOString(),
+    });
+    setSelectedVehicle({ ...vehicle, status: VehicleStatus.OUT_OF_SERVICE });
+  };
+
   // Metrics
   const totalVehicles = vehicles.length;
   const activeVehiclesCount = vehicles.filter(v => v.status === VehicleStatus.ACTIVE).length;
@@ -79,107 +90,160 @@ const FleetDashboard: React.FC = () => {
 
   return (
     <>
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,380px)_minmax(0,1fr)] h-auto lg:h-[calc(100vh-8rem)]">
+      <div className={`grid gap-8 h-auto lg:h-[calc(100vh-8rem)] transition-all duration-300 ${
+        isLeftPanelCollapsed
+          ? 'lg:grid-cols-[60px_minmax(0,1fr)]'
+          : 'lg:grid-cols-[minmax(0,400px)_minmax(0,1fr)]'
+      }`}>
         {/* Left column - vehicle list */}
-        <div className="flex flex-col gap-4 h-full lg:overflow-hidden">
+        <div className={`flex flex-col gap-5 h-full lg:overflow-hidden relative transition-all duration-300 ${
+          isLeftPanelCollapsed ? 'lg:w-[60px]' : ''
+        }`}>
+            {/* Collapse/Expand Button */}
+            <button
+                onClick={() => setIsLeftPanelCollapsed(!isLeftPanelCollapsed)}
+                className={`hidden lg:flex items-center justify-center absolute z-20 bg-white/80 backdrop-blur-sm rounded-lg border border-slate-200 transition-all duration-300 hover:bg-white hover:border-slate-300 ${
+                    isLeftPanelCollapsed
+                        ? 'top-4 left-1/2 -translate-x-1/2 w-8 h-8 shadow-md'
+                        : 'top-3 right-3 w-7 h-7 opacity-40 hover:opacity-100 shadow-sm'
+                }`}
+                aria-label={isLeftPanelCollapsed ? 'Expand panel' : 'Collapse panel'}
+            >
+                {isLeftPanelCollapsed ? (
+                    <ChevronRightIcon className="w-4 h-4 text-slate-600" />
+                ) : (
+                    <ChevronLeftIcon className="w-4 h-4 text-slate-600" />
+                )}
+            </button>
             {/* Metrics Row */}
-            <div className="grid grid-cols-2 gap-3 flex-shrink-0">
-                <div className="bg-white rounded-xl p-3 border border-slate-200 shadow-sm flex flex-col justify-between">
-                    <div className="flex items-center gap-2 text-slate-500 mb-1">
-                        <GaugeIcon className="w-4 h-4" />
+            <div className={`grid grid-cols-2 gap-4 flex-shrink-0 transition-opacity duration-300 ${
+                isLeftPanelCollapsed ? 'lg:opacity-0 lg:pointer-events-none' : 'opacity-100'
+            }`}>
+                <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+                    <div className="flex items-center gap-2.5 text-slate-500 mb-2">
+                        <div className="p-1.5 bg-slate-50 rounded-lg">
+                            <GaugeIcon className="w-5 h-5" />
+                        </div>
                         <span className="text-xs font-bold uppercase tracking-wider">Utilization</span>
                     </div>
-                    <div className="flex items-end justify-between">
-                        <span className="text-2xl font-bold text-slate-900">{utilizationPercentage}%</span>
-                        <span className="text-xs font-medium text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">+2%</span>
+                    <div className="flex items-end justify-between mt-2">
+                        <span className="text-3xl font-bold text-slate-900">{utilizationPercentage}%</span>
+                        <span className="text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-1 rounded">+2%</span>
                     </div>
                 </div>
-                <div className="bg-white rounded-xl p-3 border border-slate-200 shadow-sm flex flex-col justify-between">
-                    <div className="flex items-center gap-2 text-slate-500 mb-1">
-                        <WrenchIcon className="w-4 h-4" />
+                <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+                    <div className="flex items-center gap-2.5 text-slate-500 mb-2">
+                        <div className="p-1.5 bg-slate-50 rounded-lg">
+                            <WrenchIcon className="w-5 h-5" />
+                        </div>
                         <span className="text-xs font-bold uppercase tracking-wider">Maintenance</span>
                     </div>
-                    <div className="flex items-end justify-between">
-                        <span className="text-2xl font-bold text-slate-900">{maintenanceCount}</span>
-                        <span className="text-xs text-slate-400">Vehicles</span>
+                    <div className="flex items-end justify-between mt-2">
+                        <span className="text-3xl font-bold text-slate-900">{maintenanceCount}</span>
+                        <span className="text-xs text-slate-400 font-medium">Vehicles</span>
                     </div>
                 </div>
             </div>
 
-            <ShellCard className="flex-1 flex flex-col p-0 overflow-hidden min-h-[400px] lg:min-h-0">
-            <div className="p-4 border-b border-slate-100 bg-white">
-                <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider">Fleet Roster</h2>
-                    <button
-                        className="p-1.5 rounded-lg bg-slate-100 text-slate-600 hover:bg-orange-50 hover:text-orange-600 transition"
-                        onClick={() => setIsAddVehicleModalOpen(true)}
-                    >
-                        <PlusIcon className="w-5 h-5" />
-                    </button>
+            <ShellCard className={`flex flex-col p-0 overflow-hidden transition-opacity duration-300 ${
+                isLeftPanelCollapsed ? 'lg:opacity-0 lg:pointer-events-none' : 'opacity-100'
+            } ${isRosterOpen ? 'flex-1 min-h-[400px] lg:min-h-0' : 'flex-shrink-0'}`}>
+            <div className="p-5 border-b border-slate-100 bg-white">
+                <div className="flex items-center justify-between mb-5">
+                    <div>
+                        <h2 className="text-base font-bold text-slate-900 tracking-tight">Fleet Roster</h2>
+                        <p className="text-xs text-slate-500 mt-1">{totalVehicles} total vehicles</p>
+                    </div>
+                    <div className="flex items-center gap-2.5">
+                        <button
+                            className="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 hover:bg-orange-50 hover:text-orange-600 transition text-xs font-semibold"
+                            onClick={() => setIsRosterOpen(!isRosterOpen)}
+                        >
+                            {isRosterOpen ? 'Hide' : 'Show'}
+                        </button>
+                        <button
+                            className="p-2 rounded-lg bg-orange-500 text-white hover:bg-orange-600 transition shadow-sm"
+                            onClick={() => setIsAddVehicleModalOpen(true)}
+                        >
+                            <PlusIcon className="w-5 h-5" />
+                        </button>
+                    </div>
                 </div>
-                <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <SearchIcon className="w-4 h-4 text-slate-400" />
-                </div>
-                <input
-                    type="text"
-                    placeholder="Search reg, make, model..."
-                    value={searchTerm}
-                    onChange={e => setSearchTerm(e.target.value)}
-                    className="w-full rounded-lg border border-slate-200 bg-slate-50 pl-9 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:bg-white transition-all py-2"
-                />
-                </div>
-            </div>
-
-            <div className="flex-1 overflow-y-auto p-3 space-y-3 bg-slate-50/50 custom-scrollbar">
-                {filteredVehicles.length > 0 ? (
-                filteredVehicles.map((vehicle) => {
-                    const isSelected = selectedVehicle?.id === vehicle.id;
-                    return (
-                    <button
-                        key={vehicle.id}
-                        onClick={() => setSelectedVehicle(vehicle)}
-                        className={`w-full text-left rounded-xl p-3 transition-all duration-200 border shadow-sm group relative ${
-                        isSelected 
-                            ? "bg-white border-orange-500 ring-1 ring-orange-500 z-10" 
-                            : "bg-white border-slate-200 hover:border-orange-300 hover:shadow-md"
-                        }`}
-                    >
-                        <div className="flex justify-between items-start mb-2">
-                            <div>
-                                <p className="font-bold text-slate-900 text-sm">{vehicle.registration_number}</p>
-                                <p className="text-xs text-slate-500">{vehicle.make} {vehicle.model}</p>
-                            </div>
-                            <StatusPill
-                                label={vehicle.status.replace(/_/g, ' ')}
-                                tone={
-                                vehicle.status === VehicleStatus.ACTIVE ? 'success'
-                                : vehicle.status === VehicleStatus.MAINTENANCE ? 'warn'
-                                : vehicle.status === VehicleStatus.OUT_OF_SERVICE ? 'danger'
-                                : 'neutral'
-                                }
-                            />
-                        </div>
-                        <div className="flex items-center justify-between text-xs text-slate-500 border-t border-slate-50 pt-2 mt-1">
-                            <div className="flex items-center gap-1">
-                                <GaugeIcon className="w-3 h-3" />
-                                <span>{vehicle.year}</span>
-                            </div>
-                            <div className={`flex items-center gap-1 ${vehicle.next_service_due_km - vehicle.current_km < 1000 ? 'text-amber-600 font-medium' : ''}`}>
-                                <WrenchIcon className="w-3 h-3" />
-                                <span>Due in {(vehicle.next_service_due_km - vehicle.current_km).toLocaleString()} km</span>
-                            </div>
-                        </div>
-                    </button>
-                    )
-                })
-                ) : (
-                <div className="p-8 text-center text-slate-500">
-                    <TruckIcon className="w-12 h-12 mx-auto text-slate-300 mb-2" />
-                    <p className="text-sm">No vehicles found.</p>
-                </div>
+                {isRosterOpen && (
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <SearchIcon className="w-4 h-4 text-slate-400" />
+                    </div>
+                    <input
+                        type="text"
+                        placeholder="Search reg, make, model..."
+                        value={searchTerm}
+                        onChange={e => setSearchTerm(e.target.value)}
+                        className="w-full rounded-lg border-2 border-slate-200 bg-slate-50 pl-10 pr-4 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 focus:bg-white transition-all py-2.5"
+                    />
+                  </div>
                 )}
             </div>
+
+            {isRosterOpen && (
+                <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50/50 custom-scrollbar">
+                    {filteredVehicles.length > 0 ? (
+                    filteredVehicles.map((vehicle) => {
+                        const isSelected = selectedVehicle?.id === vehicle.id;
+                        return (
+                        <button
+                            key={vehicle.id}
+                            onClick={() => setSelectedVehicle(vehicle)}
+                            className={`w-full text-left rounded-xl p-4 transition-all duration-200 border-2 shadow-sm group relative ${
+                            isSelected
+                                ? "bg-gradient-to-br from-white to-orange-50/30 border-orange-500 ring-2 ring-orange-500/30 shadow-lg z-10"
+                                : "bg-white border-slate-200 hover:border-orange-300 hover:shadow-md hover:bg-slate-50/50"
+                            }`}
+                        >
+                            <div className="flex justify-between items-start mb-3">
+                                <div>
+                                    <p className="font-bold text-slate-900 text-base">{vehicle.registration_number}</p>
+                                    <p className="text-sm text-slate-500 mt-0.5">{vehicle.make} {vehicle.model}</p>
+                                </div>
+                                <StatusPill
+                                    label={vehicle.status.replace(/_/g, ' ')}
+                                    tone={
+                                    vehicle.status === VehicleStatus.ACTIVE ? 'success'
+                                    : vehicle.status === VehicleStatus.MAINTENANCE ? 'warn'
+                                    : vehicle.status === VehicleStatus.OUT_OF_SERVICE ? 'danger'
+                                    : 'neutral'
+                                    }
+                                />
+                            </div>
+                            <div className="flex items-center justify-between text-xs text-slate-500 border-t border-slate-100 pt-3 mt-2">
+                                <div className="flex items-center gap-1">
+                                    <GaugeIcon className="w-3 h-3" />
+                                    <span>{vehicle.year}</span>
+                                </div>
+                                <div className={`flex items-center gap-1 ${vehicle.next_service_due_km - vehicle.current_km < 1000 ? 'text-amber-600 font-medium' : ''}`}>
+                                    <WrenchIcon className="w-3 h-3" />
+                                    <span>Due in {(vehicle.next_service_due_km - vehicle.current_km).toLocaleString()} km</span>
+                                </div>
+                            </div>
+                        </button>
+                        )
+                    })
+                    ) : (
+                    <div className="flex flex-col items-center justify-center h-full py-12 text-center text-slate-500">
+                        <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mb-4">
+                            <TruckIcon className="w-8 h-8 text-slate-400" />
+                        </div>
+                        <p className="text-sm font-medium text-slate-600">No vehicles found</p>
+                        <p className="text-xs text-slate-400 mt-1">Try adjusting your search</p>
+                    </div>
+                    )}
+                </div>
+            )}
+            {!isRosterOpen && (
+                <div className="px-5 py-4 text-xs text-slate-500 border-t border-slate-100 bg-white">
+                    Roster hidden. Click “Show” to expand.
+                </div>
+            )}
             </ShellCard>
         </div>
 
@@ -191,6 +255,7 @@ const FleetDashboard: React.FC = () => {
                 expenses={expenses}
                 onAddExpenseClick={() => setIsAddExpenseModalOpen(true)}
                 onDeleteVehicle={() => handleDeleteVehicle(selectedVehicle.id)}
+                onArchiveVehicle={() => handleArchiveVehicle(selectedVehicle)}
             />
           ) : (
              <EmptyState 

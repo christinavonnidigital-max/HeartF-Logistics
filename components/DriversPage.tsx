@@ -16,7 +16,8 @@ interface DriversPageProps {
 }
 
 const DriversPage: React.FC<DriversPageProps> = ({ data }) => {
-  const [drivers, setDrivers] = useState<Driver[]>(data.drivers);
+  // Use drivers directly from props - don't copy to local state
+  const drivers = data.drivers;
   const [selectedDriver, setSelectedDriver] = useState<(Driver & { user?: User }) | null>(null);
   const [isAddDriverModalOpen, setIsAddDriverModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');

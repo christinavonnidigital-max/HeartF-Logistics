@@ -78,7 +78,7 @@ const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({ booking, onCl
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] flex justify-center items-center p-4 animate-in fade-in duration-200" onClick={onClose}>
+    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex justify-center md:pl-64 items-center p-4 animate-in fade-in duration-200" onClick={onClose}>
       <div 
         className="bg-slate-50 w-full max-w-3xl max-h-[90vh] shadow-2xl rounded-2xl overflow-hidden flex flex-col border border-slate-200"
         onClick={e => e.stopPropagation()}

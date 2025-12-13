@@ -42,7 +42,7 @@ const LeadList: React.FC<LeadListProps> = ({ leads, onSelectLead, onAddLeadClick
   return (
     <>
     <ShellCard className="flex flex-col">
-      <div className="p-4 border-b border-slate-100">
+      <div className="p-5 border-b border-slate-100">
         <SectionHeader
           title="Leads"
           subtitle="Pipeline of people and companies you are speaking to"
@@ -50,13 +50,13 @@ const LeadList: React.FC<LeadListProps> = ({ leads, onSelectLead, onAddLeadClick
             <>
               <button
                 onClick={onImportClick}
-                className="flex items-center gap-2 rounded-lg bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-sm ring-1 ring-slate-200 hover:bg-slate-50 transition"
+                className="flex items-center gap-2 rounded-lg bg-white px-4 py-2.5 text-xs font-medium text-slate-700 shadow-sm ring-1 ring-slate-200 hover:bg-slate-50 transition"
               >
                 <UploadIcon className="w-4 h-4" />
                 <span>Import</span>
               </button>
               <button
-                className="p-2 rounded-lg bg-orange-500 text-white hover:bg-orange-600 transition"
+                className="p-2.5 rounded-lg bg-orange-500 text-white hover:bg-orange-600 transition"
                 onClick={onAddLeadClick}
                 aria-label="Add new lead"
               >
@@ -65,7 +65,7 @@ const LeadList: React.FC<LeadListProps> = ({ leads, onSelectLead, onAddLeadClick
             </>
           }
         />
-        <div className="mt-4 relative">
+        <div className="mt-5 relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <SearchIcon className="w-4 h-4 text-slate-400" />
             </div>
@@ -79,9 +79,9 @@ const LeadList: React.FC<LeadListProps> = ({ leads, onSelectLead, onAddLeadClick
         </div>
       </div>
       
-      <div className="flex-1 overflow-y-auto p-2 min-h-[400px]">
+      <div className="flex-1 overflow-y-auto p-4 min-h-[400px]">
         {filteredLeads.length > 0 ? (
-          <div className="divide-y divide-slate-100">
+          <div className="space-y-2">
             {filteredLeads.map((lead) => {
               const name = `${lead.first_name || ""} ${lead.last_name || ""}`.trim() || lead.company_name;
               const status = lead.lead_status?.replace("_", " ") || "";
@@ -89,7 +89,7 @@ const LeadList: React.FC<LeadListProps> = ({ leads, onSelectLead, onAddLeadClick
               return (
                 <div
                   key={lead.id}
-                  className="group flex w-full items-center justify-between gap-3 px-3 py-2.5 text-left hover:bg-slate-50 rounded-xl transition"
+                  className="group flex w-full items-center justify-between gap-3 px-4 py-3.5 text-left hover:bg-slate-50 rounded-xl transition border border-transparent hover:border-slate-200"
                 >
                   <button 
                     type="button"

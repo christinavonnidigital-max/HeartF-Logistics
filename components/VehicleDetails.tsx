@@ -14,18 +14,19 @@ interface VehicleDetailsProps {
   expenses: VehicleExpense[];
   onAddExpenseClick: () => void;
   onDeleteVehicle: () => void;
+  onArchiveVehicle: () => void;
 }
 
 const StatItem: React.FC<{ icon: React.ReactNode; label: string; value: string | number; subtext?: string }> = ({ icon, label, value, subtext }) => (
-  <div className="flex flex-col p-4 bg-white rounded-xl border border-slate-100 shadow-sm hover:border-orange-200 transition-colors group min-w-0">
-    <div className="flex items-center gap-3 mb-2">
-        <div className="p-2 rounded-lg bg-slate-50 text-slate-500 group-hover:bg-orange-50 group-hover:text-orange-600 transition-colors flex-shrink-0">
+  <div className="flex flex-col p-5 bg-white rounded-xl border border-slate-100 shadow-sm hover:border-orange-200 transition-colors group min-w-0">
+    <div className="flex items-center gap-3 mb-3">
+        <div className="p-3 rounded-xl bg-slate-50 text-slate-600 group-hover:bg-orange-50 group-hover:text-orange-600 transition-colors flex-shrink-0 shadow-inner">
             {icon}
         </div>
-        <span className="text-xs font-bold text-slate-400 uppercase tracking-wider truncate">{label}</span>
+        <span className="text-xs font-bold text-slate-500 uppercase tracking-wider truncate">{label}</span>
     </div>
-    <p className="text-lg font-bold text-slate-900 truncate" title={String(value)}>{value}</p>
-    {subtext && <p className="text-xs text-slate-500 mt-0.5 truncate">{subtext}</p>}
+    <p className="text-xl font-bold text-slate-900 truncate" title={String(value)}>{value}</p>
+    {subtext && <p className="text-xs text-slate-500 mt-1 truncate">{subtext}</p>}
   </div>
 );
 
@@ -38,7 +39,13 @@ const getExpenseTypeUI = (type: ExpenseType) => {
     }
 }
 
-const VehicleDetails: React.FC<VehicleDetailsProps> = ({ vehicle, expenses, onAddExpenseClick, onDeleteVehicle }) => {
+const VehicleDetails: React.FC<VehicleDetailsProps> = ({
+  vehicle,
+  expenses,
+  onAddExpenseClick,
+  onDeleteVehicle,
+  onArchiveVehicle = () => {},
+}) => {
   const [filterType, setFilterType] = useState('all');
   const [isAddDocumentModalOpen, setIsAddDocumentModalOpen] = useState(false);
   const [isDeleteVehicleModalOpen, setIsDeleteVehicleModalOpen] = useState(false);
@@ -54,6 +61,10 @@ const VehicleDetails: React.FC<VehicleDetailsProps> = ({ vehicle, expenses, onAd
   });
   
   const maintenanceHistory = mockMaintenance.filter((m) => m.vehicle_id === vehicle.id);
+  const serviceProgress = useMemo(() => {
+    if (!vehicle.next_service_due_km) return 0;
+    return Math.min(100, Math.max(0, Math.round((vehicle.current_km / vehicle.next_service_due_km) * 100)));
+  }, [vehicle]);
   
   const filteredExpenses = useMemo(() => {
     const expenseHistory = expenses.filter((e) => e.vehicle_id === vehicle.id);
@@ -94,9 +105,13 @@ const VehicleDetails: React.FC<VehicleDetailsProps> = ({ vehicle, expenses, onAd
 
   return (
     <>
-    <div className="flex flex-col h-full bg-slate-50/50 rounded-2xl overflow-hidden shadow-sm border border-slate-200">
+    <div className="flex flex-col h-full bg-gradient-to-br from-slate-50 via-white to-slate-100 rounded-2xl overflow-hidden shadow-md border border-slate-200">
         {/* Hero Header */}
-        <div className="bg-slate-900 p-6 text-white flex justify-between items-start">
+        <div className="relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 opacity-95" />
+            <div className="absolute -right-16 -bottom-16 w-72 h-72 bg-white/10 rounded-full blur-3xl" />
+            <div className="absolute -left-16 -top-20 w-72 h-72 bg-orange-400/10 rounded-full blur-3xl" />
+        <div className="relative z-10 p-7 text-white flex justify-between items-start">
             <div>
                 <div className="flex items-center gap-3 mb-2">
                     <span className="px-2 py-1 rounded bg-white/10 text-slate-300 text-xs font-mono">{vehicle.registration_number}</span>
@@ -116,6 +131,13 @@ const VehicleDetails: React.FC<VehicleDetailsProps> = ({ vehicle, expenses, onAd
             </div>
             <div className="flex gap-2">
                 <button
+                    onClick={onArchiveVehicle}
+                    className="p-2 bg-white/5 hover:bg-amber-500/20 text-slate-300 hover:text-amber-400 rounded-lg transition"
+                    title="Archive Vehicle"
+                >
+                    <DocumentTextIcon className="w-5 h-5" />
+                </button>
+                <button
                     onClick={() => setIsDeleteVehicleModalOpen(true)}
                     className="p-2 bg-white/5 hover:bg-red-500/20 text-slate-400 hover:text-red-400 rounded-lg transition"
                     title="Delete Vehicle"
@@ -124,16 +146,38 @@ const VehicleDetails: React.FC<VehicleDetailsProps> = ({ vehicle, expenses, onAd
                 </button>
             </div>
         </div>
+        </div>
 
         {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6">
-            
+        <div className="flex-1 overflow-y-auto p-7 space-y-8">
+
             {/* Key Stats */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
                 <StatItem icon={<RoadIcon className="w-5 h-5"/>} label="Odometer" value={new Intl.NumberFormat().format(vehicle.current_km)} subtext="Kilometers" />
                 <StatItem icon={<GaugeIcon className="w-5 h-5"/>} label="Capacity" value={`${vehicle.capacity_tonnes} t`} subtext="Max Load" />
                 <StatItem icon={<WrenchIcon className="w-5 h-5"/>} label="Next Service" value={new Intl.NumberFormat().format(vehicle.next_service_due_km)} subtext="Due at KM" />
                 <StatItem icon={<CalendarDaysIcon className="w-5 h-5"/>} label="Service Date" value={estimatedServiceDate} subtext="Estimated" />
+            </div>
+
+            {/* Service Progress */}
+            <div className="bg-white border border-orange-100 rounded-xl shadow-sm p-5">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <WrenchIcon className="w-5 h-5 text-orange-500" />
+                  <span className="text-sm font-semibold text-slate-900">Next service due</span>
+                </div>
+                <span className="text-sm font-medium text-orange-700">In {(vehicle.next_service_due_km - vehicle.current_km).toLocaleString()} km</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="flex-1 bg-slate-100 rounded-full h-2 overflow-hidden">
+                  <div className="bg-orange-500 h-full" style={{ width: `${serviceProgress}%` }} />
+                </div>
+                <span className="text-xs font-semibold text-slate-600">{serviceProgress}%</span>
+              </div>
+              <div className="flex items-center justify-between text-xs text-slate-600 mt-2">
+                <span>Current: {vehicle.current_km.toLocaleString()} km</span>
+                <span>Due at {vehicle.next_service_due_km.toLocaleString()} km</span>
+              </div>
             </div>
 
             {/* Live Tracking Map */}
@@ -192,19 +236,24 @@ const VehicleDetails: React.FC<VehicleDetailsProps> = ({ vehicle, expenses, onAd
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Maintenance Panel */}
                 <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col h-full">
-                    <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex items-center gap-2">
-                        <WrenchIcon className="w-4 h-4 text-slate-500" />
-                        <h4 className="text-sm font-bold text-slate-800 uppercase tracking-wide">Maintenance Log</h4>
+                    <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <WrenchIcon className="w-4 h-4 text-slate-500" />
+                            <h4 className="text-sm font-bold text-slate-800 uppercase tracking-wide">Maintenance Log</h4>
+                        </div>
+                        <span className="text-[11px] font-semibold text-slate-500">{maintenanceHistory.length} records</span>
                     </div>
                     <div className="p-4 space-y-3 flex-1">
                         {maintenanceHistory.length > 0 ? maintenanceHistory.map((item) => (
-                        <div key={item.id} className="flex items-start gap-3 p-3 rounded-lg border border-slate-100 hover:border-slate-200 transition-colors">
-                            <div className="mt-1 w-2 h-2 rounded-full bg-blue-500"></div>
-                            <div>
+                        <div key={item.id} className="flex items-start gap-3 p-4 rounded-lg border border-blue-100 bg-blue-50/60 hover:bg-blue-50 transition-colors shadow-sm">
+                            <div className="p-2 rounded-lg bg-white text-blue-600 border border-blue-100 shadow-inner">
+                                <WrenchIcon className="w-4 h-4" />
+                            </div>
+                            <div className="min-w-0">
                                 <p className="text-sm font-semibold text-slate-900">{item.description}</p>
                                 <p className="text-xs text-slate-500 mt-0.5">{item.service_provider} • {new Date(item.service_date).toLocaleDateString()}</p>
                             </div>
-                            <div className="ml-auto font-mono text-sm text-slate-700">
+                            <div className="ml-auto font-semibold text-sm text-slate-800">
                                 ${item.cost}
                             </div>
                         </div>
@@ -230,13 +279,13 @@ const VehicleDetails: React.FC<VehicleDetailsProps> = ({ vehicle, expenses, onAd
                         {filteredExpenses.length > 0 ? filteredExpenses.slice(0, 5).map((item) => {
                             const ui = getExpenseTypeUI(item.expense_type);
                             return (
-                                <div key={item.id} className={`flex items-center justify-between p-3 rounded-lg border ${ui.borderColor} bg-opacity-20 hover:bg-opacity-30 transition`}>
+                                <div key={item.id} className={`flex items-center justify-between p-4 rounded-lg border ${ui.borderColor} ${ui.bgColor} bg-opacity-70 hover:bg-opacity-90 transition shadow-sm`}>
                                     <div className="flex items-center gap-3">
-                                        <div className={`p-1.5 rounded-md ${ui.bgColor} ${ui.color}`}>
+                                        <div className={`p-2 rounded-lg bg-white ${ui.color} border ${ui.borderColor} shadow-inner`}>
                                             {ui.icon}
                                         </div>
-                                        <div>
-                                            <p className="text-sm font-medium text-slate-900 capitalize">{item.expense_type.replace('_', ' ')}</p>
+                                        <div className="min-w-0">
+                                            <p className="text-sm font-medium text-slate-900 capitalize truncate">{item.expense_type.replace('_', ' ')}</p>
                                             <p className="text-[10px] text-slate-500">{new Date(item.expense_date).toLocaleDateString()}</p>
                                         </div>
                                     </div>

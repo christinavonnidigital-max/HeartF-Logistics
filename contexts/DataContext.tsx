@@ -130,7 +130,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
             customers: mockCustomers,
             maintenance: mockMaintenance, // Keeping these in state even if not explicitly exposed yet
             vehicleExpenses: mockExpenses,
-            users: initialUsers,
+            // Merge seeded app users with the driver user profiles so names/emails show up in the Drivers view
+            users: [...initialUsers, ...mockUsersForDrivers],
         };
     });
 

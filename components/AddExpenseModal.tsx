@@ -48,7 +48,7 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ onClose, onAddExpense
 
   return (
     <div
-      className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] flex justify-center items-center p-4 animate-in fade-in duration-200"
+      className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex justify-center md:pl-64 items-center p-4 animate-in fade-in duration-200"
       onClick={onClose}
     >
       <div
@@ -88,7 +88,7 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ onClose, onAddExpense
                     <select
                         value={currency}
                         onChange={(e) => setCurrency(e.target.value as Currency)}
-                        className="rounded-lg border-slate-200 bg-white py-3 pl-3 pr-8 text-sm font-medium text-slate-700 focus:border-orange-500 focus:ring-orange-500"
+                        className="rounded-lg border-slate-400 bg-slate-50 py-3 pl-3 pr-8 text-sm font-medium text-slate-700 focus:border-orange-500 focus:ring-orange-500"
                     >
                         {Object.values(Currency).map(c => <option key={c} value={c}>{c}</option>)}
                     </select>

@@ -67,7 +67,7 @@ const AddGlobalExpenseModal: React.FC<AddGlobalExpenseModalProps> = ({ onClose, 
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] flex justify-center items-center p-4 animate-in fade-in duration-200" onClick={onClose}>
+    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex justify-center md:pl-64 items-center p-4 animate-in fade-in duration-200" onClick={onClose}>
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl flex flex-col max-h-[90vh] border border-slate-200 overflow-hidden animate-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
         <header className="flex justify-between items-center px-6 py-4 border-b border-slate-100 bg-slate-50/50 rounded-t-2xl flex-shrink-0">
           <div>
@@ -104,7 +104,7 @@ const AddGlobalExpenseModal: React.FC<AddGlobalExpenseModalProps> = ({ onClose, 
                         name="currency"
                         value={formData.currency}
                         onChange={handleChange}
-                        className="rounded-lg border-slate-200 bg-white py-3 pl-3 pr-10 text-lg font-medium text-slate-700 focus:border-orange-500 focus:ring-orange-500"
+                        className="rounded-lg border-slate-400 bg-slate-50 py-3 pl-3 pr-10 text-lg font-medium text-slate-700 focus:border-orange-500 focus:ring-orange-500"
                     >
                         {Object.values(Currency).map(c => <option key={c} value={c}>{c}</option>)}
                     </select>

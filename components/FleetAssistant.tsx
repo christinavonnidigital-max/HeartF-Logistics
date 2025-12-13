@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Message, GroundingChunk } from '../types';
 import { getGeminiResponse } from '../services/geminiService';
-import { CloseIcon, MapPinIcon, SearchIcon, SendIcon, SparklesIcon } from './icons/Icons';
+import { CloseIcon, MapPinIcon, SearchIcon, SendIcon, BoxTruckIconBold } from './icons/Icons';
 
 interface FleetAssistantProps {
     contextData: any;
@@ -80,7 +80,7 @@ const FormattedText: React.FC<{ text: string }> = ({ text }) => {
 const FleetAssistant: React.FC<FleetAssistantProps> = ({ contextData, contextType }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
-    { id: '1', sender: 'bot', text: 'Hello! I am the assistant for Heartfledge Logistics. How can I help you keep things moving today?' }
+    { id: '1', sender: 'bot', text: 'Hi there! I\'m your Heartfledge AI Assistant. I can help with fleet management, CRM insights, financial analysis, and route optimization. What can I do for you today?' }
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -195,23 +195,29 @@ const FleetAssistant: React.FC<FleetAssistantProps> = ({ contextData, contextTyp
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 bg-orange-500 text-white p-4 rounded-full shadow-xl hover:bg-orange-600 transition transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-orange-500/30 z-50"
+        className="group fixed bottom-6 right-6 bg-gradient-to-br from-orange-500 to-orange-600 text-white p-4 rounded-full shadow-2xl hover:shadow-orange-500/50 transition-all duration-300 transform hover:scale-110 focus:outline-none focus:ring-4 focus:ring-orange-500/30 z-50"
         aria-label="Open AI Assistant"
       >
-        <SparklesIcon className="w-7 h-7" />
+        <BoxTruckIconBold className="w-8 h-8 transition-transform group-hover:translate-x-1" />
       </button>
     );
   }
 
   return (
     <div className="fixed bottom-6 right-6 w-[90vw] max-w-md h-[70vh] max-h-[600px] bg-white rounded-2xl shadow-2xl flex flex-col z-50 border border-slate-200 overflow-hidden font-sans">
-      <header className="flex items-center justify-between p-4 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white">
-        <div className="flex items-center space-x-2.5">
-          <div className="bg-orange-100 p-1.5 rounded-lg">
-            <SparklesIcon className="w-5 h-5 text-orange-600" />
+      <header className="flex items-center justify-between p-5 border-b border-slate-100 bg-gradient-to-r from-orange-50/30 via-white to-orange-50/20">
+        <div className="flex items-center space-x-3">
+          <div className="bg-gradient-to-br from-orange-100 to-orange-200 p-2 rounded-xl shadow-sm">
+            <BoxTruckIconBold className="w-5 h-5 text-orange-600" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-slate-900">AI Assistant</h3>
+            <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+              AI Assistant
+              <span className="flex h-2 w-2 relative">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+              </span>
+            </h3>
             <p className="text-[10px] text-slate-500 font-medium">Powered by Gemini</p>
           </div>
         </div>
@@ -220,17 +226,17 @@ const FleetAssistant: React.FC<FleetAssistantProps> = ({ contextData, contextTyp
         </button>
       </header>
 
-      <div className="flex-1 p-4 overflow-y-auto space-y-5 bg-slate-50/50 custom-scrollbar">
+      <div className="flex-1 p-5 overflow-y-auto space-y-4 bg-gradient-to-b from-slate-50/50 to-white custom-scrollbar">
         {messages.map((msg) => (
-          <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`relative max-w-[88%] md:max-w-[90%] px-4 py-3 rounded-2xl shadow-sm border ${
-                msg.sender === 'user' 
-                ? 'bg-orange-500 border-orange-500 text-white rounded-br-sm' 
-                : 'bg-white border-slate-200 text-slate-900 rounded-bl-sm'
+          <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-2 duration-300`}>
+            <div className={`relative max-w-[85%] md:max-w-[88%] px-4 py-3.5 rounded-2xl shadow-sm transition-all hover:shadow-md ${
+                msg.sender === 'user'
+                ? 'bg-gradient-to-br from-orange-500 to-orange-600 border border-orange-500 text-white rounded-br-sm'
+                : 'bg-white border border-slate-200 text-slate-900 rounded-bl-sm hover:border-slate-300'
             }`}>
               <FormattedText text={msg.text} />
               {msg.groundingChunks && msg.groundingChunks.length > 0 && (
-                <div className="mt-3 pt-2 border-t border-black/5 flex flex-wrap gap-2">
+                <div className="mt-3 pt-3 border-t border-black/5 flex flex-wrap gap-2">
                     {msg.groundingChunks.map((chunk, index) => <GroundingChunkDisplay key={index} chunk={chunk} />)}
                 </div>
               )}
@@ -251,22 +257,22 @@ const FleetAssistant: React.FC<FleetAssistantProps> = ({ contextData, contextTyp
         <div ref={chatEndRef} />
       </div>
 
-      <div className="p-3 border-t border-slate-100 bg-white">
-        <div className="flex items-center gap-2 bg-slate-50 rounded-full px-1.5 py-1.5 border border-slate-200 focus-within:ring-2 focus-within:ring-orange-500/20 focus-within:border-orange-400 transition shadow-sm">
+      <div className="p-4 border-t border-slate-100 bg-gradient-to-r from-slate-50/50 to-white">
+        <div className="flex items-center gap-2.5 bg-white rounded-2xl px-2 py-2 border border-slate-200 focus-within:ring-2 focus-within:ring-orange-500/30 focus-within:border-orange-400 transition-all shadow-sm hover:shadow-md">
           <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
             placeholder={getPlaceholderText()}
-            className="flex-1 px-3 py-1.5 bg-transparent text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none"
+            className="flex-1 px-3 py-2 bg-transparent text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none"
             disabled={isLoading}
             autoFocus
           />
           <button
             onClick={handleSendMessage}
             disabled={isLoading || input.trim() === ''}
-            className="p-2 bg-orange-500 text-white rounded-full disabled:bg-slate-300 disabled:cursor-not-allowed hover:bg-orange-600 transition shadow-sm flex-shrink-0"
+            className="p-2.5 bg-gradient-to-br from-orange-500 to-orange-600 text-white rounded-xl disabled:from-slate-300 disabled:to-slate-300 disabled:cursor-not-allowed hover:from-orange-600 hover:to-orange-700 transition-all shadow-md hover:shadow-lg hover:scale-105 flex-shrink-0"
           >
             <SendIcon className="w-4 h-4" />
           </button>
