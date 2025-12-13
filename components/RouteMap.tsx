@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo } from 'react';
+import 'leaflet/dist/leaflet.css';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
 import * as L from 'leaflet';
 import { Route, RouteWaypoint } from '../types';
