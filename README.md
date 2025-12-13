@@ -20,3 +20,5 @@ View your app in AI Studio: https://ai.studio/apps/drive/1FR7MK0hWaKyC1XlXoI1bNg
    `npm run dev`
 
 https://github.com/christinavonnidigital-max/HeartF-Logistics
+
+Note: The project previously included an Azure Functions API scaffold; that scaffold has been removed.
