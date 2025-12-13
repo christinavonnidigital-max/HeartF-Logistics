@@ -1,5 +1,46 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:is(.dark *));
+
+/* Theme variables */
+:root {
+  --hf-bg: oklch(0.985 0 0);
+  --hf-fg: oklch(0.18 0.02 250);
+  --hf-card: oklch(1 0 0);
+  --hf-muted: oklch(0.96 0.01 250);
+  --hf-border: oklch(0.9 0.01 250);
+
+  --hf-primary-600: oklch(0.62 0.18 255);
+  --hf-primary-700: oklch(0.55 0.18 255);
+  --hf-danger-600: oklch(0.58 0.22 25);
+}
+
+.dark {
+  --hf-bg: oklch(0.14 0.02 250);
+  --hf-fg: oklch(0.96 0.01 250);
+  --hf-card: oklch(0.18 0.02 250);
+  --hf-muted: oklch(0.22 0.02 250);
+  --hf-border: oklch(0.3 0.02 250);
+
+  --hf-primary-600: oklch(0.72 0.14 255);
+  --hf-primary-700: oklch(0.66 0.14 255);
+  --hf-danger-600: oklch(0.72 0.18 25);
+}
+
+@theme {
+  --color-background: var(--hf-bg);
+  --color-foreground: var(--hf-fg);
+  --color-card: var(--hf-card);
+  --color-muted: var(--hf-muted);
+  --color-border: var(--hf-border);
+
+  --color-brand-600: var(--hf-primary-600);
+  --color-brand-700: var(--hf-primary-700);
+  --color-danger-600: var(--hf-danger-600);
+
+  --radius-xl: 16px;
+}
+
 /* App base reset and sensible defaults */
 :root {
   --bg: #ffffff;
@@ -7,7 +48,7 @@
 }
 * { box-sizing: border-box; }
 html, body, #root { height: 100%; margin: 0; }
-body { background: var(--bg); color: var(--text); font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; }
+body { @apply bg-background text-foreground; font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; }
 
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 
