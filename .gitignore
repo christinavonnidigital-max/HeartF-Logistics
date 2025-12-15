@@ -28,3 +28,7 @@ nul
 # Environment secrets
 .env
 .env.*
+
+# Accessibility test artifacts
+axe-violations*.json
+dev-axe-violations.json
