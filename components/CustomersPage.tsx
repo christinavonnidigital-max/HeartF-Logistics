@@ -114,11 +114,11 @@ const CustomersPage: React.FC = () => {
     <div className="space-y-6">
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
             <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Accounts</p>
+                <p className="text-xs font-bold text-slate-700 uppercase tracking-wider">Total Accounts</p>
                 <p className="text-2xl font-bold text-slate-900 mt-1">{localCustomers.length}</p>
             </div>
             <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Lifetime Value</p>
+                <p className="text-xs font-bold text-slate-700 uppercase tracking-wider">Total Lifetime Value</p>
                 <p className="text-2xl font-bold text-emerald-600 mt-1">{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', notation: 'compact' }).format(totalRevenue)}</p>
             </div>
         </div>
@@ -130,7 +130,7 @@ const CustomersPage: React.FC = () => {
             </div>
             <div className="flex w-full sm:w-auto gap-3">
                 <div className="relative grow sm:grow-0 sm:w-64">
-                    <SearchIcon className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
+                    <SearchIcon className="absolute left-3 top-2.5 w-4 h-4 text-slate-500" />
                     <input
                         type="text"
                         placeholder="Search customers..."
@@ -161,7 +161,7 @@ const CustomersPage: React.FC = () => {
                 >
                     <div className="flex justify-between items-start mb-4">
                         <div className="flex items-center gap-3">
-                            <div className="h-10 w-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 border border-slate-100">
+                            <div className="h-10 w-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-500 border border-slate-100">
                                 <UsersIcon className="w-5 h-5" />
                             </div>
                             <div>
@@ -178,20 +178,20 @@ const CustomersPage: React.FC = () => {
                     
                     <div className="space-y-2 mb-4">
                         <div className="flex items-center gap-2 text-xs text-slate-600 bg-slate-50 p-2 rounded-lg border border-slate-100">
-                            <EnvelopeIcon className="w-3.5 h-3.5 text-slate-400" />
+                            <EnvelopeIcon className="w-3.5 h-3.5 text-slate-500" />
                             <span className="truncate">{customer.billing_email}</span>
                         </div>
                     </div>
 
                     <div className="flex items-center justify-between pt-4 border-t border-slate-100">
                         <div>
-                            <p className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Lifetime Value</p>
+                            <p className="text-[10px] font-bold uppercase text-slate-700 tracking-wider">Lifetime Value</p>
                             <p className="text-lg font-bold text-slate-900">
                                 {new Intl.NumberFormat('en-US', { style: 'currency', currency: customer.preferred_currency }).format(customer.total_spent)}
                             </p>
                         </div>
                         <div className="text-right">
-                            <p className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Bookings</p>
+                            <p className="text-[10px] font-bold uppercase text-slate-700 tracking-wider">Bookings</p>
                             <p className="text-lg font-bold text-slate-900">{customer.total_bookings}</p>
                         </div>
                     </div>
@@ -220,7 +220,7 @@ const CustomersPage: React.FC = () => {
             <ShellCard className="p-5">
                 <div className="flex items-center justify-between mb-3">
                     <div>
-                        <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Customer Profile</p>
+                        <p className="text-xs font-bold uppercase tracking-wider text-slate-700">Customer Profile</p>
                         <h3 className="text-lg font-bold text-slate-900">{selectedCustomer.company_name}</h3>
                         <p className="text-xs text-slate-500">{selectedCustomer.city}</p>
                     </div>

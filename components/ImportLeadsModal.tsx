@@ -152,7 +152,7 @@ const ImportLeadsModal: React.FC<ImportLeadsModalProps> = ({ onClose, onImport }
                     <div className="text-center">
                         <label htmlFor="file-upload" className="cursor-pointer">
                             <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-slate-100">
-                                <UploadIcon className="h-10 w-10 text-slate-400" />
+                                <UploadIcon className="h-10 w-10 text-slate-500" />
                             </div>
                             <h3 className="mt-4 text-lg font-medium text-slate-900">Upload a file</h3>
                             <p className="mt-1 text-sm text-slate-500">Select a CSV or Excel file to import your leads.</p>

@@ -104,14 +104,14 @@ const LeadList: React.FC<LeadListProps> = ({ leads, onSelectLead, onAddLeadClick
                       <StatusPill label={status} tone="info" />
                     )}
                   </button>
-                   <button
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            setLeadToDelete(lead.id);
-                        }}
-                        className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
-                        title="Delete Lead"
-                    >
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setLeadToDelete(lead.id);
+                    }}
+                    className="p-1.5 text-slate-500 hover:text-red-500 hover:bg-red-50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                    title="Delete Lead"
+                  >
                         <TrashIcon className="w-4 h-4" />
                     </button>
                 </div>

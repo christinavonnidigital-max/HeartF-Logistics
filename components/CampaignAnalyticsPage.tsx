@@ -53,7 +53,7 @@ const CampaignAnalyticsPage: React.FC = () => {
                             <td className="px-4 py-4 text-right text-slate-600">{campaign.emails_sent}</td>
                             <td className="px-4 py-4 text-right font-medium text-emerald-600">{campaign.emails_delivered}</td>
                             <td className="px-4 py-4 text-right text-slate-600">
-                                {campaign.emails_bounced} <span className="text-xs text-slate-400">({bounceRate}%)</span>
+                                {campaign.emails_bounced} <span className="text-xs text-slate-700">({bounceRate}%)</span>
                             </td>
                             <td className="px-4 py-4 text-right text-slate-600">{campaign.unsubscribes}</td>
                             <td className="px-4 py-4 text-right font-medium text-indigo-600">{replyRate}%</td>

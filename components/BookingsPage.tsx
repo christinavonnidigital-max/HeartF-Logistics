@@ -97,7 +97,7 @@ const BookingsPage: React.FC = () => {
         
         <div className="flex flex-col sm:flex-row gap-3">
             <div className="relative w-full sm:w-64">
-                <SearchIcon className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
+                <SearchIcon className="absolute left-3 top-2.5 w-4 h-4 text-slate-500" />
                 <input 
                     type="text" 
                     placeholder="Search route, ID..." 
@@ -129,7 +129,7 @@ const BookingsPage: React.FC = () => {
                                 {bookingsByStatus[col.key]?.length || 0}
                             </span>
                         </div>
-                        <p className="text-[10px] text-slate-400 ml-4">{col.subtitle}</p>
+                        <p className="text-[10px] text-slate-700 ml-4">{col.subtitle}</p>
                     </div>
                     
                     {/* Column Body */}
@@ -145,7 +145,7 @@ const BookingsPage: React.FC = () => {
 
                                 {/* Header */}
                                 <div className="flex justify-between items-start mb-3">
-                                    <span className="text-[10px] font-bold tracking-wider text-slate-400 uppercase font-mono bg-slate-50 px-1.5 py-0.5 rounded">{booking.booking_number}</span>
+                                    <span className="text-[10px] font-bold tracking-wider text-slate-700 uppercase font-mono bg-slate-50 px-1.5 py-0.5 rounded">{booking.booking_number}</span>
                                     {booking.requires_refrigeration && (
                                          <div className="flex items-center gap-1 text-[10px] font-bold text-sky-600 bg-sky-50 px-1.5 py-0.5 rounded border border-sky-100">
                                             <span className="w-1.5 h-1.5 rounded-full bg-sky-500"></span>
@@ -173,7 +173,7 @@ const BookingsPage: React.FC = () => {
                                 <div className="flex items-end justify-between pt-3 border-t border-slate-50 mt-2">
                                     <div className="flex flex-col gap-1 min-w-0 pr-2">
                                         <span className="text-xs text-slate-500 truncate font-medium">{booking.cargo_description}</span>
-                                        <div className="flex items-center gap-1.5 text-[10px] font-medium text-slate-400">
+                                        <div className="flex items-center gap-1.5 text-[10px] font-medium text-slate-700">
                                             <CalendarDaysIcon className="w-3 h-3 shrink-0" />
                                             {new Date(booking.pickup_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                                         </div>

@@ -374,7 +374,7 @@ const LeadFinderModal: React.FC<LeadFinderModalProps> = ({ onClose, onImport }) 
                 We call Gemini with the googleSearch tool for every run. Citations stay attached so you can verify every lead.
               </p>
               {lastSearchAt && (
-                <p className="text-[11px] text-slate-400">
+                <p className="text-[11px] text-slate-700">
                   Last run · {formatDateTime(lastSearchAt)}
                 </p>
               )}
@@ -459,7 +459,7 @@ const LeadFinderModal: React.FC<LeadFinderModalProps> = ({ onClose, onImport }) 
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-xs uppercase text-slate-400 font-semibold">Fit Confidence</p>
+                      <p className="text-xs uppercase text-slate-700 font-semibold">Fit Confidence</p>
                       <p className="text-lg font-bold text-slate-900">{confidence || 62}%</p>
                       <button
                         onClick={() => toggleSelected(prospect.id)}

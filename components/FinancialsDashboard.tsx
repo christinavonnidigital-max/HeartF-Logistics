@@ -25,7 +25,7 @@ const FinStatCard: React.FC<{ label: string; value: number; icon: React.ReactNod
         <div className={`absolute top-0 right-0 -mt-4 -mr-4 h-20 w-20 rounded-full ${color} opacity-10 transition-transform group-hover:scale-110`}></div>
         <div className="relative z-10 flex justify-between items-start">
             <div>
-                <p className="text-xs font-bold uppercase tracking-wider text-slate-400">{label}</p>
+                <p className="text-xs font-bold uppercase tracking-wider text-slate-700">{label}</p>
                 <p className="mt-2 text-2xl font-bold text-slate-900 tracking-tight">
                     {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value)}
                 </p>

@@ -168,7 +168,7 @@ const CampaignsPage: React.FC<CampaignsPageProps> = ({ setActiveView }) => {
                                                 <StatusPill label={campaign.status.replace(/_/g, ' ')} tone={getStatusTone(campaign.status)} />
                                             </div>
                                             <p className="text-sm text-slate-500">{campaign.campaign_goal}</p>
-                                            <p className="text-xs text-slate-400 mt-1 flex items-center gap-1">
+                                            <p className="text-xs text-slate-600 mt-1 flex items-center gap-1">
                                                 Created {new Date(campaign.created_at).toLocaleDateString()} • {campaign.campaign_type.replace('_', ' ')}
                                             </p>
                                         </div>
@@ -203,19 +203,19 @@ const CampaignsPage: React.FC<CampaignsPageProps> = ({ setActiveView }) => {
 
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 py-4 border-t border-slate-50">
                                     <div>
-                                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Total Leads</p>
+                                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-700">Total Leads</p>
                                         <p className="text-lg font-bold text-slate-900 mt-0.5">{campaign.total_leads}</p>
                                     </div>
                                     <div>
-                                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Emails Sent</p>
+                                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-700">Emails Sent</p>
                                         <p className="text-lg font-bold text-slate-900 mt-0.5">{campaign.emails_sent}</p>
                                     </div>
                                     <div>
-                                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Open Rate</p>
+                                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-700">Open Rate</p>
                                         <p className={`text-lg font-bold mt-0.5 ${openRate > 30 ? 'text-emerald-600' : 'text-slate-900'}`}>{openRate.toFixed(1)}%</p>
                                     </div>
                                     <div>
-                                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Click Rate</p>
+                                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-700">Click Rate</p>
                                         <p className={`text-lg font-bold mt-0.5 ${clickRate > 5 ? 'text-emerald-600' : 'text-slate-900'}`}>{clickRate.toFixed(1)}%</p>
                                     </div>
                                 </div>

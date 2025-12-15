@@ -113,7 +113,7 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({ onClose, onInvite }) 
                                 <label className="block text-xs font-medium text-slate-700 mb-1">Email Address</label>
                                 <div className="relative">
                                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <EnvelopeIcon className="h-4 w-4 text-slate-400" />
+                                        <EnvelopeIcon className="h-4 w-4 text-slate-500" />
                                     </div>
                                     <input 
                                         type="email" 

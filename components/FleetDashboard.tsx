@@ -141,7 +141,7 @@ const FleetDashboard: React.FC = () => {
                     </div>
                     <div className="flex items-end justify-between mt-2">
                         <span className="text-3xl font-bold text-slate-900">{maintenanceCount}</span>
-                        <span className="text-xs text-slate-400 font-medium">Vehicles</span>
+                        <span className="text-xs text-slate-700 font-medium">Vehicles</span>
                     </div>
                 </div>
             </div>
