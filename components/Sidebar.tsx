@@ -15,7 +15,7 @@ import {
   SettingsIcon,
   CloseIcon,
   MenuIcon,
-} from "./icons";
+} from "./icons/Icons";
 import { View } from "../App";
 import { useAuth, UserRole } from "../auth/AuthContext";
 import { ThemeToggle } from "./ThemeToggle";
@@ -128,9 +128,9 @@ const Sidebar: React.FC<SidebarProps> = ({
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-40 w-64 transform bg-card text-foreground shadow-xl transition-transform duration-300 md:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-40 w-64 transform bg-slate-950 text-white shadow-xl transition-transform duration-300 md:translate-x-0 ${
           isOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        } flex flex-col overflow-hidden`}
       >
         <div className="flex items-center justify-between px-4 py-4 border-b border-white/10">
           <div className="flex items-center gap-3">
@@ -157,7 +157,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           </div>
         </div>
 
-        <div className="px-4 py-3 md:hidden">
+        <div className="px-4 py-3 md:hidden shrink-0">
           {user ? (
             <div className="rounded-xl border border-border bg-card p-3">
               <p className="text-sm font-semibold text-foreground">{user.name}</p>
@@ -170,8 +170,8 @@ const Sidebar: React.FC<SidebarProps> = ({
           )}
         </div>
 
-        <div className="flex h-full flex-col overflow-hidden">
-          <nav className="mt-2 space-y-6 flex-1 min-h-0 overflow-y-auto px-4 pb-10 custom-scrollbar">
+        {/* Scrollable nav */}
+        <nav className="flex-1 min-h-0 mt-2 px-4 pb-10 overflow-y-auto custom-scrollbar">
           {navSections.map((section) => {
             const visibleItems = section.items.filter((item) =>
               isAllowed(item.view)
@@ -179,7 +179,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             if (!visibleItems.length) return null;
             return (
               <div key={section.title} className="space-y-2">
-                <p className="px-2 text-[11px] uppercase tracking-[0.16em] text-slate-600">
+                  <p className="px-2 text-[11px] uppercase tracking-[0.16em] text-slate-200/50">
                   {section.title}
                 </p>
                 <div className="space-y-1">
@@ -215,7 +215,6 @@ const Sidebar: React.FC<SidebarProps> = ({
             );
           })}
           </nav>
-        </div>
       </aside>
     </>
   );

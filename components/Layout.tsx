@@ -82,7 +82,7 @@ const Layout: React.FC<LayoutProps> = ({
         setIsOpen={setIsSidebarOpen}
       />
 
-      <div className="relative flex flex-1 min-h-0 flex-col bg-background text-foreground md:pl-64 transition-all duration-300 z-0">
+      <div className="relative flex h-dvh min-h-0 flex-col bg-background text-foreground md:pl-64 transition-all duration-300 z-0">
         {/* Top bar */}
         <header className="sticky top-0 z-20 border-b border-border bg-card/60 backdrop-blur-md shadow-sm">
           <div className="flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
@@ -145,7 +145,7 @@ const Layout: React.FC<LayoutProps> = ({
         </header>
 
         {/* Main content */}
-        <main className="flex-1 overflow-y-auto overflow-x-hidden px-4 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-8 text-[0.96rem] custom-scrollbar">
+        <main className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-4 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-8 text-[0.96rem] custom-scrollbar">
           <div className="mx-auto max-w-7xl space-y-6 relative">
             {children}
           </div>

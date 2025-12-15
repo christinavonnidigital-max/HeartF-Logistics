@@ -88,6 +88,8 @@ body {
 }
 
 /* Custom Scrollbar Styling (optional) */
+/* Keep scroll gutter stable on modern browsers to avoid layout shifts */
+.custom-scrollbar { scrollbar-gutter: stable; }
 @supports (scrollbar-color: auto) {
   .custom-scrollbar {
     scrollbar-width: thin;
@@ -97,5 +99,5 @@ body {
 
 .custom-scrollbar::-webkit-scrollbar { width: 8px; }
 .custom-scrollbar::-webkit-scrollbar-track { background: #1e293b; }
-.custom-scrollbar::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #475569; border-radius: 999px; }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #64748b; }
