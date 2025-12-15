@@ -55,3 +55,10 @@ Automated accessibility smoke test:
 - Playwright E2E now launches a fresh dev server per run (see `playwright.config.ts` - `webServer.reuseExistingServer: false`) to reduce intermittent HMR/serve cache issues observed during development.
 - The app exposes dev-mode axe results to `window.__axeViolations__` and the E2E accessibility test writes `axe-violations.json` when violations are detected to aid CI triage.
 - I fixed a serious color-contrast issue on the login hero copy and ensured the app has a `main` landmark in `Layout.tsx` to address common axe findings. Additional accessibility follow-ups can be implemented in a follow-up PR.
+ - The app exposes dev-mode axe results to `window.__axeViolations__` and the E2E accessibility test writes `axe-violations.json` when violations are detected to aid CI triage. A debug helper test (`tests/e2e/debug-login.spec.ts`) writes `dev-axe-violations.json` for quick local triage and there's a new focused Playwright test for the login page at `tests/e2e/login-accessibility.spec.ts`.
+ - Recent fixes in this branch include:
+    - Added a semantic `<main>` landmark (with `aria-label="Login"`) around the login content and a `role="region" aria-label="Marketing features"` on the left-side hero to resolve AXE "landmark-one-main" and "region" findings.
+    - Improved contrast for the small demo account password badges and the demo note so they meet WCAG contrast requirements.
+    - If you want to re-run the accessibility checks locally and generate artifacts, run:
+       - `AXE_FAIL_SEVERITY=minor npm run test:e2e tests/e2e/debug-login.spec.ts` (writes `dev-axe-violations.json`)
+       - `AXE_FAIL_SEVERITY=serious npm run test:e2e tests/e2e/login-accessibility.spec.ts` (writes `axe-violations-login.json`)
