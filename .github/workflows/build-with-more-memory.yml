@@ -1,0 +1,42 @@
+name: Build and Test (with optional increased memory)
+
+# This is an example workflow showing how to run Vite builds and Playwright tests
+# with Node's heap increased to 16 GB using the explicit `node --max-old-space-size`
+# invocation. This avoids adding any repository-level dev dependencies while giving
+# CI jobs the memory they need.
+
+on:
+  workflow_dispatch: {}
+  push:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install
+        run: npm ci
+
+      - name: Build with more memory (16 GB)
+        # Use `node --max-old-space-size=16384` and call the Vite binary directly
+        run: node --max-old-space-size=16384 ./node_modules/vite/bin/vite.js build
+
+      - name: Run Playwright tests with more memory
+        run: node --max-old-space-size=16384 ./node_modules/@playwright/test/lib/cli.js test --reporter=dot
+
+      - name: Upload Playwright Artifacts (if any)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-artifacts
+          path: |
+            test-results
+            playwright-report

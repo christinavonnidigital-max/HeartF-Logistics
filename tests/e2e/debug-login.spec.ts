@@ -1,4 +1,4 @@
-import { test } from '@playwright/test';
+import { test, expect } from '@playwright/test';
 
 test('debug login page content', async ({ page }) => {
   page.on('console', (msg) => console.log('PAGE CONSOLE:', msg.text()));
@@ -36,6 +36,15 @@ test('debug login page content', async ({ page }) => {
     }
   });
   console.log('ICONS IMPORT RESULT:', iconsImport);
+  // Ensure our icon barrel exports expected keys and that the sidebar renders an SVG
+  if (!('error' in iconsImport)) {
+    expect(Array.isArray(iconsImport.indexKeys)).toBeTruthy();
+    expect(iconsImport.indexKeys).toContain('GridIcon');
+  }
+
+  // There should be at least one SVG in the aside (sidebar) indicating icons are rendered
+  const asideSvgs = await page.locator('aside svg').count();
+  expect(asideSvgs).toBeGreaterThan(0);
   // Capture any dev-mode axe violations exposed on window by the app
   const devViolations = await page.evaluate(() => (window as any).__axeViolations__ || null);
   if (devViolations) {
