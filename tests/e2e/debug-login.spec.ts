@@ -36,4 +36,17 @@ test('debug login page content', async ({ page }) => {
     }
   });
   console.log('ICONS IMPORT RESULT:', iconsImport);
+  // Capture any dev-mode axe violations exposed on window by the app
+  const devViolations = await page.evaluate(() => (window as any).__axeViolations__ || null);
+  if (devViolations) {
+    console.log('DEV AXE VIOLATIONS:', JSON.stringify(devViolations.map((v: any) => ({ id: v.id, impact: v.impact, nodes: v.nodes.length, help: v.help })), null, 2));
+    const { writeFileSync } = await import('fs');
+    try {
+      writeFileSync('dev-axe-violations.json', JSON.stringify(devViolations, null, 2));
+    } catch (e) {
+      // ignore write errors in CI
+    }
+  } else {
+    console.log('DEV AXE VIOLATIONS: none');
+  }
 });

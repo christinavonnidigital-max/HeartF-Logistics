@@ -48,7 +48,7 @@ const LoginPage: React.FC = () => {
   return (
     <div className="flex min-h-screen">
       {/* Left Side - Brand & Hero */}
-      <div className="hidden lg:flex lg:w-1/2 relative bg-linear-to-br from-[#1a2142] via-[#202A56] to-[#273465] overflow-hidden">
+      <div role="region" aria-label="Marketing features" className="hidden lg:flex lg:w-1/2 relative bg-linear-to-br from-[#1a2142] via-[#202A56] to-[#273465] overflow-hidden">
         {/* Abstract Background Elements */}
         <div className="absolute top-0 right-0 w-96 h-96 bg-orange-500/10 rounded-full blur-3xl"></div>
         <div className="absolute bottom-0 left-0 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl"></div>
@@ -98,7 +98,7 @@ const LoginPage: React.FC = () => {
       </div>
 
       {/* Right Side - Login Form */}
-      <div className="flex-1 flex items-center justify-center bg-slate-50 px-6 py-12">
+      <main role="main" aria-label="Login" className="flex-1 flex items-center justify-center bg-slate-50 px-6 py-12">
         <div className="w-full max-w-md">
           {/* Mobile Logo */}
           <div className="lg:hidden flex flex-col items-center mb-8">
@@ -207,20 +207,20 @@ const LoginPage: React.FC = () => {
                         <p className="text-xs text-slate-500 group-hover:text-orange-600">{acc.email}</p>
                       </div>
                     </div>
-                    <span className="text-xs font-mono font-medium text-slate-400 group-hover:text-orange-600 bg-white px-3 py-1.5 rounded-lg border border-slate-200 group-hover:border-orange-300 transition-colors">
+                    <span className="text-xs font-mono font-medium text-slate-700 group-hover:text-orange-600 bg-white px-3 py-1.5 rounded-lg border border-slate-200 group-hover:border-orange-300 transition-colors">
                       {acc.password}
                     </span>
                   </button>
                 ))}
               </div>
 
-              <p className="mt-6 text-center text-xs text-slate-400">
+              <p className="mt-6 text-center text-xs text-slate-600">
                 Demo accounts for testing purposes only
               </p>
             </div>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 };
