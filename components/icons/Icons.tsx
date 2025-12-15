@@ -61,7 +61,8 @@ type IconProps = { className?: string };
 const i = (Icon: React.ComponentType<any>) => {
   const Wrapped = ({ className }: IconProps) => (
     // @ts-ignore - lucide uses its own typing; keep a simple wrapper
-    <Icon className={className} aria-hidden="true" />
+    // Default size: 16px (h-4 w-4) when no className is provided so icons are visible
+    <Icon className={className ?? "h-4 w-4"} aria-hidden="true" />
   );
   return Wrapped;
 };
