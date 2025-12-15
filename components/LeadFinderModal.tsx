@@ -18,7 +18,7 @@ import {
   PhoneIcon,
   CheckCircleIcon,
   TagIcon,
-} from './icons/Icons';
+} from './icons';
 import {
   findPotentialLeads,
   LeadProspectingCriteria,
@@ -246,7 +246,7 @@ const LeadFinderModal: React.FC<LeadFinderModalProps> = ({ onClose, onImport }) 
   return (
     <>
       {toastMessage && (
-        <div className="fixed inset-x-0 top-6 z-[80] flex justify-center px-4">
+        <div className="fixed inset-x-0 top-6 z-80 flex justify-center px-4">
           <div className="bg-slate-900 text-white text-sm font-medium px-4 py-3 rounded-2xl shadow-xl shadow-slate-900/20 flex items-center gap-2">
             <SparklesIcon className="w-4 h-4 text-orange-300" />
             {toastMessage}
@@ -254,14 +254,14 @@ const LeadFinderModal: React.FC<LeadFinderModalProps> = ({ onClose, onImport }) 
         </div>
       )}
       <div
-      className="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-[70] flex items-center justify-center p-4 md:pl-64"
+      className="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-70 flex items-center justify-center p-4 md:pl-64"
       onClick={onClose}
     >
       <div
         className="bg-white rounded-3xl shadow-2xl w-full max-w-6xl max-h-[92vh] flex flex-col overflow-hidden border border-slate-100"
         onClick={(e) => e.stopPropagation()}
       >
-        <header className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-orange-50 via-white to-orange-50">
+        <header className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-linear-to-r from-orange-50 via-white to-orange-50">
           <div>
             <p className="text-xs uppercase tracking-[0.2em] text-orange-400 font-semibold flex items-center gap-2">
               <SparklesIcon className="w-4 h-4" /> AI Lead Prospector
@@ -358,7 +358,7 @@ const LeadFinderModal: React.FC<LeadFinderModalProps> = ({ onClose, onImport }) 
 
               <button
                 type="submit"
-                className="w-full py-3 rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold shadow-lg shadow-orange-200 flex items-center justify-center gap-2 disabled:from-slate-200 disabled:to-slate-200 disabled:text-slate-500"
+                className="w-full py-3 rounded-2xl bg-linear-to-r from-orange-500 to-orange-600 text-white font-semibold shadow-lg shadow-orange-200 flex items-center justify-center gap-2 disabled:from-slate-200 disabled:to-slate-200 disabled:text-slate-500"
                 disabled={isSearching}
               >
                 {isSearching ? 'Searching the web…' : 'Prospect on the open web'}

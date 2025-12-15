@@ -1,175 +1,212 @@
 
-import React, { useState } from 'react';
-import { Customer, LoyaltyTier, Currency, Industry } from '../types';
-import { CloseIcon, UserCircleIcon, BriefcaseIcon, EnvelopeIcon, PhoneIcon, MapPinIcon, GlobeIcon, BuildingOfficeIcon, CreditCardIcon } from './icons/Icons';
+import React, { useMemo, useState } from "react";
+import { Customer, Currency, Industry, LoyaltyTier } from "../types";
+import { Button, Input, ModalShell, Select, SubtleCard, Textarea } from "./UiKit_new";
+
+type NewCustomer = Omit<
+    Customer,
+    "id" | "created_at" | "updated_at" | "user_id" | "total_spent" | "total_bookings" | "loyalty_points" | "is_verified"
+>;
 
 interface AddCustomerModalProps {
-  onClose: () => void;
-  onAddCustomer: (customer: Omit<Customer, 'id' | 'created_at' | 'updated_at' | 'user_id' | 'total_spent' | 'total_bookings' | 'loyalty_points' | 'is_verified'>) => void;
+    onClose: () => void;
+    onAddCustomer: (customer: NewCustomer) => void;
 }
 
+const toTitle = (s: string) =>
+    s
+        .replaceAll("_", " ")
+        .replace(/\b\w/g, (m) => m.toUpperCase());
+
 const AddCustomerModal: React.FC<AddCustomerModalProps> = ({ onClose, onAddCustomer }) => {
-    // Pre-filled demo data
-    const [formData, setFormData] = useState({
-        company_name: 'ZimBuild Construction',
+    const [error, setError] = useState<string>("");
+
+    const [form, setForm] = useState({
+        company_name: "ZimBuild Construction",
+        company_registration: "",
         industry: Industry.OTHER,
-        address_line1: '101 Samora Machel Ave',
-        city: 'Harare',
-        country: 'Zimbabwe',
-        billing_email: 'accounts@zimbuild.co.zw',
-        billing_phone: '+263 242 778899',
+        address_line1: "101 Samora Machel Ave",
+        address_line2: "",
+        city: "Harare",
+        country: "Zimbabwe",
+        postal_code: "",
+        billing_email: "accounts@zimbuild.co.zw",
+        billing_phone: "+263 242 778899",
+        tax_id: "100-223344-Z",
         loyalty_tier: LoyaltyTier.SILVER,
         preferred_currency: Currency.USD,
-        tax_id: '100-223344-Z',
-        payment_terms: '30',
-        notes: 'Major contractor for government projects. Requires POD for all deliveries.',
+        credit_limit: "",
+        payment_terms: "30",
+        notes: "Major contractor for government projects. Requires POD for all deliveries.",
     });
-    const [error, setError] = useState('');
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
-    };
+    const industryOptions = useMemo(() => Object.values(Industry), []);
+    const tierOptions = useMemo(() => Object.values(LoyaltyTier), []);
+    const currencyOptions = useMemo(() => Object.values(Currency), []);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
+        setForm((p) => ({ ...p, [k]: e.target.value }));
+
+    const submit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (!formData.company_name || !formData.billing_email) {
-            setError('Company Name and Billing Email are required.');
-            return;
-        }
-        setError('');
-        onAddCustomer({
-            ...formData,
-            industry: formData.industry as string, // Cast or map if needed
-            payment_terms: parseInt(formData.payment_terms) || 30
-        });
+        setError("");
+
+        if (!form.company_name.trim()) return setError("Company name is required.");
+        if (!form.address_line1.trim()) return setError("Address line 1 is required.");
+        if (!form.city.trim()) return setError("City is required.");
+        if (!form.country.trim()) return setError("Country is required.");
+        if (!form.billing_email.trim()) return setError("Billing email is required.");
+
+        const payload: NewCustomer = {
+            company_name: form.company_name.trim(),
+            company_registration: form.company_registration.trim() || undefined,
+            industry: String(form.industry),
+            address_line1: form.address_line1.trim(),
+            address_line2: form.address_line2.trim() || undefined,
+            city: form.city.trim(),
+            country: form.country.trim(),
+            postal_code: form.postal_code.trim() || undefined,
+            billing_email: form.billing_email.trim(),
+            billing_phone: form.billing_phone.trim() || undefined,
+            tax_id: form.tax_id.trim() || undefined,
+            loyalty_tier: form.loyalty_tier,
+            preferred_currency: form.preferred_currency,
+            credit_limit: form.credit_limit ? Number(form.credit_limit) : undefined,
+            payment_terms: form.payment_terms ? Number(form.payment_terms) : undefined,
+            notes: form.notes.trim() || undefined,
+        };
+
+        onAddCustomer(payload);
+        onClose();
     };
 
     return (
-    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex justify-center md:pl-64 items-center p-4 animate-in fade-in duration-200" onClick={onClose}>
-        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl flex flex-col max-h-[90vh] border border-slate-200 overflow-hidden animate-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
-            <header className="flex justify-between items-center px-6 py-4 border-b border-slate-100 bg-slate-50/50 rounded-t-2xl flex-shrink-0">
-                <div>
-                    <h2 className="text-lg font-bold text-slate-900">Add New Customer</h2>
-                    <p className="text-xs text-slate-500 mt-0.5">Register a new corporate account</p>
+        <ModalShell
+            isOpen={true}
+            title="Add customer"
+            description="Create a customer account with billing + preferences."
+            onClose={onClose}
+            maxWidthClass="max-w-3xl"
+            footer={
+                <div className="flex items-center justify-end gap-2">
+                    <Button variant="secondary" type="button" onClick={onClose}>
+                        Cancel
+                    </Button>
+                    <Button variant="primary" type="submit" form="add-customer-form">
+                        Save customer
+                    </Button>
                 </div>
-                <button onClick={onClose} className="p-2 rounded-full hover:bg-slate-200/60 text-slate-500 transition-colors">
-                    <CloseIcon className="w-5 h-5" />
-                </button>
-            </header>
-            
-            <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto custom-scrollbar">
-                <main className="p-6 space-y-8">
-                    
-                    {/* Company Identity */}
-                    <div className="space-y-4">
-                        <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
-                            <BuildingOfficeIcon className="w-4 h-4" />
-                            Company Identity
-                        </h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="md:col-span-2">
-                                <label className="block text-xs font-medium text-slate-700 mb-1">Company Name*</label>
-                                <input type="text" name="company_name" value={formData.company_name} onChange={handleChange} className="block w-full rounded-lg border-slate-400 bg-slate-50 text-sm focus:border-orange-500 focus:ring-orange-500 font-semibold" placeholder="Acme Corp" />
-                            </div>
-                            <div>
-                                <label className="block text-xs font-medium text-slate-700 mb-1">Industry</label>
-                                <select name="industry" value={formData.industry} onChange={handleChange} className="block w-full rounded-lg border-slate-200 text-sm focus:border-orange-500 focus:ring-orange-500 capitalize bg-white">
-                                    {Object.values(Industry).map(i => <option key={i} value={i}>{i.replace(/_/g, ' ')}</option>)}
-                                </select>
-                            </div>
-                            <div>
-                                <label className="block text-xs font-medium text-slate-700 mb-1">Tax ID / Reg Number</label>
-                                <input type="text" name="tax_id" value={formData.tax_id} onChange={handleChange} className="block w-full rounded-lg border-slate-400 bg-slate-50 text-sm focus:border-orange-500 focus:ring-orange-500" placeholder="123-456-789" />
-                            </div>
+            }
+        >
+            <form id="add-customer-form" onSubmit={submit} className="space-y-4">
+                {error ? (
+                    <div className="rounded-xl border border-danger-600/30 bg-danger-600/10 px-3 py-2 text-sm text-foreground">
+                        {error}
+                    </div>
+                ) : null}
+
+                <SubtleCard className="p-4">
+                    <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+                        <div className="md:col-span-2">
+                            <label className="mb-1 block text-xs font-medium text-muted-foreground">Company name</label>
+                            <Input value={form.company_name} onChange={set("company_name")} placeholder="Company name" />
+                        </div>
+
+                        <div>
+                            <label className="mb-1 block text-xs font-medium text-muted-foreground">Industry</label>
+                            <Select value={form.industry} onChange={set("industry")}>
+                                {industryOptions.map((v) => (
+                                    <option key={v} value={v}>
+                                        {toTitle(String(v))}
+                                    </option>
+                                ))}
+                            </Select>
+                        </div>
+
+                        <div className="md:col-span-2">
+                            <label className="mb-1 block text-xs font-medium text-muted-foreground">Address line 1</label>
+                            <Input value={form.address_line1} onChange={set("address_line1")} placeholder="Street address" />
+                        </div>
+
+                        <div>
+                            <label className="mb-1 block text-xs font-medium text-muted-foreground">Address line 2</label>
+                            <Input value={form.address_line2} onChange={set("address_line2")} placeholder="Suite, building, etc" />
+                        </div>
+
+                        <div>
+                            <label className="mb-1 block text-xs font-medium text-muted-foreground">City</label>
+                            <Input value={form.city} onChange={set("city")} placeholder="City" />
+                        </div>
+
+                        <div>
+                            <label className="mb-1 block text-xs font-medium text-muted-foreground">Country</label>
+                            <Input value={form.country} onChange={set("country")} placeholder="Country" />
+                        </div>
+
+                        <div>
+                            <label className="mb-1 block text-xs font-medium text-muted-foreground">Postal code</label>
+                            <Input value={form.postal_code} onChange={set("postal_code")} placeholder="Postal code" />
                         </div>
                     </div>
+                </SubtleCard>
 
-                    {/* Location & Contact Panel */}
-                    <div className="space-y-4">
-                        <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
-                            <MapPinIcon className="w-4 h-4" />
-                            Location & Billing
-                        </h3>
-                        <div className="bg-slate-50 rounded-xl p-5 border border-slate-200 grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="md:col-span-2">
-                                <label className="block text-xs font-medium text-slate-700 mb-1">Address</label>
-                                <input type="text" name="address_line1" value={formData.address_line1} onChange={handleChange} className="block w-full rounded-lg border-slate-200 text-sm focus:border-orange-500 focus:ring-orange-500" placeholder="Street Address" />
-                            </div>
-                            <div>
-                                <label className="block text-xs font-medium text-slate-700 mb-1">City</label>
-                                <input type="text" name="city" value={formData.city} onChange={handleChange} className="block w-full rounded-lg border-slate-200 text-sm focus:border-orange-500 focus:ring-orange-500" />
-                            </div>
-                            <div>
-                                <label className="block text-xs font-medium text-slate-700 mb-1">Country</label>
-                                <input type="text" name="country" value={formData.country} onChange={handleChange} className="block w-full rounded-lg border-slate-200 text-sm focus:border-orange-500 focus:ring-orange-500" />
-                            </div>
-                            <div>
-                                <label className="block text-xs font-medium text-slate-700 mb-1">Billing Email*</label>
-                                <div className="relative">
-                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <EnvelopeIcon className="h-4 w-4 text-slate-400" />
-                                    </div>
-                                    <input type="email" name="billing_email" value={formData.billing_email} onChange={handleChange} className="block w-full rounded-lg border-slate-200 pl-9 text-sm focus:border-orange-500 focus:ring-orange-500" />
-                                </div>
-                            </div>
-                            <div>
-                                <label className="block text-xs font-medium text-slate-700 mb-1">Billing Phone</label>
-                                <div className="relative">
-                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <PhoneIcon className="h-4 w-4 text-slate-400" />
-                                    </div>
-                                    <input type="tel" name="billing_phone" value={formData.billing_phone} onChange={handleChange} className="block w-full rounded-lg border-slate-200 pl-9 text-sm focus:border-orange-500 focus:ring-orange-500" />
-                                </div>
-                            </div>
+                <SubtleCard className="p-4">
+                    <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+                        <div className="md:col-span-2">
+                            <label className="mb-1 block text-xs font-medium text-muted-foreground">Billing email</label>
+                            <Input value={form.billing_email} onChange={set("billing_email")} placeholder="accounts@company.com" />
+                        </div>
+
+                        <div>
+                            <label className="mb-1 block text-xs font-medium text-muted-foreground">Billing phone</label>
+                            <Input value={form.billing_phone} onChange={set("billing_phone")} placeholder="+27 ..." />
+                        </div>
+
+                        <div>
+                            <label className="mb-1 block text-xs font-medium text-muted-foreground">Tax ID</label>
+                            <Input value={form.tax_id} onChange={set("tax_id")} placeholder="VAT / Tax number" />
+                        </div>
+
+                        <div>
+                            <label className="mb-1 block text-xs font-medium text-muted-foreground">Preferred currency</label>
+                            <Select value={form.preferred_currency} onChange={set("preferred_currency")}>
+                                {currencyOptions.map((v) => (
+                                    <option key={v} value={v}>
+                                        {v}
+                                    </option>
+                                ))}
+                            </Select>
+                        </div>
+
+                        <div>
+                            <label className="mb-1 block text-xs font-medium text-muted-foreground">Payment terms (days)</label>
+                            <Input type="number" min={0} value={form.payment_terms} onChange={set("payment_terms")} />
+                        </div>
+
+                        <div>
+                            <label className="mb-1 block text-xs font-medium text-muted-foreground">Credit limit</label>
+                            <Input type="number" min={0} value={form.credit_limit} onChange={set("credit_limit")} placeholder="Optional" />
+                        </div>
+
+                        <div>
+                            <label className="mb-1 block text-xs font-medium text-muted-foreground">Loyalty tier</label>
+                            <Select value={form.loyalty_tier} onChange={set("loyalty_tier")}>
+                                {tierOptions.map((v) => (
+                                    <option key={v} value={v}>
+                                        {toTitle(String(v))}
+                                    </option>
+                                ))}
+                            </Select>
+                        </div>
+
+                        <div className="md:col-span-3">
+                            <label className="mb-1 block text-xs font-medium text-muted-foreground">Notes</label>
+                            <Textarea value={form.notes} onChange={set("notes")} rows={3} placeholder="Internal notes..." />
                         </div>
                     </div>
-
-                    {/* Financial Terms */}
-                    <div className="space-y-4">
-                        <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
-                            <CreditCardIcon className="w-4 h-4" />
-                            Financial Terms
-                        </h3>
-                        <div className="bg-slate-50 rounded-xl p-5 border border-slate-200 grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div>
-                                <label className="block text-xs font-medium text-slate-700 mb-1">Default Currency</label>
-                                <select name="preferred_currency" value={formData.preferred_currency} onChange={handleChange} className="block w-full rounded-lg border-slate-200 text-sm focus:border-orange-500 focus:ring-orange-500 bg-white">
-                                    {Object.values(Currency).map(c => <option key={c} value={c}>{c}</option>)}
-                                </select>
-                            </div>
-                            <div>
-                                <label className="block text-xs font-medium text-slate-700 mb-1">Payment Terms (Days)</label>
-                                <select name="payment_terms" value={formData.payment_terms} onChange={handleChange} className="block w-full rounded-lg border-slate-200 text-sm focus:border-orange-500 focus:ring-orange-500 bg-white">
-                                    <option value="0">Immediate</option>
-                                    <option value="15">Net 15</option>
-                                    <option value="30">Net 30</option>
-                                    <option value="60">Net 60</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label className="block text-xs font-medium text-slate-700 mb-1">Loyalty Tier</label>
-                                <select name="loyalty_tier" value={formData.loyalty_tier} onChange={handleChange} className="block w-full rounded-lg border-slate-200 text-sm focus:border-orange-500 focus:ring-orange-500 capitalize bg-white">
-                                    {Object.values(LoyaltyTier).map(t => <option key={t} value={t}>{t}</option>)}
-                                </select>
-                            </div>
-                            <div className="md:col-span-3">
-                                <label className="block text-xs font-medium text-slate-700 mb-1">Notes</label>
-                                <textarea name="notes" value={formData.notes} onChange={handleChange} rows={2} className="block w-full rounded-lg border-slate-200 text-sm focus:border-orange-500 focus:ring-orange-500 resize-none" placeholder="Internal notes about this account..."></textarea>
-                            </div>
-                        </div>
-                    </div>
-
-                    {error && <div className="bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-lg text-sm text-center font-medium">{error}</div>}
-                </main>
-                
-                <footer className="px-6 py-4 border-t border-slate-100 bg-slate-50/50 rounded-b-2xl flex justify-end gap-3 flex-shrink-0">
-                    <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg border border-slate-200 bg-white text-slate-700 text-sm font-medium hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-200 transition-colors">Cancel</button>
-                    <button type="submit" className="px-6 py-2 rounded-lg bg-orange-500 text-white text-sm font-semibold hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 shadow-sm shadow-orange-200 transition-all">Add Customer</button>
-                </footer>
+                </SubtleCard>
             </form>
-        </div>
-    </div>
+        </ModalShell>
     );
 };
 

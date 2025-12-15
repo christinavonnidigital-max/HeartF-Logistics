@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { Driver, User, DriverAssignment, EmploymentStatus } from '../types';
-import { PlusIcon, SearchIcon, IllustrationTruckIcon } from './icons/Icons';
+import { PlusIcon, SearchIcon, IllustrationTruckIcon } from './icons';
 import EmptyState from './EmptyState';
 import AddDriverModal from './AddDriverModal';
 import DriverDetails from './DriverDetails';
@@ -16,8 +16,12 @@ interface DriversPageProps {
 }
 
 const DriversPage: React.FC<DriversPageProps> = ({ data }) => {
-  // Use drivers directly from props - don't copy to local state
-  const drivers = data.drivers;
+  // Keep a local copy of drivers so we can update it locally (and sync from props)
+  const [drivers, setDrivers] = useState<Driver[]>(data.drivers);
+
+  useEffect(() => {
+    setDrivers(data.drivers);
+  }, [data.drivers]);
   const [selectedDriver, setSelectedDriver] = useState<(Driver & { user?: User }) | null>(null);
   const [isAddDriverModalOpen, setIsAddDriverModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -91,7 +95,7 @@ const DriversPage: React.FC<DriversPageProps> = ({ data }) => {
               subtitle="Manage driver profiles and compliance"
               actions={
                 <button
-                  className="p-2 rounded-lg bg-orange-500 text-white hover:bg-orange-600 transition flex-shrink-0"
+                  className="p-2 rounded-lg bg-orange-500 text-white hover:bg-orange-600 transition shrink-0"
                   onClick={() => setIsAddDriverModalOpen(true)}
                   aria-label="Add new driver"
                 >
@@ -100,7 +104,7 @@ const DriversPage: React.FC<DriversPageProps> = ({ data }) => {
               }
             />
             <div className="mt-2 flex flex-col sm:flex-row gap-2">
-              <div className="relative flex-grow">
+              <div className="relative grow">
                 <input
                   type="text"
                   placeholder="Filter by name..."
@@ -112,16 +116,20 @@ const DriversPage: React.FC<DriversPageProps> = ({ data }) => {
                   <SearchIcon className="w-4 h-4 text-slate-400" />
                 </div>
               </div>
-               <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value as EmploymentStatus | 'all')}
-                  className="rounded-xl border border-slate-200 bg-white text-slate-900 pl-3 pr-8 py-2 text-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500"
-                >
+               <div>
+                 <label htmlFor="driverStatusFilter" className="sr-only">Driver status filter</label>
+                 <select
+                   id="driverStatusFilter"
+                   value={statusFilter}
+                   onChange={(e) => setStatusFilter(e.target.value as EmploymentStatus | 'all')}
+                   className="rounded-xl border border-slate-200 bg-white text-slate-900 pl-3 pr-8 py-2 text-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500"
+                 >
                   <option value="all">All Statuses</option>
                   {Object.values(EmploymentStatus).map(status => (
                     <option key={status} value={status} className="capitalize">{status.replace(/_/g, ' ')}</option>
                   ))}
-                </select>
+                 </select>
+               </div>
             </div>
           <div className="mt-3 -mx-2 px-2 flex-1 space-y-1 overflow-y-auto">
             {filteredDrivers.length > 0 ? (

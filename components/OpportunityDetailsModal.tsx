@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Opportunity, Lead, User, OpportunityStage } from '../types';
-import { CloseIcon, BriefcaseIcon, UserCircleIcon, InfoIcon, DocumentTextIcon, PhoneIcon, EnvelopeIcon, CalendarDaysIcon, ClockIcon, CurrencyDollarIcon } from './icons/Icons';
+import { CloseIcon, BriefcaseIcon, UserCircleIcon, InfoIcon, DocumentTextIcon, PhoneIcon, EnvelopeIcon, CalendarDaysIcon, ClockIcon, CurrencyDollarIcon } from './icons';
 
 interface OpportunityDetailsModalProps {
   opportunity: Opportunity;
@@ -23,7 +23,7 @@ const DetailSection: React.FC<{ title: string; icon: React.ReactNode; children: 
 const DetailItem: React.FC<{ label: string; value?: React.ReactNode; className?: string }> = ({ label, value, className }) => (
   <div className={`grid grid-cols-3 gap-2 py-1.5 ${className}`}>
     <span className="text-gray-500 col-span-1">{label}</span>
-    <span className="text-gray-900 col-span-2 break-words">{value || 'N/A'}</span>
+    <span className="text-gray-900 col-span-2 wrap-break-word">{value || 'N/A'}</span>
   </div>
 );
 
@@ -63,19 +63,19 @@ const OpportunityDetailsModal: React.FC<OpportunityDetailsModalProps> = ({ oppor
 
   return (
     <div
-      className="fixed inset-0 bg-black bg-opacity-60 z-[60] flex justify-center items-center p-4 animate-in fade-in duration-200"
+      className="fixed inset-0 bg-black bg-opacity-60 z-60 flex justify-center items-center p-4 animate-in fade-in duration-200"
       onClick={onClose}
     >
       <div
         className="bg-white shadow-2xl w-full max-w-2xl max-h-[90vh] rounded-2xl flex flex-col overflow-hidden border border-slate-200"
         onClick={(e) => e.stopPropagation()}
       >
-        <header className="flex justify-between items-center p-4 border-b border-gray-200 flex-shrink-0 bg-slate-50/50">
+        <header className="flex justify-between items-center p-4 border-b border-gray-200 shrink-0 bg-slate-50/50">
           <div>
             <h2 className="text-xl font-bold text-gray-900">{opportunity.opportunity_name}</h2>
             <div className="mt-1">{getStagePill(opportunity.stage)}</div>
           </div>
-          <button onClick={onClose} className="p-1 rounded-full hover:bg-gray-200">
+            <button onClick={onClose} aria-label="Close" title="Close" className="p-1 rounded-full hover:bg-gray-200">
             <CloseIcon className="w-6 h-6 text-gray-600" />
           </button>
         </header>

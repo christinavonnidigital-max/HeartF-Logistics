@@ -1,6 +1,6 @@
 import React from 'react';
 import { LeadScoringRule } from '../types';
-import { PlusIcon } from './icons/Icons';
+import { PlusIcon } from './icons';
 import { ShellCard, SectionHeader } from './UiKit';
 
 interface LeadScoringRulesProps {

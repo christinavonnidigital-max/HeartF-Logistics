@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import * as Papa from 'papaparse';
 import readXlsxFile from 'read-excel-file';
 import { Lead } from '../types';
-import { CloseIcon, UploadIcon } from './icons/Icons';
+import { CloseIcon, UploadIcon } from './icons';
 
 interface ImportLeadsModalProps {
   onClose: () => void;
@@ -219,7 +219,7 @@ const ImportLeadsModal: React.FC<ImportLeadsModalProps> = ({ onClose, onImport }
     }
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-[60] flex justify-center items-center p-4" onClick={onClose}>
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-60 flex justify-center items-center p-4" onClick={onClose}>
             <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl flex flex-col max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
                 <header className="flex justify-between items-center p-4 border-b">
                     <h2 className="text-xl font-bold">Import Leads</h2>

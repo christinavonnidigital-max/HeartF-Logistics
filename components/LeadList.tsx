@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { Lead } from '../types';
-import { PlusIcon, UploadIcon, TrashIcon, SearchIcon } from './icons/Icons';
+import { PlusIcon, UploadIcon, TrashIcon, SearchIcon } from './icons';
 import { ShellCard, SectionHeader, StatusPill } from './UiKit';
 import ConfirmModal from './ConfirmModal';
 

@@ -1,7 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { EmailSequence, SendCondition } from '../../types';
-import { CloseIcon } from '../icons/Icons';
+import { EnvelopeIcon, CloseIcon } from '../icons/Icons';
+import { Button, Input, ModalShell, Select, Textarea } from '../UiKit';
 
 interface EmailComposerProps {
   isOpen: boolean;
@@ -53,77 +54,73 @@ const EmailComposer: React.FC<EmailComposerProps> = ({ isOpen, onClose, onSave, 
     if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-60 z-[60] flex justify-center items-center p-4">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl flex flex-col max-h-[90vh]">
-        <header className="flex justify-between items-center p-4 border-b">
-          <h2 className="text-xl font-bold">{initialData ? 'Edit Email Step' : 'Add New Email Step'}</h2>
-          <button onClick={onClose} className="p-1 rounded-full hover:bg-gray-200">
-            <CloseIcon className="w-6 h-6 text-gray-600" />
-          </button>
-        </header>
-
-        <main className="p-6 flex-1 overflow-y-auto grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="md:col-span-2 space-y-4">
+    <ModalShell
+      isOpen={isOpen}
+      onClose={onClose}
+      title={initialData ? 'Edit email step' : 'Add email step'}
+      description="Write the email and choose when it should send."
+      icon={<EnvelopeIcon className="h-5 w-5 text-brand-600" />}
+      maxWidthClass="max-w-3xl"
+      footer={
+        <>
+          <Button variant="ghost" onClick={onClose}>Cancel</Button>
+          <Button variant="primary" onClick={handleSave}>{initialData ? 'Save Changes' : 'Add Step'}</Button>
+        </>
+      }
+    >
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="md:col-span-2 space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-foreground">Subject</label>
+            <div className="mt-2">
+              <Input value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="Quick question about your logistics ops" />
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-foreground">Email body</label>
+            <div className="mt-2">
+              <Textarea rows={10} value={body} onChange={(e) => setBody(e.target.value)} placeholder={`Hi {{firstName}},\n\n...`} />
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label htmlFor="subject" className="block text-sm font-medium text-gray-700">Subject</label>
-              <input
-                type="text"
-                id="subject"
-                value={subject}
-                onChange={(e) => setSubject(e.target.value)}
-                className="mt-1 block w-full rounded-md border border-gray-300 bg-white text-gray-900 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm"
-                placeholder="Your email subject line"
-              />
+              <label className="block text-sm font-medium text-foreground">Delay (days)</label>
+              <div className="mt-2">
+                <Input type="number" min={0} value={delayDays} onChange={(e) => setDelayDays(Number(e.target.value))} />
+              </div>
             </div>
             <div>
-              <label htmlFor="body" className="block text-sm font-medium text-gray-700">Email Body</label>
-              <textarea
-                id="body"
-                value={body}
-                onChange={(e) => setBody(e.target.value)}
-                rows={12}
-                className="mt-1 block w-full rounded-md border border-gray-300 bg-white text-gray-900 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm"
-                placeholder="Write your email here. Use variables for personalization."
-              />
-            </div>
-            <div>
-              <label htmlFor="delay" className="block text-sm font-medium text-gray-700">Delay</label>
-              <div className="mt-1 flex items-center space-x-2 flex-wrap gap-y-2">
-                <span>Wait</span>
-                <input
-                  type="number"
-                  id="delay"
-                  value={delayDays}
-                  onChange={(e) => setDelayDays(parseInt(e.target.value, 10) || 0)}
-                  className="w-24 max-w-full rounded-md border border-gray-300 bg-white text-gray-900 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm"
-                />
-                <span>days before sending this email.</span>
+              <label className="block text-sm font-medium text-foreground">Send condition</label>
+              <div className="mt-2">
+                <Select value={SendCondition.ALWAYS} onChange={() => {}}>
+                  <option value={SendCondition.ALWAYS as any}>Always send</option>
+                  <option value={SendCondition.IF_NOT_OPENED as any}>Only if no reply</option>
+                </Select>
               </div>
             </div>
           </div>
-          <div className="col-span-1 bg-gray-50 p-4 rounded-lg border">
-              <h4 className="font-semibold text-sm mb-2">Personalization Variables</h4>
-              <ul className="space-y-2">
-                  {personalizationVariables.map(v => (
-                      <li key={v.variable} className="text-xs">
-                          <code className="bg-gray-200 p-1 rounded font-mono text-gray-800">{v.variable}</code>
-                          <p className="text-gray-500">{v.description}</p>
-                      </li>
-                  ))}
-              </ul>
+        </div>
+        <div className="md:col-span-1">
+          <div className="rounded-2xl border border-border bg-muted p-4">
+            <div className="text-sm font-semibold">Personalization</div>
+            <p className="mt-1 text-sm text-foreground-muted">Click to insert into the email body.</p>
+            <div className="mt-4 space-y-2">
+              {personalizationVariables.map((v) => (
+                <button
+                  key={v.variable}
+                  type="button"
+                  onClick={() => setBody((prev) => `${prev}${prev && !prev.endsWith(' ') ? ' ' : ''}${v.variable} `)}
+                  className="w-full text-left rounded-xl border border-border bg-card px-3 py-2 hover:bg-muted transition"
+                >
+                  <div className="text-sm font-medium text-foreground">{v.variable}</div>
+                  <div className="text-xs text-foreground-muted">{v.description}</div>
+                </button>
+              ))}
+            </div>
           </div>
-        </main>
-
-        <footer className="p-4 bg-gray-50 border-t flex justify-end space-x-3">
-          <button onClick={onClose} className="bg-white py-2 px-4 border border-gray-300 rounded-md text-sm font-medium hover:bg-gray-50">
-            Cancel
-          </button>
-          <button onClick={handleSave} className="bg-orange-600 text-white py-2 px-4 rounded-md text-sm font-medium hover:bg-orange-700">
-            {initialData ? 'Save Changes' : 'Add Step'}
-          </button>
-        </footer>
+        </div>
       </div>
-    </div>
+    </ModalShell>
   );
 };
 

@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { Customer, LoyaltyTier } from '../types';
-import { SearchIcon, UsersIcon, EnvelopeIcon, MapPinIcon, TrashIcon, PlusIcon, CurrencyDollarIcon } from './icons/Icons';
+import { SearchIcon, UsersIcon, EnvelopeIcon, MapPinIcon, TrashIcon, PlusIcon, CurrencyDollarIcon } from './icons';
 import { ShellCard, SectionHeader, StatusPill } from './UiKit';
 import EmptyState from './EmptyState';
 import { useData } from '../contexts/DataContext';
@@ -33,8 +33,12 @@ const CustomersPage: React.FC = () => {
     const [customerToDelete, setCustomerToDelete] = useState<number | null>(null);
     const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
 
-    // Use customers directly from context - don't copy to local state
-    const localCustomers = customers;
+    // Keep a local copy for immediate UI updates (sync from context when it changes)
+    const [localCustomers, setLocalCustomers] = useState<Customer[]>(customers);
+
+    useEffect(() => {
+        setLocalCustomers(customers);
+    }, [customers]);
 
     // Set selected customer when customers load
     useEffect(() => {
@@ -125,7 +129,7 @@ const CustomersPage: React.FC = () => {
                 <p className="text-xs text-slate-500">Manage accounts and key relationships</p>
             </div>
             <div className="flex w-full sm:w-auto gap-3">
-                <div className="relative flex-grow sm:flex-grow-0 sm:w-64">
+                <div className="relative grow sm:grow-0 sm:w-64">
                     <SearchIcon className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
                     <input
                         type="text"

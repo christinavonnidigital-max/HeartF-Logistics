@@ -3,7 +3,8 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { mockRoutes } from '../data/mockRoutesData';
 import { Route, RouteType, RoadConditions } from '../types';
 import RouteDetails from './RouteDetails';
-import { PlusIcon, IllustrationMapIcon } from './icons/Icons';
+import { PlusIcon } from './icons';
+import { IllustrationMapIcon } from './icons';
 import EmptyState from './EmptyState';
 import AddRouteModal from './AddRouteModal';
 import { ShellCard, SectionHeader, StatusPill } from "./UiKit";
@@ -63,7 +64,7 @@ const RoutesDashboard: React.FC = () => {
             subtitle="Saved lanes and typical conditions"
             actions={
               <button
-                className="p-2 rounded-lg bg-orange-500 text-white hover:bg-orange-600 transition flex-shrink-0"
+                className="p-2 rounded-lg bg-orange-500 text-white hover:bg-orange-600 transition shrink-0"
                 onClick={() => setIsAddModalOpen(true)}
                 aria-label="Add new route"
               >
@@ -73,7 +74,8 @@ const RoutesDashboard: React.FC = () => {
           />
 
           <div className="mt-2 flex flex-col sm:flex-row gap-2">
-                 <select
+                  <select
+                    aria-label="Filter routes by type"
                     value={routeTypeFilter}
                     onChange={(e) => setRouteTypeFilter(e.target.value as RouteType | 'all')}
                     className="w-full rounded-xl border border-slate-200 bg-white text-gray-900 pl-3 pr-10 py-2 text-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500"
@@ -84,6 +86,7 @@ const RoutesDashboard: React.FC = () => {
                     ))}
                 </select>
                 <select
+                  aria-label="Filter routes by condition"
                     value={roadConditionFilter}
                     onChange={(e) => setRoadConditionFilter(e.target.value as RoadConditions | 'all')}
                     className="w-full rounded-xl border border-slate-200 bg-white text-gray-900 pl-3 pr-10 py-2 text-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500"

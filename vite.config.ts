@@ -9,7 +9,8 @@ export default defineConfig(({ mode }) => {
     return {
       server: {
         // Bind dev server to a fixed port so the app is reachable where expected
-        port: 4001,
+        // Port changed to 4002 to avoid conflicts on common developer machines
+        port: 4002,
         strictPort: true,
         host: '0.0.0.0',
       },

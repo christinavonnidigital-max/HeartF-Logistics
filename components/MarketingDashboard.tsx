@@ -1,7 +1,8 @@
 
 import React, { useMemo } from 'react';
 import { ShellCard, SectionHeader, StatusPill } from './UiKit';
-import { CampaignIcon, EnvelopeIcon, MapPinIcon, SparklesIcon, PlayIcon, PauseIcon } from './icons/Icons';
+import { CampaignIcon, EnvelopeIcon, MapPinIcon, PlayIcon, PauseIcon } from './icons';
+import { SparklesIcon } from './icons';
 import { mockCampaigns } from '../data/mockMarketingData';
 import { Campaign, CampaignStatus } from '../types';
 import { 

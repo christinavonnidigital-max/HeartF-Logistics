@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Expense } from '../types';
-import { PlusIcon, DocumentDuplicateIcon } from './icons/Icons';
+import { PlusIcon, DocumentDuplicateIcon } from './icons';
 import { ShellCard, SectionHeader } from './UiKit';
 
 
@@ -18,7 +18,7 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onAddExpenseClick }
         subtitle="All operational costs"
         actions={
            <button 
-            className="p-2 rounded-lg bg-orange-500 text-white hover:bg-orange-600 transition flex-shrink-0"
+            className="p-2 rounded-lg bg-orange-500 text-white hover:bg-orange-600 transition shrink-0"
             onClick={onAddExpenseClick}
             aria-label="Add new expense"
           >
@@ -47,8 +47,8 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onAddExpenseClick }
                 <td className="px-3 py-3 text-slate-600">{new Date(expense.expense_date + 'T00:00:00').toLocaleDateString()}</td>
                 <td className="px-3 py-3 text-slate-800 font-medium text-right">{new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD' }).format(expense.amount_in_base_currency)}</td>
                 <td className="px-3 py-3 text-center">
-                  {expense.receipt_url ? (
-                    <a href={expense.receipt_url} target="_blank" rel="noopener noreferrer" className="text-orange-500 hover:text-orange-700 inline-block">
+                    {expense.receipt_url ? (
+                    <a href={expense.receipt_url} target="_blank" rel="noopener noreferrer" className="text-orange-500 hover:text-orange-700 inline-block" aria-label="View receipt">
                       <DocumentDuplicateIcon className="w-5 h-5" />
                     </a>
                   ) : (

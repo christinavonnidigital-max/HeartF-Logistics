@@ -1,8 +1,9 @@
 
-import React, { useState, useEffect } from 'react';
-import { Invoice, InvoiceType, InvoiceStatus, Currency, Booking } from '../types';
-import { CloseIcon, CalendarDaysIcon, UserCircleIcon, DocumentTextIcon, BanknotesIcon, CalculatorIcon } from './icons/Icons';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Booking, Currency, Invoice, InvoiceStatus, InvoiceType } from '../types';
 import { mockCustomers } from '../data/mockCrmData';
+import { DocumentTextIcon, CurrencyDollarIcon, CalendarDaysIcon, UserCircleIcon, BanknotesIcon, CalculatorIcon } from './icons';
+import { ModalShell, Button, Input, Select, SubtleCard, SectionHeader, Label } from './UiKit';
 
 interface AddInvoiceModalProps {
   onClose: () => void;
@@ -12,9 +13,9 @@ interface AddInvoiceModalProps {
 
 const AddInvoiceModal: React.FC<AddInvoiceModalProps> = ({ onClose, onAddInvoice, booking }) => {
   const [formData, setFormData] = useState({
-    invoice_number: `INV-${new Date().getFullYear()}-${Math.floor(Math.random() * 10000)}`,
-    customer_id: '',
-    booking_id: undefined as number | undefined,
+    invoice_number: `INV-${Date.now().toString().slice(-6)}`,
+    customer_id: '101',
+    booking_id: booking?.id ? String(booking.id) : '',
     invoice_type: InvoiceType.BOOKING,
     issue_date: new Date().toISOString().split('T')[0],
     due_date: new Date(new Date().setDate(new Date().getDate() + 30)).toISOString().split('T')[0],
@@ -28,27 +29,24 @@ const AddInvoiceModal: React.FC<AddInvoiceModalProps> = ({ onClose, onAddInvoice
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (booking) {
-      const subtotal = (booking.total_price - (booking.surcharges || 0) + (booking.discount || 0));
-      const taxRate = 0.15; // Assuming 15% tax for calculation
-      const calculatedTax = subtotal * taxRate;
-      const calculatedTotal = subtotal + calculatedTax + (booking.surcharges || 0) - (booking.discount || 0);
+    if (!booking) return;
 
-      setFormData({
-        invoice_number: `INV-B${booking.id}-${new Date().getFullYear()}`,
-        customer_id: String(booking.customer_id),
-        booking_id: booking.id,
-        invoice_type: InvoiceType.BOOKING,
-        issue_date: new Date().toISOString().split('T')[0],
-        due_date: new Date(new Date().setDate(new Date().getDate() + 30)).toISOString().split('T')[0],
-        subtotal: subtotal.toFixed(2),
-        tax_amount: calculatedTax.toFixed(2),
-        discount_amount: booking.discount || 0,
-        total_amount: calculatedTotal.toFixed(2),
-        currency: booking.currency,
-        status: InvoiceStatus.DRAFT,
-      });
-    }
+    const subtotal = booking.total_price - (booking.surcharges || 0) + (booking.discount || 0);
+    const taxRate = 0.15;
+    const calculatedTax = subtotal * taxRate;
+    const calculatedTotal = subtotal + calculatedTax + (booking.surcharges || 0) - (booking.discount || 0);
+
+    setFormData((prev) => ({
+      ...prev,
+      invoice_number: `INV-B${booking.id}-${new Date().getFullYear()}`,
+      customer_id: String(booking.customer_id),
+      booking_id: String(booking.id),
+      invoice_type: InvoiceType.BOOKING,
+      subtotal: subtotal.toFixed(2),
+      tax_amount: calculatedTax.toFixed(2),
+      total_amount: calculatedTotal.toFixed(2),
+      currency: booking.currency,
+    }));
   }, [booking]);
 
 
@@ -76,154 +74,115 @@ const AddInvoiceModal: React.FC<AddInvoiceModalProps> = ({ onClose, onAddInvoice
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex justify-center md:pl-64 items-center p-4 animate-in fade-in duration-200" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl flex flex-col max-h-[90vh] border border-slate-200 overflow-hidden animate-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
-        <header className="flex justify-between items-center px-6 py-4 border-b border-slate-100 bg-slate-50/50 rounded-t-2xl flex-shrink-0">
-          <div>
-            <h2 className="text-lg font-bold text-slate-900">Draft New Invoice</h2>
-            <p className="text-xs text-slate-500 mt-0.5">Create a financial record for a client</p>
+    <ModalShell
+      isOpen={true}
+      onClose={onClose}
+      title={booking ? `Create invoice for ${booking.booking_number}` : 'Create invoice'}
+      description="Generate an invoice for a booking or customer. Required fields are marked with *."
+      icon={<DocumentTextIcon className="w-4 h-4" />}
+      maxWidthClass="max-w-2xl"
+      footer={
+        <div className="flex items-center justify-between gap-3">
+          <div className="text-xs text-foreground/60">
+            {error ? <span className="text-rose-400">{error}</span> : <span>Tip: Draft invoices can be finalized later.</span>}
           </div>
-          <button onClick={onClose} className="p-2 rounded-full hover:bg-slate-200/60 text-slate-500 transition-colors">
-            <CloseIcon className="w-5 h-5" />
-          </button>
-        </header>
-        
-        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto custom-scrollbar">
-          <main className="p-6 space-y-8">
-            
-            {/* Invoice Meta */}
-            <div className="space-y-4">
-                <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
-                    <DocumentTextIcon className="w-4 h-4" />
-                    Invoice Details
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="bg-slate-50 rounded-lg border border-slate-200 p-3">
-                        <label className="block text-xs font-medium text-slate-500 mb-1">Invoice Number</label>
-                        <input 
-                            type="text" 
-                            value={formData.invoice_number} 
-                            disabled 
-                            className="block w-full bg-transparent border-none p-0 text-sm font-bold text-slate-700 focus:ring-0" 
-                        />
-                    </div>
-                    <div></div> {/* Spacer */}
-                    
-                    <div>
-                        <label className="block text-xs font-medium text-slate-700 mb-1 flex items-center gap-1"><CalendarDaysIcon className="w-3 h-3"/> Issue Date</label>
-                        <input 
-                            type="date" 
-                            name="issue_date" 
-                            value={formData.issue_date} 
-                            onChange={handleChange} 
-                            className="block w-full rounded-lg border-slate-200 text-sm focus:border-orange-500 focus:ring-orange-500 text-slate-600" 
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-xs font-medium text-slate-700 mb-1 flex items-center gap-1"><CalendarDaysIcon className="w-3 h-3"/> Due Date</label>
-                        <input 
-                            type="date" 
-                            name="due_date" 
-                            value={formData.due_date} 
-                            onChange={handleChange} 
-                            className="block w-full rounded-lg border-slate-200 text-sm focus:border-orange-500 focus:ring-orange-500 text-slate-600" 
-                        />
-                    </div>
-                </div>
+          <div className="flex gap-2">
+              <Button variant="secondary" type="button" onClick={onClose}>Cancel</Button>
+              <Button variant="primary" type="submit" form="add-invoice-form">Create invoice</Button>
+          </div>
+        </div>
+      }
+    >
+      <form id="add-invoice-form" onSubmit={handleSubmit} className="space-y-6">
+        <main className="p-6 space-y-8">
+          <SectionHeader title="Invoice Details" actions={<DocumentTextIcon className="w-4 h-4" />} />
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="bg-card rounded-lg border border-border p-3">
+                <Label>Invoice Number</Label>
+                <Input type="text" value={formData.invoice_number} disabled className="bg-transparent border-none p-0 text-sm font-bold text-foreground focus:ring-0" />
+              </div>
+              <div></div> {/* Spacer */}
+
+              <div>
+                <Label className="flex items-center gap-1"><CalendarDaysIcon className="w-3 h-3"/> Issue Date</Label>
+                <Input type="date" name="issue_date" value={formData.issue_date} onChange={handleChange} />
+              </div>
+              <div>
+                <Label className="flex items-center gap-1"><CalendarDaysIcon className="w-3 h-3"/> Due Date</Label>
+                <Input type="date" name="due_date" value={formData.due_date} onChange={handleChange} />
+              </div>
             </div>
+          <hr className="border-border" />
+          {/* Bill To */}
+          <SectionHeader title="Bill To" actions={<UserCircleIcon className="w-4 h-4" />} />
+          <div className="space-y-4">
+            <div>
+              <Label>Customer*</Label>
+              <Select name="customer_id" value={formData.customer_id} onChange={handleChange} disabled={!!booking}>
+                <option value="">Select a Customer</option>
+                {mockCustomers.map(c => (
+                  <option key={c.id} value={c.id}>{c.company_name}</option>
+                ))}
+              </Select>
+            </div>
+          </div>
+          <hr className="border-border" />
+          {/* Financials */}
+          <SectionHeader title="Payment Details" actions={<BanknotesIcon className="w-4 h-4" />} />
 
-            <hr className="border-slate-100" />
-
-            {/* Bill To */}
-            <div className="space-y-4">
-                <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
-                    <UserCircleIcon className="w-4 h-4" />
-                    Bill To
-                </h3>
+            <div className="bg-card rounded-xl border border-border p-4 space-y-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                    <label className="block text-xs font-medium text-slate-700 mb-1">Customer*</label>
-                    <select 
-                        name="customer_id" 
-                        value={formData.customer_id} 
-                        onChange={handleChange} 
-                        disabled={!!booking}
-                        className={`block w-full rounded-lg border-slate-200 text-sm focus:border-orange-500 focus:ring-orange-500 ${!!booking ? 'bg-slate-50 text-slate-500' : 'bg-white'}`}
-                    >
-                        <option value="">Select a Customer</option>
-                        {mockCustomers.map(c => (
-                            <option key={c.id} value={c.id}>{c.company_name}</option>
-                        ))}
-                    </select>
+                  <Label>Subtotal</Label>
+                  <Input type="number" name="subtotal" placeholder="0.00" value={formData.subtotal} onChange={handleChange} className="text-right" />
                 </div>
+                <div>
+                  <Label>Tax Amount</Label>
+                  <Input type="number" name="tax_amount" placeholder="0.00" value={formData.tax_amount} onChange={handleChange} className="text-right" />
+                </div>
+                <div>
+                  <Label>Discount</Label>
+                  <Input type="number" name="discount_amount" placeholder="0.00" value={formData.discount_amount} onChange={handleChange} className="text-right" />
+                </div>
+                <div>
+                  <Label>Currency</Label>
+                  <Select name="currency" value={formData.currency} onChange={handleChange} disabled={!!booking}>
+                    {Object.values(Currency).map(c => <option key={c} value={c}>{c}</option>)}
+                  </Select>
+                </div>
+              </div>
+
+              <div className="pt-3 border-t border-border">
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-bold text-foreground flex items-center gap-2">
+                    <CalculatorIcon className="w-4 h-4 text-foreground-muted" />
+                    Total Amount*
+                  </label>
+                  <div className="relative w-1/2">
+                    <Input
+                      type="number"
+                      name="total_amount"
+                      placeholder="0.00"
+                      value={formData.total_amount}
+                      onChange={handleChange}
+                      readOnly={!!booking}
+                      className={`${!!booking ? 'bg-muted' : 'bg-card'} text-lg font-bold text-right`}
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
-
-            <hr className="border-slate-100" />
-
-            {/* Financials */}
-            <div className="space-y-4">
-                <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
-                    <BanknotesIcon className="w-4 h-4" />
-                    Payment Details
-                </h3>
-                
-                <div className="bg-slate-50 rounded-xl border border-slate-200 p-4 space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-xs font-medium text-slate-500 mb-1">Subtotal</label>
-                            <input type="number" name="subtotal" placeholder="0.00" value={formData.subtotal} onChange={handleChange} className="block w-full rounded-lg border-slate-200 text-sm focus:border-orange-500 focus:ring-orange-500 text-right" />
-                        </div>
-                        <div>
-                            <label className="block text-xs font-medium text-slate-500 mb-1">Tax Amount</label>
-                            <input type="number" name="tax_amount" placeholder="0.00" value={formData.tax_amount} onChange={handleChange} className="block w-full rounded-lg border-slate-200 text-sm focus:border-orange-500 focus:ring-orange-500 text-right" />
-                        </div>
-                         <div>
-                            <label className="block text-xs font-medium text-slate-500 mb-1">Discount</label>
-                            <input type="number" name="discount_amount" placeholder="0.00" value={formData.discount_amount} onChange={handleChange} className="block w-full rounded-lg border-slate-200 text-sm focus:border-orange-500 focus:ring-orange-500 text-right" />
-                        </div>
-                         <div>
-                            <label className="block text-xs font-medium text-slate-500 mb-1">Currency</label>
-                            <select name="currency" value={formData.currency} onChange={handleChange} disabled={!!booking} className="block w-full rounded-lg border-slate-200 text-sm focus:border-orange-500 focus:ring-orange-500 text-right">
-                                {Object.values(Currency).map(c => <option key={c} value={c}>{c}</option>)}
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <div className="pt-3 border-t border-slate-200">
-                        <div className="flex items-center justify-between">
-                            <label className="block text-sm font-bold text-slate-900 flex items-center gap-2">
-                                <CalculatorIcon className="w-4 h-4 text-orange-500" />
-                                Total Amount*
-                            </label>
-                            <div className="relative w-1/2">
-                                 <input 
-                                    type="number" 
-                                    name="total_amount" 
-                                    placeholder="0.00" 
-                                    value={formData.total_amount} 
-                                    onChange={handleChange} 
-                                    readOnly={!!booking}
-                                    className={`block w-full rounded-lg border-slate-200 text-lg font-bold text-slate-900 text-right focus:border-orange-500 focus:ring-orange-500 ${!!booking ? 'bg-slate-100' : 'bg-white'}`}
-                                />
-                            </div>
-                        </div>
-                    </div>
-                </div>
+          </div>
+          {error && (
+            <div className="bg-danger-600/10 border border-danger-600/20 text-danger-600 px-4 py-3 rounded-lg text-sm text-center">
+              {error}
             </div>
+          )}
+        </main>
 
-            {error && (
-                 <div className="bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-lg text-sm text-center">
-                    {error}
-                </div>
-            )}
-          </main>
-          
-          <footer className="px-6 py-4 border-t border-slate-100 bg-slate-50/50 rounded-b-2xl flex justify-end gap-3 flex-shrink-0">
-            <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg border border-slate-200 bg-white text-slate-700 text-sm font-medium hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-200 transition-colors">Cancel</button>
-            <button type="submit" className="px-6 py-2 rounded-lg bg-orange-500 text-white text-sm font-semibold hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 shadow-sm shadow-orange-200 transition-all">Generate Invoice</button>
-          </footer>
-        </form>
-      </div>
-    </div>
+      </form>
+    </ModalShell>
   );
 };
 export default AddInvoiceModal;

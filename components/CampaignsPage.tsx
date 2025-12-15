@@ -2,7 +2,8 @@
 import React, { useState, useMemo } from 'react';
 import { Campaign, CampaignStatus, CampaignType } from '../types';
 import { mockCampaigns } from '../data/mockMarketingData';
-import { PlusIcon, SearchIcon, PlayIcon, PauseIcon, DuplicateIcon, TrashIcon, EnvelopeIcon, SparklesIcon, TagIcon, DocumentTextIcon, CalendarDaysIcon, ArrowPathIcon } from './icons/Icons';
+import { PlusIcon, SearchIcon, PlayIcon, PauseIcon, DuplicateIcon, TrashIcon, EnvelopeIcon, TagIcon, DocumentTextIcon, CalendarDaysIcon, ArrowPathIcon } from './icons';
+import { SparklesIcon } from './icons';
 import { View } from '../App';
 import { ShellCard, SectionHeader, StatusPill } from './UiKit';
 import ConfirmModal from './ConfirmModal';
@@ -102,7 +103,7 @@ const CampaignsPage: React.FC<CampaignsPageProps> = ({ setActiveView }) => {
                 </div>
                 
                 <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-                    <div className="relative flex-grow sm:w-64">
+                    <div className="relative grow sm:w-64">
                         <input
                             type="text"
                             placeholder="Search campaigns..."
@@ -115,6 +116,7 @@ const CampaignsPage: React.FC<CampaignsPageProps> = ({ setActiveView }) => {
                         </div>
                     </div>
                     <select
+                        aria-label="Filter campaigns by status"
                         value={statusFilter}
                         onChange={e => setStatusFilter(e.target.value as CampaignStatus | 'all')}
                         className="rounded-xl border border-slate-200 bg-slate-50 text-slate-900 pl-3 pr-10 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:bg-white transition-all"
@@ -157,7 +159,7 @@ const CampaignsPage: React.FC<CampaignsPageProps> = ({ setActiveView }) => {
                             >
                                 <div className="flex flex-col md:flex-row justify-between items-start gap-4 mb-6">
                                     <div className="flex items-start gap-4">
-                                        <div className={`p-3 rounded-xl ${style.bg} ${style.text} border ${style.border} flex-shrink-0`}>
+                                        <div className={`p-3 rounded-xl ${style.bg} ${style.text} border ${style.border} shrink-0`}>
                                             {style.icon}
                                         </div>
                                         <div>

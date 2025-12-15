@@ -1,257 +1,237 @@
 
-import React, { useState } from 'react';
-import { Vehicle, VehicleType, VehicleStatus, FuelType } from '../types';
-import { CloseIcon, TruckIcon, FuelIcon, GaugeIcon, RoadIcon, CalendarDaysIcon, CurrencyDollarIcon } from './icons/Icons';
+import React, { useMemo, useState } from "react";
+import { FuelType, Vehicle, VehicleStatus, VehicleType } from "../types";
+import { Button, Input, ModalShell, Select, SubtleCard, Textarea } from "./UiKit_new";
+
+type NewVehicle = Omit<Vehicle, "id" | "created_at" | "updated_at">;
 
 interface AddVehicleModalProps {
   onClose: () => void;
-  onAddVehicle: (vehicle: Omit<Vehicle, 'id' | 'created_at' | 'updated_at'>) => void;
+  onAddVehicle: (vehicle: NewVehicle) => void;
 }
 
+const toTitle = (s: string) =>
+  s
+    .replaceAll("_", " ")
+    .replace(/\b\w/g, (m) => m.toUpperCase());
+
 const AddVehicleModal: React.FC<AddVehicleModalProps> = ({ onClose, onAddVehicle }) => {
-  // Pre-filled demo data
-  const [formData, setFormData] = useState({
-    registration_number: 'AFJ 9922',
-    make: 'Volvo',
-    model: 'FH Globetrotter',
-    year: 2023,
-    vehicle_type: VehicleType.REFRIGERATED,
-    capacity_tonnes: 40,
+  const [error, setError] = useState<string>("");
+
+  const [form, setForm] = useState({
+    registration_number: "HFL-TRK-101",
+    make: "Isuzu",
+    model: "FTR 850",
+    year: "2021",
+    vehicle_type: VehicleType.DRY,
+    capacity_tonnes: "8",
     status: VehicleStatus.ACTIVE,
-    purchase_date: '2023-02-15',
-    purchase_cost: 145000,
-    current_km: 45000,
-    next_service_due_km: 60000,
-    last_service_date: '2024-01-10',
+
+    purchase_date: "2022-02-01",
+    purchase_cost: "45000",
+    current_value: "",
+
+    last_service_date: "2025-09-15",
+    last_service_km: "",
+    next_service_due_km: "120000",
+    next_service_due_date: "",
+    current_km: "108500",
+
     fuel_type: FuelType.DIESEL,
+    gps_device_id: "",
+    gps_device_active: false,
+    notes: "",
   });
-  const [error, setError] = useState('');
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+  const vt = useMemo(() => Object.values(VehicleType), []);
+  const vs = useMemo(() => Object.values(VehicleStatus), []);
+  const ft = useMemo(() => Object.values(FuelType), []);
+
+  const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const v = e.target.type === "checkbox" ? (e.target as HTMLInputElement).checked : e.target.value;
+    setForm((p) => ({ ...p, [k]: v as any }));
   };
-  
-  const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: parseFloat(value) || 0 }));
-  }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.registration_number || !formData.make || !formData.model) {
-      setError('Please fill out Registration, Make, and Model.');
-      return;
-    }
-    setError('');
-    onAddVehicle(formData);
+    setError("");
+
+    if (!form.registration_number.trim()) return setError("Registration number is required.");
+    if (!form.make.trim()) return setError("Make is required.");
+    if (!form.model.trim()) return setError("Model is required.");
+    if (!form.year) return setError("Year is required.");
+    if (!form.purchase_date) return setError("Purchase date is required.");
+    if (!form.purchase_cost) return setError("Purchase cost is required.");
+    if (!form.last_service_date) return setError("Last service date is required.");
+    if (!form.next_service_due_km) return setError("Next service due km is required.");
+    if (!form.current_km) return setError("Current km is required.");
+
+    const payload: NewVehicle = {
+      registration_number: form.registration_number.trim(),
+      make: form.make.trim(),
+      model: form.model.trim(),
+      year: Number(form.year),
+      vehicle_type: form.vehicle_type,
+      capacity_tonnes: Number(form.capacity_tonnes),
+      status: form.status,
+
+      purchase_date: form.purchase_date,
+      purchase_cost: Number(form.purchase_cost),
+      current_value: form.current_value ? Number(form.current_value) : undefined,
+
+      insurance_provider: undefined,
+      insurance_policy_number: undefined,
+      insurance_expiry_date: undefined,
+      fitness_certificate_expiry: undefined,
+      license_disc_expiry: undefined,
+
+      last_service_date: form.last_service_date,
+      last_service_km: form.last_service_km ? Number(form.last_service_km) : undefined,
+      next_service_due_km: Number(form.next_service_due_km),
+      next_service_due_date: form.next_service_due_date || undefined,
+      current_km: Number(form.current_km),
+
+      fuel_type: form.fuel_type,
+      gps_device_id: form.gps_device_id.trim() || undefined,
+      gps_device_active: Boolean(form.gps_device_active),
+      notes: form.notes.trim() || undefined,
+    };
+
+    onAddVehicle(payload);
+    onClose();
   };
 
   return (
-    <div
-      className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex justify-center md:pl-64 items-center p-4 animate-in fade-in duration-200"
-      onClick={onClose}
+    <ModalShell
+      isOpen={true}
+      title="Add vehicle"
+      description="Register a vehicle and start tracking service and usage."
+      onClose={onClose}
+      maxWidthClass="max-w-3xl"
+      footer={
+        <div className="flex items-center justify-end gap-2">
+          <Button variant="secondary" type="button" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button variant="primary" type="submit" form="add-vehicle-form">
+            Save vehicle
+          </Button>
+        </div>
+      }
     >
-      <div
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl flex flex-col max-h-[90vh] border border-slate-200 overflow-hidden animate-in zoom-in-95 duration-200"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <header className="flex justify-between items-center px-6 py-4 border-b border-slate-100 bg-slate-50/50 rounded-t-2xl flex-shrink-0">
-          <div>
-            <h2 className="text-lg font-bold text-slate-900">Add New Vehicle</h2>
-            <p className="text-xs text-slate-500 mt-0.5">Register a new asset to the fleet</p>
+      <form id="add-vehicle-form" onSubmit={submit} className="space-y-4">
+        {error ? (
+          <div className="rounded-xl border border-danger-600/30 bg-danger-600/10 px-3 py-2 text-sm text-foreground">
+            {error}
           </div>
-          <button onClick={onClose} className="p-2 rounded-full hover:bg-slate-200/60 text-slate-500 transition-colors">
-            <CloseIcon className="w-5 h-5" />
-          </button>
-        </header>
-        
-        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto custom-scrollbar">
-          <main className="p-6 space-y-8">
-            
-            {/* Identity Section */}
-            <div className="space-y-4">
-              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
-                <TruckIcon className="w-4 h-4" />
-                Vehicle Identity
-              </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="sm:col-span-2">
-                    <label className="block text-xs font-medium text-slate-700 mb-1">Registration Number*</label>
-                    <input 
-                        type="text" 
-                        name="registration_number" 
-                        value={formData.registration_number} 
-                        onChange={handleChange} 
-                        placeholder="e.g. ABC-1234"
-                        className="block w-full rounded-lg border-slate-200 bg-slate-50 focus:bg-white text-sm focus:border-orange-500 focus:ring-orange-500 transition-colors font-mono" 
-                    />
-                </div>
-                <div>
-                    <label className="block text-xs font-medium text-slate-700 mb-1">Make*</label>
-                    <input 
-                        type="text" 
-                        name="make" 
-                        value={formData.make} 
-                        onChange={handleChange} 
-                        placeholder="e.g. Scania"
-                        className="block w-full rounded-lg border-slate-400 bg-slate-50 text-sm focus:border-orange-500 focus:ring-orange-500 transition-colors" 
-                    />
-                </div>
-                <div>
-                    <label className="block text-xs font-medium text-slate-700 mb-1">Model*</label>
-                    <input 
-                        type="text" 
-                        name="model" 
-                        value={formData.model} 
-                        onChange={handleChange} 
-                        placeholder="e.g. R450"
-                        className="block w-full rounded-lg border-slate-400 bg-slate-50 text-sm focus:border-orange-500 focus:ring-orange-500 transition-colors" 
-                    />
-                </div>
-                <div>
-                    <label className="block text-xs font-medium text-slate-700 mb-1">Year</label>
-                    <input 
-                        type="number" 
-                        name="year" 
-                        value={formData.year} 
-                        onChange={handleNumberChange} 
-                        className="block w-full rounded-lg border-slate-400 bg-slate-50 text-sm focus:border-orange-500 focus:ring-orange-500 transition-colors" 
-                    />
-                </div>
-                 <div>
-                    <label className="block text-xs font-medium text-slate-700 mb-1">Status</label>
-                    <select 
-                        name="status" 
-                        value={formData.status} 
-                        onChange={handleChange} 
-                        className="block w-full rounded-lg border-slate-400 bg-slate-50 text-sm focus:border-orange-500 focus:ring-orange-500 transition-colors capitalize"
-                    >
-                        {Object.values(VehicleStatus).map(s => (
-                            <option key={s} value={s}>{s.replace(/_/g, ' ')}</option>
-                        ))}
-                    </select>
-                </div>
-              </div>
+        ) : null}
+
+        <SubtleCard className="p-4">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Registration</label>
+              <Input value={form.registration_number} onChange={set("registration_number")} />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Make</label>
+              <Input value={form.make} onChange={set("make")} />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Model</label>
+              <Input value={form.model} onChange={set("model")} />
             </div>
 
-            {/* Specs Section Panel */}
-            <div className="space-y-3">
-              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
-                <GaugeIcon className="w-4 h-4" />
-                Technical Specs
-              </h3>
-              <div className="bg-slate-50 rounded-xl p-5 border border-slate-200 grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div>
-                    <label className="block text-xs font-medium text-slate-500 mb-1">Type</label>
-                    <select 
-                        name="vehicle_type" 
-                        value={formData.vehicle_type} 
-                        onChange={handleChange} 
-                        className="block w-full rounded-lg border-slate-200 text-sm focus:border-orange-500 focus:ring-orange-500 bg-white"
-                    >
-                        {Object.values(VehicleType).map(type => (
-                            <option key={type} value={type}>{type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</option>
-                        ))}
-                    </select>
-                </div>
-                <div>
-                    <label className="block text-xs font-medium text-slate-500 mb-1 flex items-center gap-1"><FuelIcon className="w-3 h-3"/> Fuel</label>
-                    <select 
-                        name="fuel_type" 
-                        value={formData.fuel_type} 
-                        onChange={handleChange} 
-                        className="block w-full rounded-lg border-slate-200 text-sm focus:border-orange-500 focus:ring-orange-500 bg-white"
-                    >
-                        {Object.values(FuelType).map(type => (
-                            <option key={type} value={type}>{type.charAt(0).toUpperCase() + type.slice(1)}</option>
-                        ))}
-                    </select>
-                </div>
-                <div>
-                    <label className="block text-xs font-medium text-slate-500 mb-1">Capacity (t)</label>
-                    <input 
-                        type="number" 
-                        name="capacity_tonnes" 
-                        value={formData.capacity_tonnes} 
-                        onChange={handleNumberChange} 
-                        className="block w-full rounded-lg border-slate-200 text-sm focus:border-orange-500 focus:ring-orange-500 bg-white" 
-                    />
-                </div>
-              </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Year</label>
+              <Input type="number" min={1900} value={form.year} onChange={set("year")} />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Vehicle type</label>
+              <Select value={form.vehicle_type} onChange={set("vehicle_type")}>
+                {vt.map((v) => (
+                  <option key={v} value={v}>
+                    {toTitle(String(v))}
+                  </option>
+                ))}
+              </Select>
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Status</label>
+              <Select value={form.status} onChange={set("status")}>
+                {vs.map((v) => (
+                  <option key={v} value={v}>
+                    {toTitle(String(v))}
+                  </option>
+                ))}
+              </Select>
             </div>
 
-            {/* History Section Panel */}
-            <div className="space-y-3">
-              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
-                <RoadIcon className="w-4 h-4" />
-                History & Financials
-              </h3>
-              <div className="bg-slate-50 rounded-xl p-5 border border-slate-200 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="relative">
-                    <label className="block text-xs font-medium text-slate-700 mb-1">Current Odometer</label>
-                    <div className="relative">
-                        <input 
-                            type="number" 
-                            name="current_km" 
-                            value={formData.current_km} 
-                            onChange={handleNumberChange} 
-                            className="block w-full rounded-lg border-slate-200 pl-3 pr-8 text-sm focus:border-orange-500 focus:ring-orange-500 bg-white" 
-                        />
-                        <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                            <span className="text-gray-400 text-xs">km</span>
-                        </div>
-                    </div>
-                </div>
-                <div>
-                    <label className="block text-xs font-medium text-slate-700 mb-1 flex items-center gap-1"><CalendarDaysIcon className="w-3 h-3"/> Purchase Date</label>
-                    <input 
-                        type="date" 
-                        name="purchase_date" 
-                        value={formData.purchase_date} 
-                        onChange={handleChange} 
-                        className="block w-full rounded-lg border-slate-200 text-sm focus:border-orange-500 focus:ring-orange-500 text-slate-600 bg-white" 
-                    />
-                </div>
-                <div className="relative">
-                    <label className="block text-xs font-medium text-slate-700 mb-1 flex items-center gap-1"><CurrencyDollarIcon className="w-3 h-3"/> Purchase Cost</label>
-                    <input 
-                        type="number" 
-                        name="purchase_cost" 
-                        value={formData.purchase_cost} 
-                        onChange={handleNumberChange} 
-                        className="block w-full rounded-lg border-slate-200 text-sm focus:border-orange-500 focus:ring-orange-500 bg-white" 
-                    />
-                </div>
-              </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Capacity (tonnes)</label>
+              <Input type="number" min={0} step="0.1" value={form.capacity_tonnes} onChange={set("capacity_tonnes")} />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Fuel type</label>
+              <Select value={form.fuel_type} onChange={set("fuel_type")}>
+                {ft.map((v) => (
+                  <option key={v} value={v}>
+                    {toTitle(String(v))}
+                  </option>
+                ))}
+              </Select>
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">GPS device ID</label>
+              <Input value={form.gps_device_id} onChange={set("gps_device_id")} placeholder="Optional" />
+            </div>
+          </div>
+        </SubtleCard>
+
+        <SubtleCard className="p-4">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Purchase date</label>
+              <Input type="date" value={form.purchase_date} onChange={set("purchase_date")} />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Purchase cost</label>
+              <Input type="number" min={0} value={form.purchase_cost} onChange={set("purchase_cost")} />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Current value</label>
+              <Input type="number" min={0} value={form.current_value} onChange={set("current_value")} placeholder="Optional" />
             </div>
 
-            {error && (
-              <div className="bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-lg text-sm text-center">
-                {error}
-              </div>
-            )}
-          </main>
-        </form>
-        
-        <footer className="px-6 py-4 border-t border-slate-100 bg-slate-50/50 rounded-b-2xl flex justify-end gap-3 flex-shrink-0">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 rounded-lg border border-slate-200 bg-white text-slate-700 text-sm font-medium hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-200 transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              onClick={handleSubmit}
-              className="px-6 py-2 rounded-lg bg-orange-500 text-white text-sm font-semibold hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 shadow-sm shadow-orange-200 transition-all"
-            >
-              Add Vehicle
-            </button>
-        </footer>
-      </div>
-    </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Last service date</label>
+              <Input type="date" value={form.last_service_date} onChange={set("last_service_date")} />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Last service km</label>
+              <Input type="number" min={0} value={form.last_service_km} onChange={set("last_service_km")} placeholder="Optional" />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Next service due km</label>
+              <Input type="number" min={0} value={form.next_service_due_km} onChange={set("next_service_due_km")} />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Next service due date</label>
+              <Input type="date" value={form.next_service_due_date} onChange={set("next_service_due_date")} />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Current km</label>
+              <Input type="number" min={0} value={form.current_km} onChange={set("current_km")} />
+            </div>
+
+            <div className="md:col-span-3">
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Notes</label>
+              <Textarea value={form.notes} onChange={set("notes")} rows={3} placeholder="Optional" />
+            </div>
+          </div>
+        </SubtleCard>
+      </form>
+    </ModalShell>
   );
 };
 

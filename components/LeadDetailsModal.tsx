@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Lead, User, LeadActivity, LeadActivityType } from '../types';
-import { CloseIcon, BriefcaseIcon, UserCircleIcon, InfoIcon, DocumentTextIcon, PhoneIcon, EnvelopeIcon, CalendarDaysIcon, PencilSquareIcon } from './icons/Icons';
+import { CloseIcon, BriefcaseIcon, UserCircleIcon, InfoIcon, DocumentTextIcon, PhoneIcon, EnvelopeIcon, CalendarDaysIcon, PencilSquareIcon } from './icons';
 
 interface LeadDetailsModalProps {
   lead: Lead;
@@ -23,7 +23,7 @@ const DetailSection: React.FC<{ title: string; icon: React.ReactNode; children: 
 const DetailItem: React.FC<{ label: string; value?: string | number | null }> = ({ label, value }) => (
     <div className="grid grid-cols-3 gap-2 py-1 border-b border-gray-100">
         <span className="text-gray-500 col-span-1">{label}</span>
-        <span className="text-gray-900 col-span-2 break-words">{value || 'N/A'}</span>
+        <span className="text-gray-900 col-span-2 wrap-break-word">{value || 'N/A'}</span>
     </div>
 );
 
@@ -45,7 +45,7 @@ const LeadDetailsModal: React.FC<LeadDetailsModalProps> = ({ lead, salesReps, le
 
     return (
         <div 
-            className="fixed inset-0 bg-black bg-opacity-50 z-[60] flex justify-center items-center p-4 animate-in fade-in duration-200"
+            className="fixed inset-0 bg-black bg-opacity-50 z-60 flex justify-center items-center p-4 animate-in fade-in duration-200"
             onClick={onClose}
         >
             <div 
@@ -54,7 +54,7 @@ const LeadDetailsModal: React.FC<LeadDetailsModalProps> = ({ lead, salesReps, le
             >
                 <header className="flex justify-between items-center p-4 border-b border-gray-200">
                     <h2 className="text-2xl font-bold text-gray-900">{lead.first_name} {lead.last_name}</h2>
-                    <button onClick={onClose} className="p-1 rounded-full hover:bg-gray-200">
+                        <button onClick={onClose} aria-label="Close lead details" title="Close" className="p-1 rounded-full hover:bg-gray-200">
                         <CloseIcon className="w-6 h-6 text-gray-600"/>
                     </button>
                 </header>

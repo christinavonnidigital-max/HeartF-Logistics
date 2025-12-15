@@ -2,59 +2,74 @@
 @plugin "@tailwindcss/forms";
 @plugin "@tailwindcss/typography";
 
-@custom-variant dark (&:is(.dark *));
+/* Tailwind v4: class-based dark mode */
+@custom-variant dark (&:where(.dark, .dark *));
 
-/* Theme variables */
-:root {
-  --hf-bg: oklch(0.985 0 0);
-  --hf-fg: oklch(0.18 0.02 250);
-  --hf-card: oklch(1 0 0);
-  --hf-muted: oklch(0.96 0.01 250);
-  --hf-border: oklch(0.9 0.01 250);
-
-  --hf-primary-600: oklch(0.62 0.18 255);
-  --hf-primary-700: oklch(0.55 0.18 255);
-  --hf-danger-600: oklch(0.58 0.22 25);
-}
-
-.dark {
-  --hf-bg: oklch(0.14 0.02 250);
-  --hf-fg: oklch(0.96 0.01 250);
-  --hf-card: oklch(0.18 0.02 250);
-  --hf-muted: oklch(0.22 0.02 250);
-  --hf-border: oklch(0.3 0.02 250);
-
-  --hf-primary-600: oklch(0.72 0.14 255);
-  --hf-primary-700: oklch(0.66 0.14 255);
-  --hf-danger-600: oklch(0.72 0.18 25);
-}
-
+/* Tokens (Tailwind v4 CSS-first) */
 @theme {
-  --color-background: var(--hf-bg);
-  --color-foreground: var(--hf-fg);
-  --color-card: var(--hf-card);
-  --color-muted: var(--hf-muted);
-  --color-border: var(--hf-border);
+  /* Typography */
+  --font-sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Helvetica Neue", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 
-  --color-brand-600: var(--hf-primary-600);
-  --color-brand-700: var(--hf-primary-700);
-  --color-danger-600: var(--hf-danger-600);
+  /* Spacing scale base */
+  --spacing: 0.25rem;
 
-  --radius-xl: 16px;
+  /* Radius */
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.25rem;
+
+  /* Semantic surfaces */
+  --color-background: oklch(0.985 0 0);
+  --color-card: oklch(1 0 0);
+  --color-muted: oklch(0.97 0.01 250);
+  --color-border: oklch(0.9 0.01 250);
+  --color-foreground: oklch(0.18 0.02 250);
+  --color-foreground-muted: oklch(0.45 0.02 250);
+
+  /* Brand ramp */
+  --color-brand-50:  oklch(0.98 0.02 255);
+  --color-brand-100: oklch(0.95 0.04 255);
+  --color-brand-200: oklch(0.9  0.07 255);
+  --color-brand-300: oklch(0.84 0.11 255);
+  --color-brand-400: oklch(0.76 0.14 255);
+  --color-brand-500: oklch(0.67 0.17 255);
+  --color-brand-600: oklch(0.62 0.18 255);
+  --color-brand-700: oklch(0.55 0.18 255);
+  --color-brand-800: oklch(0.45 0.16 255);
+  --color-brand-900: oklch(0.34 0.12 255);
+
+  /* Status */
+  --color-success-600: oklch(0.62 0.16 150);
+  --color-warn-600:    oklch(0.72 0.16 70);
+  --color-danger-600:  oklch(0.58 0.22 25);
 }
 
-/* App base reset and sensible defaults */
-:root {
-  --bg: #ffffff;
-  --text: #0f172a;
+/* Dark token overrides */
+.dark {
+  --color-background: oklch(0.14 0.02 250);
+  --color-card: oklch(0.18 0.02 250);
+  --color-muted: oklch(0.22 0.02 250);
+  --color-border: oklch(0.3 0.02 250);
+  --color-foreground: oklch(0.96 0.01 250);
+  --color-foreground-muted: oklch(0.72 0.02 250);
+
+  --color-brand-600: oklch(0.72 0.14 255);
+  --color-brand-700: oklch(0.66 0.14 255);
 }
+
+/* Base */
+html, body, #root { height: 100%; }
+body {
+  font-family: var(--font-sans);
+  background: var(--color-background);
+  color: var(--color-foreground);
+}
+
 * { box-sizing: border-box; }
-html, body, #root { height: 100%; margin: 0; }
-body { @apply bg-background text-foreground; font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; }
 
+/* Reusable helpers and previous declarations */
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
-
-/* small helper classes used across the app */
 .container { max-width: 1200px; margin: 0 auto; padding: 0 16px; }
 
 /* Leaflet map z-index overrides to prevent overlapping modals */
@@ -73,7 +88,13 @@ body { @apply bg-background text-foreground; font-family: Inter, system-ui, -app
 }
 
 /* Custom Scrollbar Styling (optional) */
-.custom-scrollbar { scrollbar-width: thin; scrollbar-color: #475569 #1e293b; }
+@supports (scrollbar-color: auto) {
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: #475569 #1e293b;
+  }
+}
+
 .custom-scrollbar::-webkit-scrollbar { width: 8px; }
 .custom-scrollbar::-webkit-scrollbar-track { background: #1e293b; }
 .custom-scrollbar::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }

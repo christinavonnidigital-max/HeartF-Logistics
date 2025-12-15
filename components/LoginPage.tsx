@@ -48,7 +48,7 @@ const LoginPage: React.FC = () => {
   return (
     <div className="flex min-h-screen">
       {/* Left Side - Brand & Hero */}
-      <div className="hidden lg:flex lg:w-1/2 relative bg-gradient-to-br from-[#1a2142] via-[#202A56] to-[#273465] overflow-hidden">
+      <div className="hidden lg:flex lg:w-1/2 relative bg-linear-to-br from-[#1a2142] via-[#202A56] to-[#273465] overflow-hidden">
         {/* Abstract Background Elements */}
         <div className="absolute top-0 right-0 w-96 h-96 bg-orange-500/10 rounded-full blur-3xl"></div>
         <div className="absolute bottom-0 left-0 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl"></div>
@@ -150,7 +150,7 @@ const LoginPage: React.FC = () => {
 
               {error && (
                 <div className="flex items-center gap-2 rounded-lg bg-rose-50 border border-rose-200 px-4 py-3">
-                  <svg className="w-5 h-5 text-rose-500 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 text-rose-500 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                     <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                   </svg>
                   <p className="text-sm text-rose-700 font-medium">
@@ -162,7 +162,7 @@ const LoginPage: React.FC = () => {
               <button
                 type="submit"
                 disabled={submitting}
-                className="flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 px-6 py-3.5 text-sm font-semibold text-white shadow-lg hover:shadow-xl hover:from-orange-600 hover:to-orange-700 disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200"
+                className="flex w-full items-center justify-center rounded-xl bg-linear-to-r from-orange-500 to-orange-600 px-6 py-3.5 text-sm font-semibold text-white shadow-lg hover:shadow-xl hover:from-orange-600 hover:to-orange-700 disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200"
               >
                 {submitting ? (
                   <>
@@ -194,7 +194,7 @@ const LoginPage: React.FC = () => {
                     key={acc.email}
                     type="button"
                     onClick={() => handleDemoClick(acc.email, acc.password)}
-                    className="flex w-full items-center justify-between rounded-xl border-2 border-slate-100 bg-gradient-to-r from-slate-50 to-white px-4 py-3.5 text-left transition-all hover:border-orange-300 hover:from-orange-50 hover:to-orange-50/50 hover:shadow-md group"
+                    className="flex w-full items-center justify-between rounded-xl border-2 border-slate-100 bg-linear-to-r from-slate-50 to-white px-4 py-3.5 text-left transition-all hover:border-orange-300 hover:from-orange-50 hover:to-orange-50/50 hover:shadow-md group"
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-lg bg-slate-100 group-hover:bg-orange-100 flex items-center justify-center transition-colors">

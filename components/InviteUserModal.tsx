@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { User } from '../types';
-import { CloseIcon, UserCircleIcon, EnvelopeIcon, BriefcaseIcon, TruckIcon, CreditCardIcon, ShieldCheckIcon, CheckCircleIcon } from './icons/Icons';
+import { CloseIcon, UserCircleIcon, EnvelopeIcon, BriefcaseIcon, TruckIcon, CreditCardIcon, ShieldCheckIcon, CheckCircleIcon } from './icons';
 
 interface InviteUserModalProps {
   onClose: () => void;
@@ -65,14 +65,14 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({ onClose, onInvite }) 
     };
 
     return (
-    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex justify-center md:pl-64 items-center p-4 animate-in fade-in duration-200" onClick={onClose}>
+    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-100 flex justify-center md:pl-64 items-center p-4 animate-in fade-in duration-200" onClick={onClose}>
         <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl flex flex-col max-h-[90vh] border border-slate-200 overflow-hidden animate-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
-            <header className="flex justify-between items-center px-6 py-4 border-b border-slate-100 bg-slate-50/50 rounded-t-2xl flex-shrink-0">
+            <header className="flex justify-between items-center px-6 py-4 border-b border-slate-100 bg-slate-50/50 rounded-t-2xl shrink-0">
                 <div>
                     <h2 className="text-lg font-bold text-slate-900">Invite Team Member</h2>
                     <p className="text-xs text-slate-500 mt-0.5">Give a new user access to the Heartfledge platform</p>
                 </div>
-                <button onClick={onClose} className="p-2 rounded-full hover:bg-slate-200/60 text-slate-500 transition-colors">
+                <button onClick={onClose} aria-label="Close invite modal" title="Close" className="p-2 rounded-full hover:bg-slate-200/60 text-slate-500 transition-colors">
                     <CloseIcon className="w-5 h-5" />
                 </button>
             </header>
@@ -175,7 +175,7 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({ onClose, onInvite }) 
                     )}
                 </main>
                 
-                <footer className="px-6 py-4 border-t border-slate-100 bg-slate-50/50 rounded-b-2xl flex justify-end gap-3 flex-shrink-0">
+                <footer className="px-6 py-4 border-t border-slate-100 bg-slate-50/50 rounded-b-2xl flex justify-end gap-3 shrink-0">
                     <button 
                         type="button" 
                         onClick={onClose} 

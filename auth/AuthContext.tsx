@@ -7,7 +7,7 @@ import React, {
   useState,
 } from "react";
 
-export type UserRole = "dispatcher" | "ops_manager" | "finance" | "admin" | "customer";
+export type UserRole = "dispatcher" | "ops_manager" | "finance" | "admin" | "customer" | "driver";
 
 export type User = {
   id: string;
@@ -54,6 +54,13 @@ const DEMO_USERS: InternalUserRecord[] = [
     password: "money123",
     role: "finance",
   },
+    {
+      id: "u5",
+      name: "Driver One",
+      email: "driver@heartfledge.local",
+      password: "driver123",
+      role: "driver",
+    },
   {
     id: "u4",
     name: "Admin",

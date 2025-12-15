@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { ExclamationTriangleIcon } from './icons/Icons';
+import { ExclamationTriangleIcon } from './icons';
 import { Button, ModalShell } from './UiKit';
 
 interface ConfirmModalProps {
@@ -20,33 +20,35 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
   onConfirm,
   title,
   message,
-  confirmLabel = "Delete",
-  cancelLabel = "Cancel",
+  confirmLabel = 'Confirm',
+  cancelLabel = 'Cancel',
   isDestructive = true,
 }) => {
   return (
     <ModalShell
       isOpen={isOpen}
-      onClose={onClose}
       title={title}
       description={message}
-      icon={
-        <ExclamationTriangleIcon
-          className={isDestructive ? 'h-5 w-5 text-rose-500' : 'h-5 w-5 text-amber-500'}
-        />
-      }
+      onClose={onClose}
       footer={
-        <>
-          <Button variant="ghost" onClick={onClose}>
+        <div className="flex justify-end gap-2">
+          <Button variant="secondary" onClick={onClose}>
             {cancelLabel}
           </Button>
-          <Button variant={isDestructive ? 'danger' : 'primary'} onClick={onConfirm}>
+          <Button
+            variant={isDestructive ? 'danger' : 'primary'}
+            onClick={() => {
+              onConfirm();
+              onClose();
+            }}
+          >
             {confirmLabel}
           </Button>
-        </>
+        </div>
       }
     >
-      {/* message is in description */}
+      {/* Keeping body minimal because description already shows message */}
+      <div className="text-sm text-foreground/70">{message}</div>
     </ModalShell>
   );
 };

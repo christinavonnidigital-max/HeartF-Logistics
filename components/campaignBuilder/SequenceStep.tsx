@@ -14,7 +14,7 @@ const SequenceStep: React.FC<SequenceStepProps> = ({ sequence, onEdit, onDelete 
         <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
             <div className="flex items-center justify-between">
                 <div className="flex items-center">
-                     <div className="flex-shrink-0 h-10 w-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600">
+                     <div className="shrink-0 h-10 w-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600">
                         <EnvelopeIcon className="w-6 h-6" />
                     </div>
                     <div className="ml-4">
@@ -26,10 +26,10 @@ const SequenceStep: React.FC<SequenceStepProps> = ({ sequence, onEdit, onDelete 
                     </div>
                 </div>
                  <div className="flex items-center space-x-2">
-                    <button onClick={onEdit} className="p-1.5 text-gray-500 hover:text-blue-600 rounded-full hover:bg-gray-100">
+                    <button onClick={onEdit} aria-label="Edit step" title="Edit step" className="p-1.5 text-gray-500 hover:text-blue-600 rounded-full hover:bg-gray-100">
                         <PencilSquareIcon className="w-5 h-5" />
                     </button>
-                     <button onClick={onDelete} className="p-1.5 text-gray-500 hover:text-red-600 rounded-full hover:bg-gray-100">
+                     <button onClick={onDelete} aria-label="Delete step" title="Delete step" className="p-1.5 text-gray-500 hover:text-red-600 rounded-full hover:bg-gray-100">
                         <TrashIcon className="w-5 h-5" />
                     </button>
                 </div>

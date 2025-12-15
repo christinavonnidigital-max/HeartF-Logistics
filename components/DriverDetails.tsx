@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Driver, DriverAssignment, AssignmentStatus } from '../types';
-import { UserCircleIcon, PhoneIcon, BriefcaseIcon, CalendarDaysIcon, ClipboardDocumentIcon, StarIcon, MapPinIcon } from './icons/Icons';
+import { UserCircleIcon, PhoneIcon, BriefcaseIcon, CalendarDaysIcon, ClipboardDocumentIcon, StarIcon, MapPinIcon } from './icons';
 import { ShellCard, SubtleCard } from './UiKit';
 
 interface DriverDetailsProps {
@@ -22,7 +22,7 @@ const DetailSection: React.FC<{ title: string; icon: React.ReactNode; children: 
 const DetailItem: React.FC<{ label: string; value?: React.ReactNode }> = ({ label, value }) => (
     <div className="grid grid-cols-3 gap-2 py-1">
         <span className="text-slate-500 font-medium col-span-1">{label}</span>
-        <span className="text-slate-900 col-span-2 break-words">{value || 'N/A'}</span>
+        <span className="text-slate-900 col-span-2 wrap-break-word">{value || 'N/A'}</span>
     </div>
 );
 

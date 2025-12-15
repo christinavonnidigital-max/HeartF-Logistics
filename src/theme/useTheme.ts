@@ -1,32 +1,34 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
-export type Theme = "light" | "dark";
+export type Theme = "system" | "light" | "dark";
+const KEY = "hf-theme";
 
-const STORAGE_KEY = "hf_theme";
-
-function getPreferredTheme(): Theme {
-  if (typeof window === "undefined") return "light";
-  const stored = localStorage.getItem(STORAGE_KEY) as Theme | null;
-  if (stored === "light" || stored === "dark") return stored;
-  if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
-    return "dark";
-  }
-  return "light";
+function applyTheme(theme: Theme) {
+  const root = document.documentElement;
+  const systemDark = window.matchMedia?.("(prefers-color-scheme: dark)")?.matches ?? false;
+  const isDark = theme === "dark" || (theme === "system" && systemDark);
+  root.classList.toggle("dark", isDark);
 }
 
-export default function useTheme() {
-  const [theme, setTheme] = useState<Theme>(getPreferredTheme);
+export function useTheme() {
+  const [theme, setTheme] = useState<Theme>(() => {
+    const saved = localStorage.getItem(KEY) as Theme | null;
+    return saved ?? "system";
+  });
 
   useEffect(() => {
-    const el = document.documentElement;
-    if (theme === "dark") el.classList.add("dark");
-    else el.classList.remove("dark");
-    localStorage.setItem(STORAGE_KEY, theme);
+    localStorage.setItem(KEY, theme);
+    applyTheme(theme);
+
+    if (theme !== "system") return;
+
+    const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    const onChange = () => applyTheme("system");
+    mq.addEventListener?.("change", onChange);
+    return () => mq.removeEventListener?.("change", onChange);
   }, [theme]);
 
-  const toggle = useCallback(() => {
-    setTheme((t) => (t === "dark" ? "light" : "dark"));
-  }, []);
-
-  return { theme, setTheme, toggle } as const;
+  return useMemo(() => ({ theme, setTheme }), [theme]);
 }
+
+export default useTheme;

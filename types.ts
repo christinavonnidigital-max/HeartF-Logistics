@@ -353,10 +353,15 @@ export enum CargoType {
 }
 
 export enum BookingStatus {
+    // New lifecycle statuses added to support richer booking workflow
+    DRAFT = 'draft',
     PENDING = 'pending',
     CONFIRMED = 'confirmed',
+    SCHEDULED = 'scheduled',
+    DISPATCHED = 'dispatched',
     IN_TRANSIT = 'in_transit',
     DELIVERED = 'delivered',
+    CLOSED = 'closed',
     CANCELLED = 'cancelled',
 }
 
@@ -375,6 +380,48 @@ export enum PaymentMethod {
     CREDIT_NOTE = 'credit_note',
     OTHER = 'other',
 }
+
+// Audit & Status history types
+export type AuditAction = 'booking.status_change' | 'booking.assignment_change' | 'booking.update';
+
+export interface AuditLogEntry {
+    id: string;
+    at: string; // ISO timestamp
+    actor_user_id?: string | number;
+    actor_role?: string;
+    action: AuditAction;
+    entity_type: 'booking' | 'invoice' | 'lead' | 'vehicle';
+    entity_id: number;
+    summary: string;
+    meta?: Record<string, unknown>;
+}
+
+export interface BookingStatusChange {
+    id: string;
+    at: string; // ISO timestamp
+    from: BookingStatus | null;
+    to: BookingStatus;
+    actor_user_id?: string | number;
+    actor_role?: string;
+}
+
+// New, richer event type (backwards-compatible with BookingStatusChange)
+export type BookingStatusEvent = {
+    at: string; // ISO
+    from: BookingStatus | null;
+    to: BookingStatus;
+    by?: { id?: number | string; name?: string; role?: string };
+    note?: string;
+};
+
+export type AuditEvent = {
+    id: string;
+    at: string; // ISO
+    actor?: { id?: number | string; name?: string; role?: string };
+    action: 'booking.status.change' | 'booking.assign' | 'booking.update';
+    entity: { type: 'booking'; id: number; ref?: string };
+    meta?: Record<string, any>;
+};
 
 export interface Booking {
     id: number;
@@ -423,6 +470,7 @@ export interface Booking {
     started_at?: string;
     delivered_at?: string;
     cancelled_at?: string;
+    status_history?: BookingStatusEvent[];
 }
 
 export enum ProofType {

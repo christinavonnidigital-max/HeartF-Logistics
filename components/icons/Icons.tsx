@@ -1,3 +1,54 @@
+export * from "./lucide";
+export { default } from "./lucide";
+
+// Keep some larger / bespoke SVGs from the previous file
+export const BoxTruckIconBold: React.FC<React.SVGProps<SVGSVGElement> & { className?: string }> = (
+  props
+) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className={props.className} {...props}>
+    <rect x="2" y="6" width="12" height="9" rx="1.5" />
+    <path d="M14 8h5.5l1.5 3v4h-7V8z" />
+    <path d="M15 9h3.5l0.5 1h-4V9z" fillOpacity="0.3" />
+    <rect x="7.5" y="6" width="0.5" height="9" fillOpacity="0.25" />
+    <rect x="2" y="15" width="19" height="1.5" rx="0.5" />
+    <circle cx="6" cy="18.5" r="2.5" />
+    <circle cx="6" cy="18.5" r="1.2" fill="white" fillOpacity="0.3" />
+    <circle cx="16.5" cy="18.5" r="2.5" />
+    <circle cx="16.5" cy="18.5" r="1.2" fill="white" fillOpacity="0.3" />
+    <circle cx="20" cy="12" r="0.7" fillOpacity="0.5" />
+  </svg>
+);
+
+export const IllustrationTruckIcon: React.FC<React.SVGProps<SVGSVGElement> & { className?: string }> = (
+  props
+) => (
+  <svg viewBox="0 0 64 64" fill="none" className={props.className} stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <rect x={6} y={30} width={28} height={12} rx={3} />
+    <path d="M34 34h8l7 6v8H49" />
+    <circle cx={18} cy={46} r={3.5} fill="currentColor" />
+    <circle cx={46} cy={46} r={3.5} fill="currentColor" />
+    <path d="M6 46h4" />
+    <path d="M26 46h7" />
+    <path d="M6 30v-5h18" />
+    <path d="M40 24h6l6 6" />
+    <path d="M10 22c4-7 10-10 18-10 7 0 12 2 17 7" />
+  </svg>
+);
+
+export const IllustrationMapIcon: React.FC<React.SVGProps<SVGSVGElement> & { className?: string }> = (
+  props
+) => (
+  <svg viewBox="0 0 64 64" fill="none" className={props.className} stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <path d="M10 16l16-6 12 6 16-6v34l-16 6-12-6-16 6V16z" />
+    <path d="M26 10v34" />
+    <path d="M38 16v34" />
+    <path d="M32 20a6 6 0 0 1 6 6c0 4-3.5 8.5-6 11-2.5-2.5-6-7-6-11a6 6 0 0 1 6-6z" />
+    <circle cx={32} cy={26} r={2} />
+  </svg>
+);
+
+// No default export here; default is re-exported from ./lucide
+// (This file now only re-exports and contains internal legacy icon implementations.)
 
 
 import React from 'react';
@@ -30,7 +81,7 @@ const IconBase = ({ className, children, ...props }: IconBaseProps) => (
 
 // Basic UI icons
 
-export const MenuIcon = (props: IconProps) => (
+const MenuIcon = (props: IconProps) => (
   <IconBase {...props}>
     <path d="M4 7h16" />
     <path d="M4 12h16" />
@@ -38,40 +89,40 @@ export const MenuIcon = (props: IconProps) => (
   </IconBase>
 );
 
-export const CloseIcon = (props: IconProps) => (
+const CloseIcon = (props: IconProps) => (
   <IconBase {...props}>
     <path d="M6 6l12 12" />
     <path d="M18 6L6 18" />
   </IconBase>
 );
 
-export const ChevronLeftIcon = (props: IconProps) => (
+const ChevronLeftIcon = (props: IconProps) => (
   <IconBase {...props}>
     <path d="M15 18l-6-6 6-6" />
   </IconBase>
 );
 
-export const ChevronRightIcon = (props: IconProps) => (
+const ChevronRightIcon = (props: IconProps) => (
   <IconBase {...props}>
     <path d="M9 18l6-6-6-6" />
   </IconBase>
 );
 
-export const SearchIcon = (props: IconProps) => (
+const SearchIcon = (props: IconProps) => (
   <IconBase {...props}>
     <circle cx={11} cy={11} r={5} />
     <path d="M15.5 15.5L19 19" />
   </IconBase>
 );
 
-export const PlusIcon = (props: IconProps) => (
+const PlusIcon = (props: IconProps) => (
   <IconBase {...props}>
     <path d="M12 5v14" />
     <path d="M5 12h14" />
   </IconBase>
 );
 
-export const TrashIcon = (props: IconProps) => (
+const TrashIcon = (props: IconProps) => (
   <IconBase {...props}>
     <path d="M5 7h14" />
     <path d="M10 4h4" />
@@ -81,20 +132,20 @@ export const TrashIcon = (props: IconProps) => (
   </IconBase>
 );
 
-export const WrenchIcon = (props: IconProps) => (
+const WrenchIcon = (props: IconProps) => (
   <IconBase {...props}>
     <path d="M15.5 5.5a4 4 0 0 0-4.9 4.9l-4.6 4.6a1.4 1.4 0 0 0 2 2l4.6-4.6a4 4 0 0 0 4.9-4.9l-2.2 2.2-2-2 2.2-2.2z" />
   </IconBase>
 );
 
-export const CheckCircleIcon = (props: IconProps) => (
+const CheckCircleIcon = (props: IconProps) => (
   <IconBase {...props}>
     <circle cx={12} cy={12} r={9} />
     <path d="M8.5 12.5l2.5 2.5 4.5-5.5" />
   </IconBase>
 );
 
-export const ExclamationTriangleIcon = (props: IconProps) => (
+const ExclamationTriangleIcon = (props: IconProps) => (
   <IconBase {...props}>
     <path d="M12 4l8 14H4l8-14z" />
     <path d="M12 10v4" />
@@ -102,19 +153,19 @@ export const ExclamationTriangleIcon = (props: IconProps) => (
   </IconBase>
 );
 
-export const ArrowPathIcon = (props: IconProps) => (
+const ArrowPathIcon = (props: IconProps) => (
   <IconBase {...props}>
     <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
   </IconBase>
 );
 
-export const TagIcon = (props: IconProps) => (
+const TagIcon = (props: IconProps) => (
   <IconBase {...props}>
     <path d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
   </IconBase>
 );
 
-export const DownloadIcon = (props: IconProps) => (
+const DownloadIcon = (props: IconProps) => (
   <IconBase {...props}>
     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
     <polyline points="7 10 12 15 17 10" />
@@ -122,14 +173,14 @@ export const DownloadIcon = (props: IconProps) => (
   </IconBase>
 );
 
-export const TrendingUpIcon = (props: IconProps) => (
+const TrendingUpIcon = (props: IconProps) => (
   <IconBase {...props}>
     <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
     <polyline points="17 6 23 6 23 12" />
   </IconBase>
 );
 
-export const TrendingDownIcon = (props: IconProps) => (
+const TrendingDownIcon = (props: IconProps) => (
   <IconBase {...props}>
     <polyline points="23 18 13.5 8.5 8.5 13.5 1 6" />
     <polyline points="17 18 23 18 23 12" />
@@ -147,7 +198,7 @@ export const GridIcon = (props: IconProps) => (
   </IconBase>
 );
 
-export const TruckIcon = (props: IconProps) => (
+const TruckIcon = (props: IconProps) => (
   <IconBase {...props}>
     <rect x={3} y={9} width={10} height={5} rx={1} />
     <path d="M13 11h3.5L20 13.5V16" />
@@ -185,7 +236,7 @@ export const UserPlusIcon = (props: IconProps) => (
   </IconBase>
 );
 
-export const BriefcaseIcon = (props: IconProps) => (
+const BriefcaseIcon = (props: IconProps) => (
   <IconBase {...props}>
     <rect x={4} y={8} width={16} height={10} rx={1.8} />
     <path d="M10 8V6.5A1.5 1.5 0 0 1 11.5 5h1A1.5 1.5 0 0 1 14 6.5V8" />
@@ -203,7 +254,7 @@ export const DocumentTextIcon = (props: IconProps) => (
   </IconBase>
 );
 
-export const MapIcon = (props: IconProps) => (
+const MapIcon = (props: IconProps) => (
   <IconBase {...props}>
     <path d="M9 5l-4 2v12l4-2 6 2 4-2V5l-4 2-6-2z" />
     <path d="M9 7v10" />
@@ -211,7 +262,7 @@ export const MapIcon = (props: IconProps) => (
   </IconBase>
 );
 
-export const BarChartIcon = (props: IconProps) => (
+const BarChartIcon = (props: IconProps) => (
   <IconBase {...props}>
     <path d="M5 19h14" />
     <rect x={6} y={10} width={3} height={6} rx={0.8} />
@@ -220,7 +271,7 @@ export const BarChartIcon = (props: IconProps) => (
   </IconBase>
 );
 
-export const CampaignIcon = (props: IconProps) => (
+const CampaignIcon = (props: IconProps) => (
   <IconBase {...props}>
     <path d="M5 11v3a2 2 0 0 0 2 2h2" />
     <path d="M10 7v8" />
@@ -229,14 +280,14 @@ export const CampaignIcon = (props: IconProps) => (
   </IconBase>
 );
 
-export const MegaphoneIcon = (props: IconProps) => (
+const MegaphoneIcon = (props: IconProps) => (
   <IconBase {...props}>
     <path d="M3 11l18-5v12L3 13v-2z" />
     <path d="M11.6 16.8a3 3 0 1 1-5.8-1.6" />
   </IconBase>
 );
 
-export const WorkflowIcon = (props: IconProps) => (
+const WorkflowIcon = (props: IconProps) => (
   <IconBase {...props}>
     <rect x={3} y={3} width={6} height={6} rx={1} />
     <rect x={15} y={3} width={6} height={6} rx={1} />
@@ -249,7 +300,7 @@ export const WorkflowIcon = (props: IconProps) => (
   </IconBase>
 );
 
-export const AnalyticsIcon = (props: IconProps) => (
+const AnalyticsIcon = (props: IconProps) => (
   <IconBase {...props}>
     <path d="M3 3v16a2 2 0 0 0 2 2h16" />
     <path d="M7 16l4-4 4 4 5-5" />
@@ -260,7 +311,7 @@ export const AnalyticsIcon = (props: IconProps) => (
   </IconBase>
 );
 
-export const ChartPieIcon = (props: IconProps) => (
+const ChartPieIcon = (props: IconProps) => (
   <IconBase {...props}>
     <path d="M12 4a8 8 0 1 1-6.36 3.18" />
     <path d="M12 4v8l5.2 3" />
@@ -283,7 +334,7 @@ export const SettingsIcon = (props: IconProps) => (
 
 // Finance icons
 
-export const CreditCardIcon = (props: IconProps) => (
+const CreditCardIcon = (props: IconProps) => (
   <IconBase {...props}>
     <rect x={3} y={6} width={18} height={12} rx={2} />
     <path d="M3 10h18" />
@@ -292,20 +343,20 @@ export const CreditCardIcon = (props: IconProps) => (
   </IconBase>
 );
 
-export const CurrencyDollarIcon = (props: IconProps) => (
+const CurrencyDollarIcon = (props: IconProps) => (
   <IconBase {...props}>
     <line x1="12" y1="2" x2="12" y2="22" />
     <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
   </IconBase>
 );
 
-export const BanknotesIcon = (props: IconProps) => (
+const BanknotesIcon = (props: IconProps) => (
   <IconBase {...props}>
     <path d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
   </IconBase>
 );
 
-export const CalculatorIcon = (props: IconProps) => (
+const CalculatorIcon = (props: IconProps) => (
   <IconBase {...props}>
     <rect x={4} y={2} width={16} height={20} rx={2} />
     <line x1={8} y1={6} x2={16} y2={6} />
@@ -322,20 +373,20 @@ export const CalculatorIcon = (props: IconProps) => (
 
 // CRM icons
 
-export const PhoneIcon = (props: IconProps) => (
+const PhoneIcon = (props: IconProps) => (
   <IconBase {...props}>
     <path d="M7 4h3l1.2 3.5-2 1.3a12 12 0 0 0 5 5l1.3-2L19 14v3a2 2 0 0 1-2.2 2 13 13 0 0 1-9.8-9.8A2 2 0 0 1 7 4z" />
   </IconBase>
 );
 
-export const EnvelopeIcon = (props: IconProps) => (
+const EnvelopeIcon = (props: IconProps) => (
   <IconBase {...props}>
     <rect x={3} y={5} width={18} height={14} rx={2} />
     <path d="M4 7l8 6 8-6" />
   </IconBase>
 );
 
-export const UserCircleIcon = (props: IconProps) => (
+const UserCircleIcon = (props: IconProps) => (
   <IconBase {...props}>
     <circle cx={12} cy={12} r={9} />
     <circle cx={12} cy={10} r={3} />
@@ -343,7 +394,7 @@ export const UserCircleIcon = (props: IconProps) => (
   </IconBase>
 );
 
-export const InfoIcon = (props: IconProps) => (
+const InfoIcon = (props: IconProps) => (
   <IconBase {...props}>
     <circle cx={12} cy={12} r={9} />
     <path d="M12 10v6" />
@@ -351,7 +402,7 @@ export const InfoIcon = (props: IconProps) => (
   </IconBase>
 );
 
-export const CalendarDaysIcon = (props: IconProps) => (
+const CalendarDaysIcon = (props: IconProps) => (
   <IconBase {...props}>
     <rect x={4} y={5} width={16} height={15} rx={2} />
     <path d="M9 3v4" />
@@ -363,34 +414,34 @@ export const CalendarDaysIcon = (props: IconProps) => (
   </IconBase>
 );
 
-export const ClockIcon = (props: IconProps) => (
+const ClockIcon = (props: IconProps) => (
   <IconBase {...props}>
     <circle cx={12} cy={12} r={8.5} />
     <path d="M12 8v4l3 2" />
   </IconBase>
 );
 
-export const PencilSquareIcon = (props: IconProps) => (
+const PencilSquareIcon = (props: IconProps) => (
   <IconBase {...props}>
     <rect x={4} y={4} width={12} height={12} rx={2} />
     <path d="M9 15l7-7a1.8 1.8 0 0 0-2.5-2.5L6.5 13.5 6 16l2.5-.5z" />
   </IconBase>
 );
 
-export const StarIcon = (props: IconProps) => (
+const StarIcon = (props: IconProps) => (
   <IconBase {...props}>
     <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
   </IconBase>
 );
 
-export const LockIcon = (props: IconProps) => (
+const LockIcon = (props: IconProps) => (
   <IconBase {...props}>
     <rect x={5} y={11} width={14} height={10} rx={2} />
     <path d="M8 11V7a4 4 0 0 1 8 0v4" />
   </IconBase>
 );
 
-export const ShieldExclamationIcon = (props: IconProps) => (
+const ShieldExclamationIcon = (props: IconProps) => (
   <IconBase {...props}>
     <path d="M12 4l6 2v5.5c0 3.5-2.5 6.5-6 8-3.5-1.5-6-4.5-6-8V6l6-2z" />
     <path d="M12 8v4" />
@@ -398,7 +449,7 @@ export const ShieldExclamationIcon = (props: IconProps) => (
   </IconBase>
 );
 
-export const GlobeIcon = (props: IconProps) => (
+const GlobeIcon = (props: IconProps) => (
   <IconBase {...props}>
     <circle cx={12} cy={12} r={10} />
     <line x1={2} y1={12} x2={22} y2={12} />
@@ -406,7 +457,7 @@ export const GlobeIcon = (props: IconProps) => (
   </IconBase>
 );
 
-export const BuildingOfficeIcon = (props: IconProps) => (
+const BuildingOfficeIcon = (props: IconProps) => (
   <IconBase {...props}>
     <path d="M6 21v-8a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8" />
     <path d="M6 21h12" />
@@ -421,7 +472,7 @@ export const BuildingOfficeIcon = (props: IconProps) => (
 
 // Fleet specific
 
-export const CogIcon = (props: IconProps) => (
+const CogIcon = (props: IconProps) => (
   <IconBase {...props}>
     <circle cx={12} cy={12} r={2.7} />
     <path d="M12 5V3" />
@@ -435,7 +486,7 @@ export const CogIcon = (props: IconProps) => (
   </IconBase>
 );
 
-export const GaugeIcon = (props: IconProps) => (
+const GaugeIcon = (props: IconProps) => (
   <IconBase {...props}>
     <path d="M5 16a7 7 0 0 1 14 0" />
     <path d="M12 12l3-2" />
@@ -443,7 +494,7 @@ export const GaugeIcon = (props: IconProps) => (
   </IconBase>
 );
 
-export const RoadIcon = (props: IconProps) => (
+const RoadIcon = (props: IconProps) => (
   <IconBase {...props}>
     <path d="M7 20L10 4h4l3 16" />
     <path d="M12 4v4" />
@@ -452,7 +503,7 @@ export const RoadIcon = (props: IconProps) => (
   </IconBase>
 );
 
-export const FuelIcon = (props: IconProps) => (
+const FuelIcon = (props: IconProps) => (
   <IconBase {...props}>
     <rect x={5} y={4} width={8} height={14} rx={1.8} />
     <path d="M9 4V3" />
@@ -462,14 +513,14 @@ export const FuelIcon = (props: IconProps) => (
   </IconBase>
 );
 
-export const ShieldCheckIcon = (props: IconProps) => (
+const ShieldCheckIcon = (props: IconProps) => (
   <IconBase {...props}>
     <path d="M12 4l6 2v5.5c0 3.5-2.5 6.5-6 8-3.5-1.5-6-4.5-6-8V6l6-2z" />
     <path d="M9.5 11.5l2 2 3.5-4" />
   </IconBase>
 );
 
-export const ClipboardDocumentIcon = (props: IconProps) => (
+const ClipboardDocumentIcon = (props: IconProps) => (
   <IconBase {...props}>
     <rect x={7} y={5} width={10} height={14} rx={2} />
     <path d="M10 5V4a2 2 0 0 1 4 0v1" />
@@ -478,7 +529,7 @@ export const ClipboardDocumentIcon = (props: IconProps) => (
   </IconBase>
 );
 
-export const TicketIcon = (props: IconProps) => (
+const TicketIcon = (props: IconProps) => (
   <IconBase {...props}>
     <path d="M5 8h14v3a2 2 0 0 0 0 4v3H5v-3a2 2 0 0 0 0-4V8z" />
     <path d="M10 9v6" />
@@ -486,7 +537,7 @@ export const TicketIcon = (props: IconProps) => (
   </IconBase>
 );
 
-export const DocumentDuplicateIcon = (props: IconProps) => (
+const DocumentDuplicateIcon = (props: IconProps) => (
   <IconBase {...props}>
     <path d="M9 4h7l4 4v10H9a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" />
     <path d="M16 4v4h4" />
@@ -494,7 +545,7 @@ export const DocumentDuplicateIcon = (props: IconProps) => (
   </IconBase>
 );
 
-export const UploadIcon = (props: IconProps) => (
+const UploadIcon = (props: IconProps) => (
   <IconBase {...props}>
     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
     <polyline points="17 8 12 3 7 8" />
@@ -504,20 +555,20 @@ export const UploadIcon = (props: IconProps) => (
 
 // Marketing icons
 
-export const PlayIcon = (props: IconProps) => (
+const PlayIcon = (props: IconProps) => (
   <IconBase {...props}>
     <path d="M9 7l7 5-7 5V7z" />
   </IconBase>
 );
 
-export const PauseIcon = (props: IconProps) => (
+const PauseIcon = (props: IconProps) => (
   <IconBase {...props}>
     <path d="M9 7h2v10H9z" />
     <path d="M13 7h2v10h-2z" />
   </IconBase>
 );
 
-export const DuplicateIcon = (props: IconProps) => (
+const DuplicateIcon = (props: IconProps) => (
   <IconBase {...props}>
     <rect x={8} y={7} width={10} height={11} rx={2} />
     <path d="M6 5h9a2 2 0 0 1 2 2v0" />
@@ -526,14 +577,14 @@ export const DuplicateIcon = (props: IconProps) => (
 
 // Assistant icons
 
-export const MapPinIcon = (props: IconProps) => (
+const MapPinIcon = (props: IconProps) => (
   <IconBase {...props}>
     <path d="M12 4.5a4.5 4.5 0 0 1 4.5 4.5c0 3-3 6.5-4.5 8-1.5-1.5-4.5-5-4.5-8A4.5 4.5 0 0 1 12 4.5z" />
     <circle cx={12} cy={9} r={1.4} />
   </IconBase>
 );
 
-export const SendIcon = (props: IconProps) => (
+const SendIcon = (props: IconProps) => (
   <IconBase {...props}>
     <path d="M4 5l16 7-16 7 3-7-3-7z" />
     <path d="M7 12h6" />
@@ -548,75 +599,4 @@ export const SparklesIcon = (props: IconProps) => (
   </IconBase>
 );
 
-// Solid truck icon for AI Assistant
-export const BoxTruckIconBold = (props: IconProps) => (
-  <svg
-    viewBox="0 0 24 24"
-    fill="currentColor"
-    className={props.className}
-    {...props}
-  >
-    {/* Main cargo box */}
-    <rect x="2" y="6" width="12" height="9" rx="1.5" />
-    {/* Truck cabin */}
-    <path d="M14 8h5.5l1.5 3v4h-7V8z" />
-    {/* Windshield detail - lighter */}
-    <path d="M15 9h3.5l0.5 1h-4V9z" fillOpacity="0.3" />
-    {/* Cargo door seam */}
-    <rect x="7.5" y="6" width="0.5" height="9" fillOpacity="0.25" />
-    {/* Bottom chassis */}
-    <rect x="2" y="15" width="19" height="1.5" rx="0.5" />
-    {/* Front wheel - solid */}
-    <circle cx="6" cy="18.5" r="2.5" />
-    <circle cx="6" cy="18.5" r="1.2" fill="white" fillOpacity="0.3" />
-    {/* Back wheel - solid */}
-    <circle cx="16.5" cy="18.5" r="2.5" />
-    <circle cx="16.5" cy="18.5" r="1.2" fill="white" fillOpacity="0.3" />
-    {/* Headlight */}
-    <circle cx="20" cy="12" r="0.7" fillOpacity="0.5" />
-  </svg>
-);
-
-// Large illustrations for empty states
-
-export const IllustrationTruckIcon = (props: IconProps) => (
-  <svg
-    viewBox="0 0 64 64"
-    fill="none"
-    className={props.className}
-    stroke="currentColor"
-    strokeWidth={1.6}
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    {...props}
-  >
-    <rect x={6} y={30} width={28} height={12} rx={3} />
-    <path d="M34 34h8l7 6v8H49" />
-    <circle cx={18} cy={46} r={3.5} fill="currentColor" />
-    <circle cx={46} cy={46} r={3.5} fill="currentColor" />
-    <path d="M6 46h4" />
-    <path d="M26 46h7" />
-    <path d="M6 30v-5h18" />
-    <path d="M40 24h6l6 6" />
-    <path d="M10 22c4-7 10-10 18-10 7 0 12 2 17 7" />
-  </svg>
-);
-
-export const IllustrationMapIcon = (props: IconProps) => (
-  <svg
-    viewBox="0 0 64 64"
-    fill="none"
-    className={props.className}
-    stroke="currentColor"
-    strokeWidth={1.6}
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    {...props}
-  >
-    <path d="M10 16l16-6 12 6 16-6v34l-16 6-12-6-16 6V16z" />
-    <path d="M26 10v34" />
-    <path d="M38 16v34" />
-    <path d="M32 20a6 6 0 0 1 6 6c0 4-3.5 8.5-6 11-2.5-2.5-6-7-6-11a6 6 0 0 1 6-6z" />
-    <circle cx={32} cy={26} r={2} />
-  </svg>
-);
+// (Duplicate legacy bespoke icons removed; canonical definitions above are kept.)

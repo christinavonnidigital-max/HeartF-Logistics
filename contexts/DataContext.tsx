@@ -1,18 +1,26 @@
 
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { 
-    Booking, Vehicle, Lead, Opportunity, Invoice, Expense, Driver, 
-    VehicleMaintenance, VehicleExpense, User, Customer 
+import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import type {
+    AuditLogEntry,
+    AuditEvent,
+    Booking,
+    BookingStatusChange,
+    BookingStatusEvent,
+    Driver,
+    Expense,
+    Invoice,
+    Lead,
+    Opportunity,
+    User,
+    Customer,
+    Vehicle,
 } from '../types';
-import { mockVehicles, mockMaintenance, mockExpenses } from '../data/mockData';
-import { mockBookings } from '../data/mockBookingsData';
-import { mockLeads, mockOpportunities, mockCustomers } from '../data/mockCrmData';
-import { mockInvoices, mockAllExpenses } from '../data/mockFinancialsData';
-import { mockDrivers, mockUsersForDrivers, mockDriverAssignments } from '../data/mockDriversData';
+import { useAuth } from '../auth/AuthContext';
 
-interface DataContextType {
-    // Data
+const STORAGE_KEY = 'hf_global_data_v1';
+
+type DataContextValue = {
     vehicles: Vehicle[];
     bookings: Booking[];
     leads: Lead[];
@@ -20,253 +28,280 @@ interface DataContextType {
     invoices: Invoice[];
     expenses: Expense[];
     drivers: Driver[];
-    customers: Customer[];
     users: User[];
-    
-    // Actions
-    addBooking: (booking: Booking) => void;
+    customers: Customer[];
+    auditLog: AuditEvent[];
+
+    addBooking: (booking: Omit<Booking, 'id' | 'created_at' | 'updated_at'>) => void;
     updateBooking: (booking: Booking) => void;
-    addVehicle: (vehicle: Vehicle) => void;
-    updateVehicle: (vehicle: Vehicle) => void;
-    deleteVehicle: (id: number) => void;
-    addLead: (lead: Lead) => void;
+
+    addLead: (lead: Omit<Lead, 'id' | 'created_at' | 'updated_at'>) => void;
     updateLead: (lead: Lead) => void;
     deleteLead: (id: number) => void;
-    addOpportunity: (opp: Opportunity) => void;
-    updateOpportunity: (opp: Opportunity) => void;
-    addInvoice: (invoice: Invoice) => void;
-    addExpense: (expense: Expense) => void;
-    addDriver: (driver: Driver) => void;
-    addUser: (user: User) => void;
-    deleteUser: (id: number | string) => void;
-    
-    // Reset
-    resetData: () => void;
+
+    updateOpportunity: (opportunity: Opportunity) => void;
+
+    addInvoice: (invoice: Omit<Invoice, 'id' | 'created_at' | 'updated_at'>) => void;
+    addExpense: (expense: Omit<Expense, 'id' | 'created_at' | 'updated_at'>) => void;
+
+    addVehicle: (vehicle: Omit<Vehicle, 'id' | 'created_at' | 'updated_at'>) => void;
+    updateVehicle: (vehicle: Vehicle) => void;
+    deleteVehicle: (id: number) => void;
+
+    addUser: (user: Omit<User, 'id'>) => void;
+    deleteUser: (id: string | number) => void;
+    clearAuditLog?: () => void;
+};
+
+const DataContext = createContext<DataContextValue | null>(null);
+
+const safeId = () => {
+    try {
+        return crypto.randomUUID();
+    } catch {
+        return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    }
+};
+
+const nowIso = () => new Date().toISOString();
+
+// Helpers for status history and audit generation
+function appendStatusHistory(prev: Booking, next: Booking, actor?: { id?: string | number; role?: string }) {
+    const statusChanged = prev.status !== next.status;
+
+    const status_history = statusChanged
+        ? [
+            ...(prev.status_history ?? []),
+            {
+                id: safeId(),
+                at: nowIso(),
+                from: prev.status ?? null,
+                to: next.status,
+                by: actor ? { id: actor.id, role: actor.role } : undefined,
+            } as BookingStatusEvent,
+        ]
+        : (prev.status_history ?? []);
+
+    return { statusChanged, status_history };
 }
 
-const DataContext = createContext<DataContextType | undefined>(undefined);
+function makeAuditForStatusChange(prev: Booking, next: Booking, actor?: { id?: string | number; role?: string }) {
+    const audit: AuditEvent = {
+        id: safeId(),
+        at: nowIso(),
+        actor: actor ? { id: actor.id, role: actor.role } : undefined,
+        action: 'booking.status.change',
+        entity: { type: 'booking', id: prev.id, ref: prev.booking_number },
+        meta: { from: prev.status, to: next.status },
+    } as AuditEvent;
 
-const STORAGE_KEY = 'hf_global_data_v1';
+    return audit;
+}
 
-// Initial User Data based on AuthContext's DEMO_USERS
-const initialUsers: User[] = [
-  {
-    id: "u1",
-    first_name: "Dispatch",
-    last_name: "Desk",
-    email: "dispatcher@heartfledge.local",
-    role: "dispatcher",
-    is_active: true,
-    email_verified: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: "u2",
-    first_name: "Ops",
-    last_name: "Manager",
-    email: "ops@heartfledge.local",
-    role: "ops_manager",
-    is_active: true,
-    email_verified: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: "u3",
-    first_name: "Finance",
-    last_name: "Desk",
-    email: "finance@heartfledge.local",
-    role: "finance",
-    is_active: true,
-    email_verified: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: "u4",
-    first_name: "System",
-    last_name: "Admin",
-    email: "admin@heartfledge.local",
-    role: "admin",
-    is_active: true,
-    email_verified: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: "101",
-    first_name: "Retail",
-    last_name: "Giant",
-    email: "customer@heartfledge.local",
-    role: "customer",
-    is_active: true,
-    email_verified: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-];
+function loadState() {
+    try {
+        const raw = window.localStorage.getItem(STORAGE_KEY);
+        if (!raw) return null;
+        return JSON.parse(raw);
+    } catch {
+        return null;
+    }
+}
 
 export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    // Initialize state from localStorage or fall back to mocks
-    const [data, setData] = useState(() => {
-        try {
-            const stored = window.localStorage.getItem(STORAGE_KEY);
-            if (stored) {
-                return JSON.parse(stored);
-            }
-        } catch (e) {
-            console.error("Failed to load data", e);
-        }
-        // Default initial state
-        return {
-            vehicles: mockVehicles,
-            bookings: mockBookings,
-            leads: mockLeads,
-            opportunities: mockOpportunities,
-            invoices: mockInvoices,
-            expenses: mockAllExpenses,
-            drivers: mockDrivers,
-            customers: mockCustomers,
-            maintenance: mockMaintenance, // Keeping these in state even if not explicitly exposed yet
-            vehicleExpenses: mockExpenses,
-            // Merge seeded app users with the driver user profiles so names/emails show up in the Drivers view
-            users: [...initialUsers, ...mockUsersForDrivers],
-        };
-    });
+    const { user } = useAuth();
 
-    // Persist to localStorage whenever data changes
+    const persisted = useMemo(() => loadState(), []);
+
+    const [vehicles, setVehicles] = useState<Vehicle[]>(persisted?.vehicles ?? []);
+    const [bookings, setBookings] = useState<Booking[]>(persisted?.bookings ?? []);
+    const [leads, setLeads] = useState<Lead[]>(persisted?.leads ?? []);
+    const [opportunities, setOpportunities] = useState<Opportunity[]>(persisted?.opportunities ?? []);
+    const [invoices, setInvoices] = useState<Invoice[]>(persisted?.invoices ?? []);
+    const [expenses, setExpenses] = useState<Expense[]>(persisted?.expenses ?? []);
+    const [drivers, setDrivers] = useState<Driver[]>(persisted?.drivers ?? []);
+    const [users, setUsers] = useState<User[]>(persisted?.users ?? []);
+    const [customers, setCustomers] = useState<Customer[]>(persisted?.customers ?? []);
+    const [auditLog, setAuditLog] = useState<AuditEvent[]>(persisted?.auditLog ?? []);
+
     useEffect(() => {
+        const payload = {
+            vehicles,
+            bookings,
+            leads,
+            opportunities,
+            invoices,
+            expenses,
+            drivers,
+            users,
+            customers,
+            auditLog,
+            savedAt: nowIso(),
+        };
+
         try {
-            window.localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-        } catch (e) {
-            console.error("Failed to save data", e);
+            window.localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+        } catch {
+            // ignore
         }
-    }, [data]);
+    }, [vehicles, bookings, leads, opportunities, invoices, expenses, drivers, users, customers, auditLog]);
 
-    // --- Action Handlers ---
-
-    const addBooking = (booking: Booking) => {
-        setData((prev: any) => ({ ...prev, bookings: [booking, ...prev.bookings] }));
+    const addAudit = (entry: Omit<AuditEvent, 'id' | 'at'>) => {
+        const full: AuditEvent = { id: safeId(), at: nowIso(), ...entry };
+        setAuditLog((prev) => [full, ...prev].slice(0, 500));
     };
 
-    const updateBooking = (updatedBooking: Booking) => {
-        setData((prev: any) => ({
-            ...prev,
-            bookings: prev.bookings.map((b: Booking) => b.id === updatedBooking.id ? updatedBooking : b)
-        }));
+    const clearAuditLog = () => setAuditLog([]);
+
+    const addBooking = (booking: Omit<Booking, 'id' | 'created_at' | 'updated_at'>) => {
+        const createdAt = nowIso();
+        const id = bookings.length ? Math.max(...bookings.map((b) => b.id)) + 1 : 1;
+
+        const statusChange: BookingStatusEvent = {
+            at: createdAt,
+            from: null,
+            to: booking.status,
+            by: user ? { id: user.id, name: (user as any).name, role: (user as any).role } : undefined,
+        };
+
+        const full: Booking = {
+            ...booking,
+            id,
+            created_at: createdAt,
+            updated_at: createdAt,
+            status_history: [statusChange],
+        } as Booking;
+
+        setBookings((prev) => [full, ...prev]);
+
+        addAudit({
+            actor: user ? { id: user.id, name: (user as any).name, role: (user as any).role } : undefined,
+            action: 'booking.status.change',
+            entity: { type: 'booking', id, ref: full.booking_number },
+            meta: { booking_number: full.booking_number },
+        });
     };
 
-    const addVehicle = (vehicle: Vehicle) => {
-        setData((prev: any) => ({ ...prev, vehicles: [vehicle, ...prev.vehicles] }));
+    const updateBooking = (updated: Booking) => {
+        setBookings((prev) => {
+            const existing = prev.find((b) => b.id === updated.id);
+            if (!existing) return prev;
+
+            const didStatusChange = existing.status !== updated.status;
+            const updatedAt = nowIso();
+
+            const next: Booking = { ...existing, ...updated, updated_at: updatedAt };
+
+            if (didStatusChange) {
+                const actor = user ? { id: user.id, role: (user as any).role } : undefined;
+
+                const { status_history } = appendStatusHistory(existing, updated, actor as any);
+                next.status_history = status_history;
+
+                // Add audit entry
+                const auditEntry = makeAuditForStatusChange(existing, updated, actor as any);
+                setAuditLog((prev) => [auditEntry, ...prev].slice(0, 500));
+
+                // set canonical timestamps for lifecycle events
+                if (updated.status === 'confirmed') next.confirmed_at = updatedAt;
+                if (updated.status === 'in_transit' || updated.status === 'dispatched') next.started_at = updatedAt;
+                if (updated.status === 'delivered') next.delivered_at = updatedAt;
+                if (updated.status === 'cancelled') next.cancelled_at = updatedAt;
+            }
+
+            return prev.map((b) => (b.id === updated.id ? next : b));
+        });
     };
 
-    const updateVehicle = (updatedVehicle: Vehicle) => {
-        setData((prev: any) => ({
-            ...prev,
-            vehicles: prev.vehicles.map((v: Vehicle) => v.id === updatedVehicle.id ? updatedVehicle : v)
-        }));
+    const addLead = (lead: Omit<Lead, 'id' | 'created_at' | 'updated_at'>) => {
+        const createdAt = nowIso();
+        const id = leads.length ? Math.max(...leads.map((l) => l.id)) + 1 : 1;
+        const full: Lead = { ...lead, id, created_at: createdAt, updated_at: createdAt } as Lead;
+        setLeads((prev) => [full, ...prev]);
     };
 
-    const deleteVehicle = (id: number) => {
-        setData((prev: any) => ({
-            ...prev,
-            vehicles: prev.vehicles.filter((v: Vehicle) => v.id !== id)
-        }));
+    const updateLead = (lead: Lead) => {
+        setLeads((prev) => prev.map((l) => (l.id === lead.id ? { ...l, ...lead, updated_at: nowIso() } : l)));
     };
 
-    const addLead = (lead: Lead) => {
-        setData((prev: any) => ({ ...prev, leads: [lead, ...prev.leads] }));
+    const deleteLead = (id: number) => setLeads((prev) => prev.filter((l) => l.id !== id));
+
+    const updateOpportunity = (opportunity: Opportunity) => {
+        setOpportunities((prev) => prev.map((o) => (o.id === opportunity.id ? { ...o, ...opportunity } : o)));
     };
 
-    const updateLead = (updatedLead: Lead) => {
-        setData((prev: any) => ({
-            ...prev,
-            leads: prev.leads.map((l: Lead) => l.id === updatedLead.id ? updatedLead : l)
-        }));
+    const addInvoice = (invoice: Omit<Invoice, 'id' | 'created_at' | 'updated_at'>) => {
+        const createdAt = nowIso();
+        const id = invoices.length ? Math.max(...invoices.map((i) => i.id)) + 1 : 1;
+        const full: Invoice = { ...invoice, id, created_at: createdAt, updated_at: createdAt } as Invoice;
+        setInvoices((prev) => [full, ...prev]);
     };
 
-    const deleteLead = (id: number) => {
-        setData((prev: any) => ({
-            ...prev,
-            leads: prev.leads.filter((l: Lead) => l.id !== id)
-        }));
+    const addExpense = (expense: Omit<Expense, 'id' | 'created_at' | 'updated_at'>) => {
+        const createdAt = nowIso();
+        const id = expenses.length ? Math.max(...expenses.map((e) => e.id)) + 1 : 1;
+        const full: Expense = { ...expense, id, created_at: createdAt, updated_at: createdAt } as Expense;
+        setExpenses((prev) => [full, ...prev]);
     };
 
-    const addOpportunity = (opp: Opportunity) => {
-        setData((prev: any) => ({ ...prev, opportunities: [opp, ...prev.opportunities] }));
-    };
-    
-    const updateOpportunity = (updatedOpp: Opportunity) => {
-        setData((prev: any) => ({
-            ...prev,
-            opportunities: prev.opportunities.map((o: Opportunity) => o.id === updatedOpp.id ? updatedOpp : o)
-        }));
-    }
-
-    const addInvoice = (invoice: Invoice) => {
-        setData((prev: any) => ({ ...prev, invoices: [invoice, ...prev.invoices] }));
+    const addVehicle = (vehicle: Omit<Vehicle, 'id' | 'created_at' | 'updated_at'>) => {
+        const createdAt = nowIso();
+        const id = vehicles.length ? Math.max(...vehicles.map((v) => v.id)) + 1 : 1;
+        const full: Vehicle = { ...vehicle, id, created_at: createdAt, updated_at: createdAt } as Vehicle;
+        setVehicles((prev) => [full, ...prev]);
     };
 
-    const addExpense = (expense: Expense) => {
-        setData((prev: any) => ({ ...prev, expenses: [expense, ...prev.expenses] }));
+    const updateVehicle = (vehicle: Vehicle) => {
+        setVehicles((prev) => prev.map((v) => (v.id === vehicle.id ? { ...v, ...vehicle, updated_at: nowIso() } : v)));
     };
 
-    const addDriver = (driver: Driver) => {
-        setData((prev: any) => ({ ...prev, drivers: [driver, ...prev.drivers] }));
+    const deleteVehicle = (id: number) => setVehicles((prev) => prev.filter((v) => v.id !== id));
+
+    const addUser = (u: Omit<User, 'id'>) => {
+        const id = safeId();
+        setUsers((prev) => [{ ...u, id }, ...prev]);
     };
 
-    const addUser = (user: User) => {
-        setData((prev: any) => ({ ...prev, users: [user, ...(prev.users || [])] }));
-    };
+    const deleteUser = (id: string | number) => setUsers((prev) => prev.filter((u) => u.id !== id));
 
-    const deleteUser = (id: number | string) => {
-        setData((prev: any) => ({
-            ...prev,
-            users: (prev.users || []).filter((u: User) => u.id !== id)
-        }));
-    };
+    const value: DataContextValue = {
+        vehicles,
+        bookings,
+        leads,
+        opportunities,
+        invoices,
+        expenses,
+        drivers,
+        users,
+        customers,
+        auditLog,
 
-    const resetData = () => {
-        localStorage.removeItem(STORAGE_KEY);
-        window.location.reload();
-    };
-
-    const value: DataContextType = {
-        vehicles: data.vehicles,
-        bookings: data.bookings,
-        leads: data.leads,
-        opportunities: data.opportunities,
-        invoices: data.invoices,
-        expenses: data.expenses,
-        drivers: data.drivers,
-        customers: data.customers,
-        users: data.users || initialUsers,
         addBooking,
         updateBooking,
-        addVehicle,
-        updateVehicle,
-        deleteVehicle,
+
         addLead,
         updateLead,
         deleteLead,
-        addOpportunity,
+
         updateOpportunity,
+
         addInvoice,
         addExpense,
-        addDriver,
+
+        addVehicle,
+        updateVehicle,
+        deleteVehicle,
+
         addUser,
         deleteUser,
-        resetData
+        clearAuditLog,
     };
 
     return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
 };
 
 export const useData = () => {
-    const context = useContext(DataContext);
-    if (context === undefined) {
-        throw new Error('useData must be used within a DataProvider');
-    }
-    return context;
+    const ctx = useContext(DataContext);
+    if (!ctx) throw new Error('useData must be used inside DataProvider');
+    return ctx;
 };

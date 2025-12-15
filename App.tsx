@@ -84,8 +84,45 @@ const AuthedApp: React.FC = () => {
     analytics: ['admin', 'ops_manager'],
     financials: ['admin', 'finance', 'ops_manager', 'customer'],
     reports: ['admin', 'finance', 'ops_manager'],
-    settings: ['admin'],
+    settings: ['admin', 'ops_manager', 'finance'],
   };
+
+  // Integrate axe-core in development to catch accessibility regressions early
+  // This runs only in dev and avoids bundling in production
+  if ((import.meta as any).env?.DEV && typeof window !== 'undefined') {
+    (async () => {
+      try {
+        const axe = await import('axe-core');
+        // Run a single pass and log violations to console in development
+        // eslint-disable-next-line no-console
+        axe.run(document, {}, (err: any, results: any) => {
+          if (err) {
+            // eslint-disable-next-line no-console
+            console.warn('axe error:', err);
+            return;
+          }
+          if (results.violations && results.violations.length) {
+            // eslint-disable-next-line no-console
+            console.groupCollapsed('Axe accessibility violations (development)');
+            // eslint-disable-next-line no-console
+            console.table(results.violations.map((v: any) => ({ id: v.id, impact: v.impact, nodes: v.nodes.length, help: v.help }))); 
+            results.violations.forEach((v: any) => {
+              // eslint-disable-next-line no-console
+              console.log(v);
+            });
+            // eslint-disable-next-line no-console
+            console.groupEnd();
+          } else {
+            // eslint-disable-next-line no-console
+            console.info('Axe: no accessibility violations detected (dev run)');
+          }
+        });
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.warn('axe-core failed to run:', err);
+      }
+    })();
+  }
 
   // Redirect to dashboard if user logs in or permissions change/fail
   useEffect(() => {

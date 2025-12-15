@@ -14,24 +14,26 @@ const ToggleSwitch: React.FC<{
 }> = ({ label, description, enabled, onChange }) => {
   return (
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-      <span className="flex-grow flex flex-col">
+    <span className="grow flex flex-col">
         <span className="text-sm font-medium text-gray-900">{label}</span>
         <span className="text-sm text-gray-500">{description}</span>
       </span>
-      <button
-        type="button"
-        className={`${
-          enabled ? 'bg-orange-600' : 'bg-gray-200'
-        } relative inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 flex-shrink-0`}
-        role="switch"
-        aria-checked={enabled}
-        onClick={() => onChange(!enabled)}
-      >
-        <span
-          className={`${
-            enabled ? 'translate-x-6' : 'translate-x-1'
-          } inline-block w-4 h-4 transform bg-white rounded-full transition-transform`}
-        />
+            <button
+                type="button"
+                className={`${
+                    enabled ? 'bg-orange-600' : 'bg-gray-200'
+                } relative inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 shrink-0`}
+                role="switch"
+                aria-checked={enabled ? 'true' : 'false'}
+                aria-label={label}
+                title={label}
+                onClick={() => onChange(!enabled)}
+            >
+                        <span
+                            className={`${
+                                enabled ? 'translate-x-6' : 'translate-x-1'
+                            } inline-block w-4 h-4 transform bg-white rounded-full transition-transform`}
+                        />
       </button>
     </div>
   );

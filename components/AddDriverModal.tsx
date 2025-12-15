@@ -1,151 +1,228 @@
 
-import React, { useState } from 'react';
-import { Driver, User, EmploymentStatus } from '../types';
-import { CloseIcon, UserCircleIcon, ClipboardDocumentIcon, BriefcaseIcon, PhoneIcon, CalendarDaysIcon, EnvelopeIcon } from './icons/Icons';
+import React, { useMemo, useState } from "react";
+import { Driver, EmploymentStatus, User } from "../types";
+import { Button, Input, ModalShell, Select, SubtleCard, Textarea } from "./UiKit_new";
+
+type NewDriver = Omit<Driver, "id" | "created_at" | "updated_at" | "user_id"> & {
+    user: Omit<User, "id" | "created_at" | "updated_at" | "role" | "email_verified">;
+};
 
 interface AddDriverModalProps {
-  onClose: () => void;
-  onAddDriver: (driverData: Omit<Driver, 'id' | 'created_at' | 'updated_at' | 'user_id'> & { user: Omit<User, 'id' | 'created_at' | 'updated_at' | 'role' | 'email_verified'>}) => void;
+    onClose: () => void;
+    onAddDriver: (driverData: NewDriver) => void;
 }
 
+const toTitle = (s: string) =>
+    s
+        .replaceAll("_", " ")
+        .replace(/\b\w/g, (m) => m.toUpperCase());
+
 const AddDriverModal: React.FC<AddDriverModalProps> = ({ onClose, onAddDriver }) => {
-    // Pre-filled demo data
-    const [formData, setFormData] = useState({
-        first_name: 'Blessing',
-        last_name: 'Chikwama',
-        email: 'blessing.c@heartfledge.local',
-        phone: '+263 77 111 2222',
-        license_number: '77889900-B',
-        license_type: 'Class 2 (HGV)',
-        license_expiry_date: '2026-11-30',
-        date_of_birth: '1988-04-12',
-        hire_date: '2024-01-15',
+    const [error, setError] = useState<string>("");
+
+    const [form, setForm] = useState({
+        first_name: "Blessing",
+        last_name: "Chikwama",
+        email: "blessing.c@heartfledge.local",
+        phone: "+263 77 111 2222",
+
+        license_number: "77889900-B",
+        license_type: "Class 2 (HGV)",
+        license_expiry_date: "2026-11-30",
+        date_of_birth: "1988-04-12",
+        hire_date: "2024-01-15",
         employment_status: EmploymentStatus.ACTIVE,
+
+        national_id: "",
+        emergency_contact_name: "",
+        emergency_contact_phone: "",
+        address: "",
+        city: "",
+        country: "",
+        notes: "",
     });
-    const [error, setError] = useState('');
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
-    };
+    const statusOptions = useMemo(() => Object.values(EmploymentStatus), []);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
+        setForm((p) => ({ ...p, [k]: e.target.value }));
+
+    const submit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (!formData.first_name || !formData.last_name || !formData.license_number || !formData.license_expiry_date || !formData.date_of_birth) {
-            setError('Please fill out all required fields (*).');
-            return;
-        }
-        setError('');
-        const { first_name, last_name, email, phone, ...driverData } = formData;
-        onAddDriver({
-            ...driverData,
-            user: { first_name, last_name, email, phone, is_active: true },
-        });
+        setError("");
+
+        if (!form.first_name.trim()) return setError("First name is required.");
+        if (!form.last_name.trim()) return setError("Last name is required.");
+        if (!form.email.trim()) return setError("Email is required.");
+        if (!form.license_number.trim()) return setError("License number is required.");
+        if (!form.license_expiry_date.trim()) return setError("License expiry date is required.");
+        if (!form.hire_date.trim()) return setError("Hire date is required.");
+
+        const payload: NewDriver = {
+            user: {
+                email: form.email.trim(),
+                first_name: form.first_name.trim(),
+                last_name: form.last_name.trim(),
+                phone: form.phone.trim() || undefined,
+                avatar_url: undefined,
+                is_active: true,
+            },
+
+            license_number: form.license_number.trim(),
+            license_type: form.license_type.trim(),
+            license_expiry_date: form.license_expiry_date,
+            date_of_birth: form.date_of_birth,
+            hire_date: form.hire_date,
+            employment_status: form.employment_status,
+
+            national_id: form.national_id.trim() || undefined,
+            emergency_contact_name: form.emergency_contact_name.trim() || undefined,
+            emergency_contact_phone: form.emergency_contact_phone.trim() || undefined,
+            address: form.address.trim() || undefined,
+            city: form.city.trim() || undefined,
+            country: form.country.trim() || undefined,
+            notes: form.notes.trim() || undefined,
+
+            medical_certificate_expiry: undefined,
+            background_check_date: undefined,
+            background_check_status: undefined,
+            rating: undefined,
+            total_deliveries: undefined,
+        };
+
+        onAddDriver(payload);
+        onClose();
     };
 
     return (
-    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex justify-center md:pl-64 items-center p-4 animate-in fade-in duration-200" onClick={onClose}>
-        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl flex flex-col max-h-[90vh] border border-slate-200 overflow-hidden animate-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
-            <header className="flex justify-between items-center px-6 py-4 border-b border-slate-100 bg-slate-50/50 rounded-t-2xl">
-                <div>
-                    <h2 className="text-lg font-bold text-slate-900">Add New Driver</h2>
-                    <p className="text-xs text-slate-500 mt-0.5">Register a new driver profile</p>
+        <ModalShell
+            isOpen={true}
+            title="Add driver"
+            description="Create a driver profile (and the linked user account)."
+            onClose={onClose}
+            maxWidthClass="max-w-3xl"
+            footer={
+                <div className="flex items-center justify-end gap-2">
+                    <Button variant="secondary" type="button" onClick={onClose}>
+                        Cancel
+                    </Button>
+                    <Button variant="primary" type="submit" form="add-driver-form">
+                        Save driver
+                    </Button>
                 </div>
-                <button onClick={onClose} className="p-2 rounded-full hover:bg-slate-200/60 text-slate-500 transition-colors">
-                    <CloseIcon className="w-5 h-5" />
-                </button>
-            </header>
-            
-            <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto custom-scrollbar">
-                <main className="p-6 space-y-8">
-                    
-                    {/* Personal Information */}
-                    <div className="space-y-4">
-                        <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
-                            <UserCircleIcon className="w-4 h-4" />
-                            Personal Details
-                        </h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-xs font-medium text-slate-700 mb-1">First Name*</label>
-                                <input type="text" name="first_name" value={formData.first_name} onChange={handleChange} className="block w-full rounded-lg border-slate-400 bg-slate-50 text-sm focus:border-orange-500 focus:ring-orange-500 transition-colors" />
-                            </div>
-                            <div>
-                                <label className="block text-xs font-medium text-slate-700 mb-1">Last Name*</label>
-                                <input type="text" name="last_name" value={formData.last_name} onChange={handleChange} className="block w-full rounded-lg border-slate-400 bg-slate-50 text-sm focus:border-orange-500 focus:ring-orange-500 transition-colors" />
-                            </div>
-                            <div>
-                                <label className="block text-xs font-medium text-slate-700 mb-1">Email</label>
-                                <div className="relative">
-                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <EnvelopeIcon className="h-4 w-4 text-slate-400" />
-                                    </div>
-                                    <input type="email" name="email" value={formData.email} onChange={handleChange} className="block w-full rounded-lg border-slate-400 bg-slate-50 pl-9 text-sm focus:border-orange-500 focus:ring-orange-500 transition-colors" />
-                                </div>
-                            </div>
-                             <div>
-                                <label className="block text-xs font-medium text-slate-700 mb-1">Phone</label>
-                                <div className="relative">
-                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <PhoneIcon className="h-4 w-4 text-slate-400" />
-                                    </div>
-                                    <input type="tel" name="phone" value={formData.phone} onChange={handleChange} className="block w-full rounded-lg border-slate-400 bg-slate-50 pl-9 text-sm focus:border-orange-500 focus:ring-orange-500 transition-colors" />
-                                </div>
-                            </div>
-                             <div className="md:col-span-2">
-                                <label className="block text-xs font-medium text-slate-700 mb-1">Date of Birth*</label>
-                                <div className="relative">
-                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <CalendarDaysIcon className="h-4 w-4 text-slate-400" />
-                                    </div>
-                                    <input type="date" name="date_of_birth" value={formData.date_of_birth} onChange={handleChange} className="block w-full rounded-lg border-slate-400 bg-slate-50 pl-9 text-sm focus:border-orange-500 focus:ring-orange-500 transition-colors text-slate-600" />
-                                </div>
-                            </div>
+            }
+        >
+            <form id="add-driver-form" onSubmit={submit} className="space-y-4">
+                {error ? (
+                    <div className="rounded-xl border border-danger-600/30 bg-danger-600/10 px-3 py-2 text-sm text-foreground">
+                        {error}
+                    </div>
+                ) : null}
+
+                <SubtleCard className="p-4">
+                    <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+                        <div>
+                            <label className="mb-1 block text-xs font-medium text-muted-foreground">First name</label>
+                            <Input value={form.first_name} onChange={set("first_name")} />
+                        </div>
+
+                        <div>
+                            <label className="mb-1 block text-xs font-medium text-muted-foreground">Last name</label>
+                            <Input value={form.last_name} onChange={set("last_name")} />
+                        </div>
+
+                        <div>
+                            <label className="mb-1 block text-xs font-medium text-muted-foreground">Phone</label>
+                            <Input value={form.phone} onChange={set("phone")} placeholder="Optional" />
+                        </div>
+
+                        <div className="md:col-span-2">
+                            <label className="mb-1 block text-xs font-medium text-muted-foreground">Email</label>
+                            <Input value={form.email} onChange={set("email")} />
+                        </div>
+
+                        <div>
+                            <label className="mb-1 block text-xs font-medium text-muted-foreground">Employment status</label>
+                            <Select value={form.employment_status} onChange={set("employment_status")}>
+                                {statusOptions.map((v) => (
+                                    <option key={v} value={v}>
+                                        {toTitle(String(v))}
+                                    </option>
+                                ))}
+                            </Select>
                         </div>
                     </div>
+                </SubtleCard>
 
-                    {/* Professional Info Panel */}
-                    <div className="space-y-4">
-                        <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
-                            <ClipboardDocumentIcon className="w-4 h-4" />
-                            Compliance & Employment
-                        </h3>
-                        <div className="bg-slate-50 rounded-xl p-5 border border-slate-200 grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-xs font-medium text-slate-700 mb-1">License Number*</label>
-                                <input type="text" name="license_number" value={formData.license_number} onChange={handleChange} className="block w-full rounded-lg border-slate-400 bg-slate-50 text-sm focus:border-orange-500 focus:ring-orange-500" />
-                            </div>
-                             <div>
-                                <label className="block text-xs font-medium text-slate-700 mb-1">License Type</label>
-                                <input type="text" name="license_type" value={formData.license_type} onChange={handleChange} className="block w-full rounded-lg border-slate-400 bg-slate-50 text-sm focus:border-orange-500 focus:ring-orange-500" />
-                            </div>
-                            <div>
-                                <label className="block text-xs font-medium text-slate-700 mb-1">License Expiry Date*</label>
-                                <input type="date" name="license_expiry_date" value={formData.license_expiry_date} onChange={handleChange} className="block w-full rounded-lg border-slate-400 bg-slate-50 text-sm focus:border-orange-500 focus:ring-orange-500 text-slate-600" />
-                            </div>
-                             <div>
-                                <label className="block text-xs font-medium text-slate-700 mb-1 flex items-center gap-1"><BriefcaseIcon className="w-3 h-3"/> Hire Date</label>
-                                <input type="date" name="hire_date" value={formData.hire_date} onChange={handleChange} className="block w-full rounded-lg border-slate-400 bg-slate-50 text-sm focus:border-orange-500 focus:ring-orange-500 text-slate-600" />
-                            </div>
-                             <div className="md:col-span-2">
-                                <label className="block text-xs font-medium text-slate-700 mb-1">Employment Status</label>
-                                <select name="employment_status" value={formData.employment_status} onChange={handleChange} className="block w-full rounded-lg border-slate-200 text-sm focus:border-orange-500 focus:ring-orange-500 capitalize bg-white">
-                                    {Object.values(EmploymentStatus).map(s => <option key={s} value={s}>{s.replace('_', ' ')}</option>)}
-                                </select>
-                            </div>
+                <SubtleCard className="p-4">
+                    <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+                        <div>
+                            <label className="mb-1 block text-xs font-medium text-muted-foreground">License number</label>
+                            <Input value={form.license_number} onChange={set("license_number")} />
+                        </div>
+
+                        <div>
+                            <label className="mb-1 block text-xs font-medium text-muted-foreground">License type</label>
+                            <Input value={form.license_type} onChange={set("license_type")} />
+                        </div>
+
+                        <div>
+                            <label className="mb-1 block text-xs font-medium text-muted-foreground">License expiry</label>
+                            <Input type="date" value={form.license_expiry_date} onChange={set("license_expiry_date")} />
+                        </div>
+
+                        <div>
+                            <label className="mb-1 block text-xs font-medium text-muted-foreground">Date of birth</label>
+                            <Input type="date" value={form.date_of_birth} onChange={set("date_of_birth")} />
+                        </div>
+
+                        <div>
+                            <label className="mb-1 block text-xs font-medium text-muted-foreground">Hire date</label>
+                            <Input type="date" value={form.hire_date} onChange={set("hire_date")} />
+                        </div>
+
+                        <div>
+                            <label className="mb-1 block text-xs font-medium text-muted-foreground">National ID</label>
+                            <Input value={form.national_id} onChange={set("national_id")} placeholder="Optional" />
                         </div>
                     </div>
+                </SubtleCard>
 
-                    {error && <p className="text-red-600 text-sm text-center bg-red-50 py-2 rounded-lg border border-red-100">{error}</p>}
-                </main>
-                
-                <footer className="px-6 py-4 border-t border-slate-100 bg-slate-50/50 rounded-b-2xl flex justify-end gap-3">
-                    <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg border border-slate-200 bg-white text-slate-700 text-sm font-medium hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-200 transition-colors">Cancel</button>
-                    <button type="submit" className="px-6 py-2 rounded-lg bg-orange-500 text-white text-sm font-semibold hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 shadow-sm shadow-orange-200 transition-all">Add Driver</button>
-                </footer>
+                <SubtleCard className="p-4">
+                    <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+                        <div>
+                            <label className="mb-1 block text-xs font-medium text-muted-foreground">Emergency contact name</label>
+                            <Input value={form.emergency_contact_name} onChange={set("emergency_contact_name")} placeholder="Optional" />
+                        </div>
+
+                        <div>
+                            <label className="mb-1 block text-xs font-medium text-muted-foreground">Emergency contact phone</label>
+                            <Input value={form.emergency_contact_phone} onChange={set("emergency_contact_phone")} placeholder="Optional" />
+                        </div>
+
+                        <div className="md:col-span-3">
+                            <label className="mb-1 block text-xs font-medium text-muted-foreground">Address</label>
+                            <Input value={form.address} onChange={set("address")} placeholder="Optional" />
+                        </div>
+
+                        <div>
+                            <label className="mb-1 block text-xs font-medium text-muted-foreground">City</label>
+                            <Input value={form.city} onChange={set("city")} placeholder="Optional" />
+                        </div>
+
+                        <div>
+                            <label className="mb-1 block text-xs font-medium text-muted-foreground">Country</label>
+                            <Input value={form.country} onChange={set("country")} placeholder="Optional" />
+                        </div>
+
+                        <div className="md:col-span-3">
+                            <label className="mb-1 block text-xs font-medium text-muted-foreground">Notes</label>
+                            <Textarea value={form.notes} onChange={set("notes")} rows={3} placeholder="Optional" />
+                        </div>
+                    </div>
+                </SubtleCard>
             </form>
-        </div>
-    </div>
+        </ModalShell>
     );
 };
 

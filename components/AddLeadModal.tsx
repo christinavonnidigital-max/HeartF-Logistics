@@ -1,7 +1,16 @@
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Lead, LeadSource, LeadStatus, CompanySize, Industry } from '../types';
-import { CloseIcon, UserCircleIcon, BriefcaseIcon, EnvelopeIcon, PhoneIcon, DocumentTextIcon, MapPinIcon, GlobeIcon } from './icons/Icons';
+import {
+    UserCircleIcon,
+    BriefcaseIcon,
+    EnvelopeIcon,
+    PhoneIcon,
+    DocumentTextIcon,
+    MapPinIcon,
+    GlobeIcon,
+} from './icons';
+import { ModalShell, Button, Input, Textarea, Select, SubtleCard, SectionHeader, Label } from './UiKit';
 
 interface AddLeadModalProps {
   onClose: () => void;
@@ -9,23 +18,23 @@ interface AddLeadModalProps {
 }
 
 const AddLeadModal: React.FC<AddLeadModalProps> = ({ onClose, onAddLead }) => {
-    // Pre-filled fake data for demo purposes
     const [formData, setFormData] = useState({
         first_name: 'Sarah',
-        last_name: 'Connor',
-        email: 'sarah.c@techflow.co.zw',
-        phone: '+263 77 889 9000',
-        company_name: 'TechFlow Logistics',
-        lead_source: LeadSource.REFERRAL,
+        last_name: 'Moyo',
+        email: 'sarah.moyo@zimsupply.co.zw',
+        phone: '+263 77 123 4567',
+        company_name: 'ZimSupply Wholesale',
+        lead_source: LeadSource.WEBSITE,
         lead_status: LeadStatus.NEW,
         company_size: CompanySize.MEDIUM,
-        industry: Industry.MANUFACTURING,
-        position: 'Supply Chain Director',
-        website: 'https://techflow.co.zw',
-        address: '42 Industrial Ave',
+        industry: Industry.RETAIL,
+        position: 'Procurement Manager',
+        website: 'https://zimsupply.co.zw',
+        address: '12 Simon Mazorodze Rd',
         city: 'Harare',
         country: 'Zimbabwe',
-        logistics_needs: 'Looking for a reliable partner for cross-border shipments to Zambia. Approx 4 truckloads per week.',
+        logistics_needs:
+            'Weekly FMCG distribution between Harare, Gweru and Bulawayo. Need palletized freight and occasional cold chain.',
     });
     const [error, setError] = useState('');
 
@@ -44,139 +53,124 @@ const AddLeadModal: React.FC<AddLeadModalProps> = ({ onClose, onAddLead }) => {
         onAddLead(formData);
     };
 
-    return (
-    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex justify-center md:pl-64 items-center p-4 animate-in fade-in duration-200" onClick={onClose}>
-        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl flex flex-col max-h-[90vh] border border-slate-200 overflow-hidden animate-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
-            <header className="flex justify-between items-center px-6 py-4 border-b border-slate-100 bg-slate-50/50 rounded-t-2xl flex-shrink-0">
-                <div>
-                    <h2 className="text-lg font-bold text-slate-900">Add New Lead</h2>
-                    <p className="text-xs text-slate-500 mt-0.5">Capture prospect details for the pipeline</p>
-                </div>
-                <button onClick={onClose} className="p-2 rounded-full hover:bg-slate-200/60 text-slate-500 transition-colors">
-                    <CloseIcon className="w-5 h-5" />
-                </button>
-            </header>
-            
-            <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto custom-scrollbar">
-                <main className="p-6 space-y-8">
+        return (
+            <ModalShell
+                isOpen={true}
+                onClose={onClose}
+                title="Add New Lead"
+                description="Capture prospect details for the pipeline"
+                icon={<UserCircleIcon className="w-5 h-5 text-brand-600" />}
+                maxWidthClass="max-w-3xl"
+                footer={(
+                    <>
+                        <Button variant="ghost" onClick={onClose}>Cancel</Button>
+                        <Button variant="primary" type="submit" form="add-lead-form">Add Lead</Button>
+                    </>
+                )}
+            >
+                <form id="add-lead-form" onSubmit={handleSubmit} className="flex-1 overflow-y-auto custom-scrollbar">
+                    <main className="p-6 space-y-8">
                     
-                    {/* Contact Info */}
+                    <SectionHeader title="Contact Information" actions={<UserCircleIcon className="w-4 h-4" />} />
                     <div className="space-y-4">
-                        <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
-                            <UserCircleIcon className="w-4 h-4" />
-                            Contact Information
-                        </h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-xs font-medium text-slate-700 mb-1">First Name*</label>
-                                <input type="text" name="first_name" value={formData.first_name} onChange={handleChange} className="block w-full rounded-lg border-slate-400 bg-slate-50 focus:bg-white text-sm focus:border-orange-500 focus:ring-orange-500 transition-colors" placeholder="Jane" />
+                                <Label>First Name*</Label>
+                                <Input type="text" name="first_name" value={formData.first_name} onChange={handleChange} className="" placeholder="Jane" />
                             </div>
                             <div>
-                                <label className="block text-xs font-medium text-slate-700 mb-1">Last Name</label>
-                                <input type="text" name="last_name" value={formData.last_name} onChange={handleChange} className="block w-full rounded-lg border-slate-400 bg-slate-50 focus:bg-white text-sm focus:border-orange-500 focus:ring-orange-500 transition-colors" placeholder="Doe" />
+                                <Label>Last Name</Label>
+                                <Input type="text" name="last_name" value={formData.last_name} onChange={handleChange} placeholder="Doe" />
                             </div>
                             <div>
-                                <label className="block text-xs font-medium text-slate-700 mb-1">Email*</label>
+                                <Label>Email*</Label>
                                 <div className="relative">
                                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <EnvelopeIcon className="h-4 w-4 text-slate-400" />
+                                        <EnvelopeIcon className="h-4 w-4 text-foreground-muted" />
                                     </div>
-                                    <input type="email" name="email" value={formData.email} onChange={handleChange} className="block w-full rounded-lg border-slate-400 bg-slate-50 pl-9 focus:bg-white text-sm focus:border-orange-500 focus:ring-orange-500 transition-colors" placeholder="jane@company.com" />
+                                    <Input type="email" name="email" value={formData.email} onChange={handleChange} className="pl-9" placeholder="jane@company.com" />
                                 </div>
                             </div>
                             <div>
-                                <label className="block text-xs font-medium text-slate-700 mb-1">Phone</label>
+                                <Label>Phone</Label>
                                 <div className="relative">
                                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <PhoneIcon className="h-4 w-4 text-slate-400" />
+                                        <PhoneIcon className="h-4 w-4 text-foreground-muted" />
                                     </div>
-                                    <input type="tel" name="phone" value={formData.phone} onChange={handleChange} className="block w-full rounded-lg border-slate-200 bg-slate-50 pl-9 focus:bg-white text-sm focus:border-orange-500 focus:ring-orange-500 transition-colors" placeholder="+263..." />
+                                    <Input type="tel" name="phone" value={formData.phone} onChange={handleChange} className="pl-9" placeholder="+263..." />
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    {/* Company Info Panel */}
+                    <SectionHeader title="Company Details" actions={<BriefcaseIcon className="w-4 h-4" />} />
                     <div className="space-y-4">
-                        <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
-                            <BriefcaseIcon className="w-4 h-4" />
-                            Company Details
-                        </h3>
-                        <div className="bg-slate-50 rounded-xl p-5 border border-slate-200 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <SubtleCard className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="md:col-span-2">
-                                <label className="block text-xs font-medium text-slate-700 mb-1">Company Name*</label>
-                                <input type="text" name="company_name" value={formData.company_name} onChange={handleChange} className="block w-full rounded-lg border-slate-200 text-sm focus:border-orange-500 focus:ring-orange-500" placeholder="Acme Logistics" />
+                                <Label>Company Name*</Label>
+                                <Input type="text" name="company_name" value={formData.company_name} onChange={handleChange} placeholder="Acme Logistics" />
                             </div>
                             <div>
-                                <label className="block text-xs font-medium text-slate-700 mb-1">Industry</label>
-                                <select name="industry" value={formData.industry} onChange={handleChange} className="block w-full rounded-lg border-slate-200 text-sm focus:border-orange-500 focus:ring-orange-500 capitalize bg-white">
+                                <Label>Industry</Label>
+                                <Select name="industry" value={formData.industry} onChange={handleChange} className="capitalize">
                                     {Object.values(Industry).map(i => <option key={i} value={i}>{i.replace(/_/g, ' ')}</option>)}
-                                </select>
+                                </Select>
                             </div>
                             <div>
-                                <label className="block text-xs font-medium text-slate-700 mb-1">Company Size</label>
-                                <select name="company_size" value={formData.company_size} onChange={handleChange} className="block w-full rounded-lg border-slate-200 text-sm focus:border-orange-500 focus:ring-orange-500 capitalize bg-white">
+                                <Label>Company Size</Label>
+                                <Select name="company_size" value={formData.company_size} onChange={handleChange} className="capitalize">
                                     {Object.values(CompanySize).map(s => <option key={s} value={s}>{s.replace(/_/g, ' ')}</option>)}
-                                </select>
+                                </Select>
                             </div>
                             <div className="md:col-span-2">
-                                <label className="block text-xs font-medium text-slate-700 mb-1">Website</label>
+                                <Label>Website</Label>
                                 <div className="relative">
                                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <GlobeIcon className="h-4 w-4 text-slate-400" />
+                                        <GlobeIcon className="h-4 w-4 text-foreground-muted" />
                                     </div>
-                                    <input type="url" name="website" value={formData.website} onChange={handleChange} className="block w-full rounded-lg border-slate-200 pl-9 text-sm focus:border-orange-500 focus:ring-orange-500" placeholder="https://company.com" />
+                                    <Input type="url" name="website" value={formData.website} onChange={handleChange} className="pl-9" placeholder="https://company.com" />
                                 </div>
                             </div>
                             <div className="md:col-span-2">
-                                <label className="block text-xs font-medium text-slate-700 mb-1">Location</label>
+                                <Label>Location</Label>
                                 <div className="grid grid-cols-2 gap-2">
                                     <div className="relative">
                                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                            <MapPinIcon className="h-4 w-4 text-slate-400" />
+                                            <MapPinIcon className="h-4 w-4 text-foreground-muted" />
                                         </div>
-                                        <input type="text" name="city" value={formData.city} onChange={handleChange} className="block w-full rounded-lg border-slate-200 pl-9 text-sm focus:border-orange-500 focus:ring-orange-500" placeholder="City" />
+                                            <Input type="text" name="city" value={formData.city} onChange={handleChange} className="pl-9" placeholder="City" />
                                     </div>
-                                    <input type="text" name="country" value={formData.country} onChange={handleChange} className="block w-full rounded-lg border-slate-200 text-sm focus:border-orange-500 focus:ring-orange-500" placeholder="Country" />
+                                        <Input type="text" name="country" value={formData.country} onChange={handleChange} placeholder="Country" />
                                 </div>
                             </div>
-                        </div>
+                        </SubtleCard>
                     </div>
 
-                    {/* Context Panel */}
+                    <SectionHeader title="Lead Context" actions={<DocumentTextIcon className="w-4 h-4" />} />
                     <div className="space-y-4">
-                        <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
-                            <DocumentTextIcon className="w-4 h-4" />
-                            Lead Context
-                        </h3>
-                        <div className="bg-slate-50 rounded-xl p-5 border border-slate-200 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <SubtleCard className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-xs font-medium text-slate-700 mb-1">Lead Source</label>
-                                <select name="lead_source" value={formData.lead_source} onChange={handleChange} className="block w-full rounded-lg border-slate-200 text-sm focus:border-orange-500 focus:ring-orange-500 capitalize bg-white">
+                                <Label>Lead Source</Label>
+                                <Select name="lead_source" value={formData.lead_source} onChange={handleChange} className="capitalize">
                                     {Object.values(LeadSource).map(s => <option key={s} value={s}>{s.replace(/_/g, ' ')}</option>)}
-                                </select>
+                                </Select>
                             </div>
                              <div>
-                                <label className="block text-xs font-medium text-slate-700 mb-1">Position</label>
-                                <input type="text" name="position" value={formData.position} onChange={handleChange} placeholder="e.g. Logistics Manager" className="block w-full rounded-lg border-slate-200 text-sm focus:border-orange-500 focus:ring-orange-500" />
+                                <Label>Position</Label>
+                                <Input type="text" name="position" value={formData.position} onChange={handleChange} placeholder="e.g. Logistics Manager" />
                             </div>
                             <div className="md:col-span-2">
-                                <label className="block text-xs font-medium text-slate-700 mb-1">Logistics Needs / Notes</label>
-                                <textarea name="logistics_needs" value={formData.logistics_needs} onChange={handleChange} rows={3} className="block w-full rounded-lg border-slate-200 text-sm focus:border-orange-500 focus:ring-orange-500 resize-none" placeholder="Describe their shipping requirements..." />
+                                <Label>Logistics Needs / Notes</Label>
+                                <Textarea name="logistics_needs" value={formData.logistics_needs} onChange={handleChange} rows={3} placeholder="Describe their shipping requirements..." />
                             </div>
-                        </div>
+                        </SubtleCard>
                     </div>
 
-                    {error && <div className="bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-lg text-sm text-center font-medium">{error}</div>}
+                    {error && <div className="bg-danger-600/10 border border-danger-600/20 text-danger-600 px-4 py-3 rounded-lg text-sm text-center font-medium">{error}</div>}
                 </main>
                 
-                <footer className="px-6 py-4 border-t border-slate-100 bg-slate-50/50 rounded-b-2xl flex justify-end gap-3 flex-shrink-0">
-                    <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg border border-slate-200 bg-white text-slate-700 text-sm font-medium hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-200 transition-colors">Cancel</button>
-                    <button type="submit" className="px-6 py-2 rounded-lg bg-orange-500 text-white text-sm font-semibold hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 shadow-sm shadow-orange-200 transition-all">Add Lead</button>
-                </footer>
-            </form>
-        </div>
-    </div>
+                </form>
+            </ModalShell>
     );
 };
 

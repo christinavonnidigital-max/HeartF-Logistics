@@ -1,29 +1,84 @@
-name: CI — build
+name: CI
 
 on:
+  pull_request:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      axe_fail_severity:
+        description: "Axe threshold to fail on (minor|moderate|serious|critical or 1-4)"
+        required: false
+        default: 'critical'
 
 jobs:
-  build:
-    name: Install & build
+  typecheck:
+    name: Type check
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Use Node.js 20
-        uses: actions/setup-node@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
         with:
-          node-version: '20'
+          node-version: '18'
           cache: 'npm'
-
       - name: Install dependencies
         run: npm ci
+      - name: Type check
+        run: npx tsc --noEmit
 
+  e2e:
+    name: Playwright E2E
+    runs-on: ubuntu-latest
+    needs: typecheck
+    env:
+      AXE_FAIL_SEVERITY: ${{ github.event.inputs.axe_fail_severity || 'critical' }}
+    strategy:
+      matrix:
+        browser: [chromium, webkit]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '18'
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm ci
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+      - name: Start dev server
+        run: npm run dev &
+      - name: Wait for dev server
+        uses: jakejarvis/wait-action@v0.1.18
+        with:
+          url: http://localhost:4002
+          timeout: 60
+      - name: Run Playwright tests for matrix browser (with traces)
+        run: npx playwright test --project=${{ matrix.browser }} --reporter=list --trace on
+
+      - name: Upload Playwright traces & artifacts on failure
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-artifacts-${{ matrix.browser }}
+          path: |
+            playwright-report
+            test-results
+            axe-violations.json
+
+  build:
+    name: Optional: Build
+    runs-on: ubuntu-latest
+    needs: typecheck
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '18'
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm ci
       - name: Build
         run: npm run build
-
-      - name: Test dev server preview (optional)
-        run: npm run build --if-present

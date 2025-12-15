@@ -2,7 +2,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Booking, BookingStatus } from '../types';
 import EmptyState from './EmptyState';
-import { DocumentTextIcon, MapPinIcon, TruckIcon, ClockIcon, SearchIcon, PlusIcon, CalendarDaysIcon, SparklesIcon } from './icons/Icons';
+import { DocumentTextIcon, MapPinIcon, TruckIcon, ClockIcon, SearchIcon, PlusIcon, CalendarDaysIcon } from './icons';
+import { SparklesIcon } from './icons';
 import { useAuth } from '../auth/AuthContext';
 import { useData } from '../contexts/DataContext';
 import AddBookingModal from './AddBookingModal';
@@ -37,7 +38,23 @@ const BookingsPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<BookingStatus | 'all'>('all');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+    const [selectedBookingId, setSelectedBookingId] = useState<number | null>(null);
+
+    // Dev/test helper: listen for a custom event to open a booking details modal.
+    // This allows tests to open the modal reliably without relying on complex UI interactions.
+    React.useEffect(() => {
+        const handler = (ev: Event) => {
+            try {
+                // @ts-ignore
+                const d = (ev as CustomEvent).detail;
+                if (d && d.bookingId != null) setSelectedBookingId(Number(d.bookingId));
+            } catch {
+                // ignore
+            }
+        };
+        window.addEventListener('hf:open-booking', handler as EventListener);
+        return () => window.removeEventListener('hf:open-booking', handler as EventListener);
+    }, []);
 
   const isCustomer = user?.role === 'customer';
 
@@ -72,7 +89,7 @@ const BookingsPage: React.FC = () => {
   return (
     <div className="space-y-6 h-auto lg:h-[calc(100vh-8rem)] flex flex-col">
       {/* Header & Toolbar */}
-      <div className="flex flex-col md:flex-row md:items-center gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex-shrink-0">
+    <div className="flex flex-col md:flex-row md:items-center gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm shrink-0">
         <div className="flex-1">
             <h2 className="text-lg font-bold text-slate-900">Bookings Board</h2>
             <p className="text-xs text-slate-500">Manage logistics pipeline and active loads</p>
@@ -116,11 +133,11 @@ const BookingsPage: React.FC = () => {
                     </div>
                     
                     {/* Column Body */}
-                    <div className={`p-3 space-y-3 overflow-y-auto flex-1 custom-scrollbar max-h-[500px] lg:max-h-none ${col.color}`}>
+                    <div className={`p-3 space-y-3 overflow-y-auto flex-1 custom-scrollbar max-h-125 lg:max-h-none ${col.color}`}>
                         {bookingsByStatus[col.key]?.map(booking => (
                             <div 
                                 key={booking.id} 
-                                onClick={() => setSelectedBooking(booking)}
+                                onClick={() => setSelectedBookingId(booking.id)}
                                 className="group relative bg-white p-4 rounded-xl border border-slate-200 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05)] hover:shadow-[0_8px_16px_-4px_rgba(0,0,0,0.1)] hover:border-orange-200/60 cursor-pointer transition-all duration-300 ease-out hover:-translate-y-0.5"
                             >
                                 {/* Status Indicator Line on Hover */}
@@ -139,7 +156,7 @@ const BookingsPage: React.FC = () => {
 
                                 {/* Route Visual */}
                                 <div className="mb-4 relative pl-1">
-                                    <div className="absolute left-[3.5px] top-2 bottom-2 w-[1px] bg-gradient-to-b from-orange-300 to-slate-300"></div>
+                                    <div className="absolute left-[3.5px] top-2 bottom-2 w-px bg-linear-to-b from-orange-300 to-slate-300"></div>
                                     <div className="space-y-2">
                                         <div className="flex items-center gap-3">
                                             <div className="w-2 h-2 rounded-full bg-orange-500 ring-4 ring-orange-50 z-10 relative shadow-sm"></div>
@@ -157,12 +174,12 @@ const BookingsPage: React.FC = () => {
                                     <div className="flex flex-col gap-1 min-w-0 pr-2">
                                         <span className="text-xs text-slate-500 truncate font-medium">{booking.cargo_description}</span>
                                         <div className="flex items-center gap-1.5 text-[10px] font-medium text-slate-400">
-                                            <CalendarDaysIcon className="w-3 h-3 flex-shrink-0" />
+                                            <CalendarDaysIcon className="w-3 h-3 shrink-0" />
                                             {new Date(booking.pickup_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                                         </div>
                                     </div>
                                     
-                                    <div className="text-right flex-shrink-0">
+                                    <div className="text-right shrink-0">
                                          {booking.driver_id && (
                                             <div className="mb-1 flex justify-end">
                                                 <div className="flex items-center gap-1 text-[10px] font-bold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded">
@@ -190,8 +207,19 @@ const BookingsPage: React.FC = () => {
         </div>
       </div>
 
-      {isAddModalOpen && <AddBookingModal onClose={() => setIsAddModalOpen(false)} onAddBooking={(b) => { addBooking({...b, id: Date.now(), created_at: new Date().toISOString(), updated_at: new Date().toISOString()}); setIsAddModalOpen(false); }} />}
-      {selectedBooking && <BookingDetailsModal booking={selectedBooking} onClose={() => setSelectedBooking(null)} onUpdateBooking={updateBooking} userRole={user?.role} />}
+            {isAddModalOpen && <AddBookingModal onClose={() => setIsAddModalOpen(false)} onAddBooking={(b) => { addBooking({...b, id: Date.now(), created_at: new Date().toISOString(), updated_at: new Date().toISOString()}); setIsAddModalOpen(false); }} />}
+            {(
+                selectedBookingId == null
+                ? null
+                : (bookings.find(b => b.id === selectedBookingId) ?? null)
+            ) && (
+                <BookingDetailsModal
+                    booking={bookings.find(b => b.id === selectedBookingId) as Booking}
+                    onClose={() => setSelectedBookingId(null)}
+                    onUpdateBooking={updateBooking}
+                    userRole={user?.role}
+                />
+            )}
     </div>
   );
 };

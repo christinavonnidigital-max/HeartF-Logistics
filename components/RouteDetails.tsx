@@ -2,7 +2,7 @@
 import React from 'react';
 import { Route } from '../types';
 import { mockWaypoints } from '../data/mockRoutesData';
-import { ClockIcon, MapPinIcon, RoadIcon, ExclamationTriangleIcon } from './icons/Icons';
+import { ClockIcon, MapPinIcon, RoadIcon, ExclamationTriangleIcon } from './icons';
 import RouteMap from './RouteMap';
 import { ShellCard, SubtleCard } from './UiKit';
 
@@ -12,7 +12,7 @@ interface RouteDetailsProps {
 
 const StatCard: React.FC<{ icon: React.ReactNode; label: string; value: string | number }> = ({ icon, label, value }) => (
     <SubtleCard className="flex items-center gap-3 p-4">
-    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-orange-100 text-orange-600">
+    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-orange-100 text-orange-600">
         {icon}
     </div>
     <div>

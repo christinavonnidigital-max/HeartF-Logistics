@@ -4,7 +4,7 @@ import { useData } from '../contexts/DataContext';
 import InvoiceList from './InvoiceList';
 import ExpenseList from './ExpenseList';
 import { Invoice, Expense, InvoiceStatus } from '../types';
-import { CurrencyDollarIcon, TrendingUpIcon, DocumentTextIcon, CreditCardIcon } from './icons/Icons';
+import { CurrencyDollarIcon, TrendingUpIcon, DocumentTextIcon, CreditCardIcon } from './icons';
 import AddInvoiceModal from './AddInvoiceModal';
 import AddGlobalExpenseModal from './AddGlobalExpenseModal';
 import { useAuth } from '../auth/AuthContext';

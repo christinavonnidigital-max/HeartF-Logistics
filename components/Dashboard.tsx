@@ -11,7 +11,7 @@ import {
   TrendingDownIcon,
   UserPlusIcon,
   PlusIcon,
-} from './icons/Icons';
+} from './icons';
 import {
   LineChart,
   Line,
@@ -74,7 +74,7 @@ const StatCard: React.FC<StatCardProps> = ({ label, value, sublabel, icon, trend
       
       <div className="flex items-start justify-between relative z-10">
         <div>
-            <p className="text-xs font-bold uppercase tracking-wider text-slate-400">
+            <p className="text-xs font-bold uppercase tracking-wider text-slate-700">
             {label}
             </p>
             <p className="mt-2 text-3xl font-bold text-slate-900 tracking-tight">
@@ -123,7 +123,7 @@ const RevenueCard: React.FC<RevenueCardProps> = ({
   return (
     <div className="relative flex flex-col justify-between rounded-2xl bg-slate-900 p-6 shadow-xl overflow-hidden min-w-0">
         {/* Abstract Background Shapes */}
-        <div className="absolute top-0 right-0 -mt-10 -mr-10 w-64 h-64 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full opacity-20 blur-3xl"></div>
+        <div className="absolute top-0 right-0 -mt-10 -mr-10 w-64 h-64 bg-linear-to-br from-indigo-500 to-purple-600 rounded-full opacity-20 blur-3xl"></div>
         <div className="absolute bottom-0 left-0 -mb-10 -ml-10 w-40 h-40 bg-emerald-500 rounded-full opacity-10 blur-3xl"></div>
 
       <div className="flex items-center justify-between gap-3 relative z-10">
@@ -135,7 +135,7 @@ const RevenueCard: React.FC<RevenueCardProps> = ({
             <p className="text-xs font-bold uppercase tracking-wider text-indigo-200">
               {isCustomer ? "Account Spend" : "Revenue Snapshot"}
             </p>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-slate-700">
               {isCustomer ? "Total across all bookings" : "Total invoiced this period"}
             </p>
           </div>
@@ -156,7 +156,7 @@ const RevenueCard: React.FC<RevenueCardProps> = ({
                 <TrendingUpIcon className="w-3 h-3" />
                 +8.2%
             </span>
-            <span className="text-xs text-slate-400">vs last month</span>
+            <span className="text-xs text-slate-700">vs last month</span>
         </div>
       </div>
 
@@ -168,7 +168,7 @@ const RevenueCard: React.FC<RevenueCardProps> = ({
           </div>
           <div className="h-2 w-full overflow-hidden rounded-full bg-slate-800">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-emerald-400"
+              className="h-full rounded-full bg-linear-to-r from-indigo-500 to-emerald-400"
               style={{ width: `${paidRatio}%` }}
             />
           </div>
@@ -180,10 +180,14 @@ const RevenueCard: React.FC<RevenueCardProps> = ({
 
 const getBookingStatusClass = (status: Booking['status']): string => {
   switch (status) {
+    case 'draft': return 'bg-muted text-foreground/70 border border-border';
     case 'pending': return 'bg-amber-50 text-amber-700 border border-amber-200';
+    case 'scheduled': return 'bg-sky-50 text-sky-700 border border-sky-200';
     case 'confirmed': return 'bg-emerald-50 text-emerald-700 border border-emerald-200';
+    case 'dispatched': return 'bg-indigo-50 text-indigo-700 border border-indigo-200';
     case 'in_transit': return 'bg-sky-50 text-sky-700 border border-sky-200';
     case 'delivered': return 'bg-slate-50 text-slate-700 border border-slate-200';
+    case 'closed': return 'bg-emerald-50 text-emerald-700 border border-emerald-200';
     case 'cancelled': return 'bg-rose-50 text-rose-700 border border-rose-200';
     default: return 'bg-slate-50 text-slate-700 border border-slate-200';
   }
@@ -191,15 +195,18 @@ const getBookingStatusClass = (status: Booking['status']): string => {
 
 const getBookingCounts = (bookings: Booking[]) => {
   const counts = {
+    draft: 0,
     pending: 0,
+    scheduled: 0,
     confirmed: 0,
+    dispatched: 0,
     in_transit: 0,
     delivered: 0,
+    closed: 0,
   };
   bookings.forEach(b => {
     if (b.status in counts) {
-      // @ts-expect-error - safe index by known keys
-      counts[b.status] += 1;
+      counts[b.status] += 1 as any;
     }
   });
   const total = Object.values(counts).reduce((sum, val) => sum + val, 0);
@@ -248,7 +255,7 @@ const RevenueTrendChart = ({ invoices, currency, title }: { invoices: Invoice[],
 
   return (
     <div className="rounded-2xl bg-white p-5 shadow-md border border-slate-200/60 h-80 flex flex-col min-w-0">
-      <h3 className="text-sm font-bold text-slate-800 flex-shrink-0 tracking-tight">{title || 'Trend (Last 6 Months)'}</h3>
+      <h3 className="text-sm font-bold text-slate-800 shrink-0 tracking-tight">{title || 'Trend (Last 6 Months)'}</h3>
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={data} margin={{ top: 20, right: 20, left: 0, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
@@ -272,7 +279,7 @@ const RevenueByCategoryChart = ({ invoices, currency, title }: { invoices: Invoi
 
     return (
         <div className="rounded-2xl bg-white p-5 shadow-md border border-slate-200/60 h-80 flex flex-col min-w-0">
-            <h3 className="text-sm font-bold text-slate-800 flex-shrink-0 tracking-tight">{title || 'Spend by Type'}</h3>
+            <h3 className="text-sm font-bold text-slate-800 shrink-0 tracking-tight">{title || 'Spend by Type'}</h3>
             <div className="flex-1 mt-2">
                 <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
@@ -314,7 +321,7 @@ const RevenueByCategoryChart = ({ invoices, currency, title }: { invoices: Invoi
 const DashboardHeader: React.FC<{ user: any }> = ({ user }) => {
     const date = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
     return (
-        <div className="relative rounded-2xl bg-gradient-to-r from-indigo-900 to-slate-900 p-6 shadow-lg overflow-hidden text-white mb-6">
+        <div className="relative rounded-2xl bg-linear-to-r from-indigo-900 to-slate-900 p-6 shadow-lg overflow-hidden text-white mb-6">
             <div className="absolute top-0 right-0 -mt-12 -mr-12 w-64 h-64 bg-orange-500 rounded-full opacity-10 blur-3xl"></div>
             <div className="relative z-10">
                 <p className="text-indigo-200 text-xs font-medium uppercase tracking-wider mb-1">{date}</p>
@@ -396,7 +403,7 @@ const Dashboard: React.FC<DashboardProps> = ({ data, settings, userRole }) => {
           <div className="rounded-2xl bg-white border border-slate-200 shadow-sm p-7 space-y-6 min-w-0">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Operations Pulse</p>
+                <p className="text-xs font-bold uppercase tracking-wider text-slate-700">Operations Pulse</p>
                 <h2 className="text-xl font-bold text-slate-900 mt-1">Fleet + Bookings Snapshot</h2>
               </div>
               <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-100 px-2 py-1 rounded-lg">Live</span>
@@ -404,19 +411,19 @@ const Dashboard: React.FC<DashboardProps> = ({ data, settings, userRole }) => {
 
             <div className="grid sm:grid-cols-3 gap-3">
               <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Fleet Utilization</p>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-700">Fleet Utilization</p>
                 <p className="text-2xl font-bold text-slate-900 mt-1">{utilizationPct}%</p>
-                <p className="text-xs text-slate-500">1 in maintenance</p>
+                <p className="text-xs text-slate-700">1 in maintenance</p>
               </div>
               <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Pending Bookings</p>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-700">Pending Bookings</p>
                 <p className="text-2xl font-bold text-slate-900 mt-1">{bookingCounts.pending}</p>
-                <p className="text-xs text-slate-500">Awaiting confirmation</p>
+                <p className="text-xs text-slate-700">Awaiting confirmation</p>
               </div>
               <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Out of Service</p>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-700">Out of Service</p>
                 <p className="text-2xl font-bold text-slate-900 mt-1">{vehicles.filter(v => v.status === 'out_of_service').length}</p>
-                <p className="text-xs text-slate-500">Requires attention</p>
+                <p className="text-xs text-slate-700">Requires attention</p>
               </div>
             </div>
 
@@ -424,7 +431,7 @@ const Dashboard: React.FC<DashboardProps> = ({ data, settings, userRole }) => {
               <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="text-sm font-bold text-slate-900">Bookings pipeline</h3>
-                  <span className="text-xs text-slate-500">{bookingCounts.total} bookings</span>
+                  <span className="text-xs text-slate-700">{bookingCounts.total} bookings</span>
                 </div>
                 {[
                   { label: 'Pending', key: 'pending', color: 'bg-slate-900' },
@@ -462,7 +469,7 @@ const Dashboard: React.FC<DashboardProps> = ({ data, settings, userRole }) => {
                   ].map(item => (
                     <div key={item.label} className="rounded-lg bg-white border border-slate-200 px-3 py-2 min-w-0">
                       <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">{item.label}</p>
-                      <p className="text-base font-bold text-slate-900 mt-1 leading-tight break-words">
+                      <p className="text-base font-bold text-slate-900 mt-1 leading-tight wrap-break-word">
                         {typeof item.value === 'number' && item.label !== 'Customers'
                           ? new Intl.NumberFormat('en-US', { style: 'currency', currency: settings.currency }).format(item.value)
                           : item.value.toLocaleString()}
@@ -477,10 +484,10 @@ const Dashboard: React.FC<DashboardProps> = ({ data, settings, userRole }) => {
           <div className="rounded-2xl bg-white border border-slate-200 shadow-sm p-6 min-w-0">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Recent Bookings</p>
+                <p className="text-xs font-bold uppercase tracking-wider text-slate-700">Recent Bookings</p>
                 <h2 className="text-lg font-bold text-slate-900">Latest moves</h2>
               </div>
-              <button className="text-xs font-semibold text-orange-600 hover:text-orange-700" onClick={() => setIsBookingModalOpen(true)}>View all</button>
+              <button className="text-xs font-semibold text-orange-700 hover:text-orange-800" onClick={() => setIsBookingModalOpen(true)}>View all</button>
             </div>
             <div className="space-y-3">
               {recentBookings.length === 0 && (
@@ -494,7 +501,7 @@ const Dashboard: React.FC<DashboardProps> = ({ data, settings, userRole }) => {
                       <p className="text-sm font-bold text-slate-900">{booking.booking_number}</p>
                       <p className="text-xs text-slate-500 truncate">{`${booking.pickup_city} -> ${booking.delivery_city}`}</p>
                     </div>
-                    <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium capitalize flex-shrink-0 ${statusClass}`}>
+                    <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium capitalize shrink-0 ${statusClass}`}>
                       {booking.status.replace('_', ' ')}
                     </span>
                   </div>
@@ -577,7 +584,7 @@ const Dashboard: React.FC<DashboardProps> = ({ data, settings, userRole }) => {
                 <div className="rounded-2xl bg-white shadow-md border border-slate-200/60 overflow-hidden min-w-0">
                     <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4 bg-slate-50/30">
                         <h2 className="text-sm font-bold text-slate-900 tracking-tight">Recent Leads</h2>
-                        <span className="text-xs font-medium text-slate-500 bg-slate-100 px-2 py-1 rounded-md">{totalLeads} total</span>
+                        <span className="text-xs font-medium text-slate-700 bg-slate-100 px-2 py-1 rounded-md">{totalLeads} total</span>
                     </div>
                     <div className="divide-y divide-slate-50">
                         {recentLeads.length === 0 && (
@@ -591,7 +598,7 @@ const Dashboard: React.FC<DashboardProps> = ({ data, settings, userRole }) => {
                         return (
                             <div key={lead.id} className="flex items-center justify-between gap-4 px-6 py-4 hover:bg-slate-50/50 transition-colors">
                                 <div className="flex items-center gap-3 min-w-0">
-                                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-50 text-xs font-bold text-indigo-700 border border-indigo-100 flex-shrink-0">
+                                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-50 text-xs font-bold text-indigo-700 border border-indigo-100 shrink-0">
                                     {safeInitials.toUpperCase()}
                                     </div>
                                     <div className="min-w-0">
@@ -599,7 +606,7 @@ const Dashboard: React.FC<DashboardProps> = ({ data, settings, userRole }) => {
                                     <p className="text-xs text-slate-500 truncate">{lead.company_name}</p>
                                     </div>
                                 </div>
-                                <span className="inline-flex items-center rounded-full bg-white border border-slate-200 px-2.5 py-1 text-xs font-medium capitalize text-slate-600 shadow-sm flex-shrink-0">
+                                <span className="inline-flex items-center rounded-full bg-white border border-slate-200 px-2.5 py-1 text-xs font-medium capitalize text-slate-600 shadow-sm shrink-0">
                                     {lead.lead_status.replace('_', ' ')}
                                 </span>
                             </div>
@@ -614,7 +621,7 @@ const Dashboard: React.FC<DashboardProps> = ({ data, settings, userRole }) => {
                 <div className="rounded-2xl bg-white shadow-md border border-slate-200/60 overflow-hidden min-w-0">
                     <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4 bg-slate-50/30">
                         <h2 className="text-sm font-bold text-slate-900 tracking-tight">Recent Bookings</h2>
-                        <span className="text-xs font-medium text-slate-500 bg-slate-100 px-2 py-1 rounded-md">{bookings?.length || 0} total</span>
+                        <span className="text-xs font-medium text-slate-700 bg-slate-100 px-2 py-1 rounded-md">{bookings?.length || 0} total</span>
                     </div>
                     <div className="divide-y divide-slate-50">
                         {recentBookings.length === 0 && (
@@ -630,11 +637,11 @@ const Dashboard: React.FC<DashboardProps> = ({ data, settings, userRole }) => {
                                     <div className="min-w-0">
                                         <p className="text-sm font-bold text-slate-900">{booking.booking_number}</p>
                                         <div className="flex items-center gap-1.5 mt-0.5">
-                                            <TruckIcon className="w-3 h-3 text-slate-400 flex-shrink-0" />
+                                            <TruckIcon className="w-3 h-3 text-slate-400 shrink-0" />
                                             <p className="text-xs text-slate-500 truncate">{route}</p>
                                         </div>
                                     </div>
-                                    <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium capitalize flex-shrink-0 ${statusClass}`}>
+                                    <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium capitalize shrink-0 ${statusClass}`}>
                                         {booking.status.replace('_', ' ')}
                                     </span>
                                 </div>

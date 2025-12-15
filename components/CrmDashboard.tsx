@@ -12,7 +12,7 @@ import AddLeadModal from './AddLeadModal';
 import AddLeadScoringRuleModal from './AddLeadScoringRuleModal';
 import ImportLeadsModal from './ImportLeadsModal';
 import { calculateLeadScore } from '../services/crmService';
-import { BriefcaseIcon, CurrencyDollarIcon, UsersIcon } from './icons/Icons';
+import { BriefcaseIcon, CurrencyDollarIcon, UsersIcon } from './icons';
 
 const StatCard = ({ label, value, icon }: { label: string, value: string | number, icon: React.ReactNode }) => (
   <div className="flex flex-col justify-between rounded-2xl bg-white px-4 py-3 shadow-sm ring-1 ring-slate-100">

@@ -4,7 +4,8 @@ import { Vehicle, VehicleStatus, VehicleExpense } from '../types';
 import { useData } from '../contexts/DataContext';
 import { mockExpenses } from '../data/mockData'; 
 import VehicleDetails from './VehicleDetails';
-import { PlusIcon, SearchIcon, IllustrationTruckIcon, GaugeIcon, TruckIcon, WrenchIcon, TrendingUpIcon, ChevronLeftIcon, ChevronRightIcon } from './icons/Icons';
+import { PlusIcon, SearchIcon, GaugeIcon, TruckIcon, WrenchIcon, TrendingUpIcon, ChevronLeftIcon, ChevronRightIcon } from './icons';
+import { IllustrationTruckIcon } from './icons';
 import EmptyState from './EmptyState';
 import AddExpenseModal from './AddExpenseModal';
 import AddVehicleModal from './AddVehicleModal';
@@ -97,7 +98,7 @@ const FleetDashboard: React.FC = () => {
       }`}>
         {/* Left column - vehicle list */}
         <div className={`flex flex-col gap-5 h-full lg:overflow-hidden relative transition-all duration-300 ${
-          isLeftPanelCollapsed ? 'lg:w-[60px]' : ''
+          isLeftPanelCollapsed ? 'lg:w-15' : ''
         }`}>
             {/* Collapse/Expand Button */}
             <button
@@ -116,7 +117,7 @@ const FleetDashboard: React.FC = () => {
                 )}
             </button>
             {/* Metrics Row */}
-            <div className={`grid grid-cols-2 gap-4 flex-shrink-0 transition-opacity duration-300 ${
+            <div className={`grid grid-cols-2 gap-4 shrink-0 transition-opacity duration-300 ${
                 isLeftPanelCollapsed ? 'lg:opacity-0 lg:pointer-events-none' : 'opacity-100'
             }`}>
                 <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
@@ -147,7 +148,7 @@ const FleetDashboard: React.FC = () => {
 
             <ShellCard className={`flex flex-col p-0 overflow-hidden transition-opacity duration-300 ${
                 isLeftPanelCollapsed ? 'lg:opacity-0 lg:pointer-events-none' : 'opacity-100'
-            } ${isRosterOpen ? 'flex-1 min-h-[400px] lg:min-h-0' : 'flex-shrink-0'}`}>
+            } ${isRosterOpen ? 'flex-1 min-h-100 lg:min-h-0' : 'shrink-0'}`}>
             <div className="p-5 border-b border-slate-100 bg-white">
                 <div className="flex items-center justify-between mb-5">
                     <div>
@@ -162,10 +163,12 @@ const FleetDashboard: React.FC = () => {
                             {isRosterOpen ? 'Hide' : 'Show'}
                         </button>
                         <button
-                            className="p-2 rounded-lg bg-orange-500 text-white hover:bg-orange-600 transition shadow-sm"
-                            onClick={() => setIsAddVehicleModalOpen(true)}
+                          className="p-2 rounded-lg bg-orange-500 text-white hover:bg-orange-600 transition shadow-sm"
+                          onClick={() => setIsAddVehicleModalOpen(true)}
+                          aria-label="Add vehicle"
+                          title="Add vehicle"
                         >
-                            <PlusIcon className="w-5 h-5" />
+                          <PlusIcon className="w-5 h-5" />
                         </button>
                     </div>
                 </div>
@@ -196,7 +199,7 @@ const FleetDashboard: React.FC = () => {
                             onClick={() => setSelectedVehicle(vehicle)}
                             className={`w-full text-left rounded-xl p-4 transition-all duration-200 border-2 shadow-sm group relative ${
                             isSelected
-                                ? "bg-gradient-to-br from-white to-orange-50/30 border-orange-500 ring-2 ring-orange-500/30 shadow-lg z-10"
+                                ? "bg-linear-to-br from-white to-orange-50/30 border-orange-500 ring-2 ring-orange-500/30 shadow-lg z-10"
                                 : "bg-white border-slate-200 hover:border-orange-300 hover:shadow-md hover:bg-slate-50/50"
                             }`}
                         >

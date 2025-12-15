@@ -15,6 +15,9 @@ import { Currency, User } from "../types";
 import { useData } from "../contexts/DataContext";
 import InviteUserModal from "./InviteUserModal";
 import ConfirmModal from "./ConfirmModal";
+import AuditLogModal from './AuditLogModal';
+import { useAuth } from '../auth/AuthContext';
+import { can } from '../src/lib/permissions';
 
 interface SettingsPageProps {
   settings: AppSettings;
@@ -52,7 +55,10 @@ const SettingsToggle: React.FC<{
     <button
       type="button"
       onClick={onToggle}
-      className={`relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer items-center rounded-full transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 ${
+      aria-label={label || 'Toggle setting'}
+      role="switch"
+      aria-checked={enabled ? 'true' : 'false'}
+      className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 ${
         enabled ? 'bg-orange-500' : 'bg-slate-300'
       }`}
     >
@@ -68,8 +74,10 @@ const SettingsToggle: React.FC<{
 
 const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onChangeSettings }) => {
   const { users, addUser, deleteUser } = useData();
+  const { user } = useAuth();
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<string | number | null>(null);
+  const [isAuditOpen, setIsAuditOpen] = useState(false);
 
   const handleToggle = (key: keyof AppSettings) => {
     onChangeSettings(prev => ({ ...prev, [key]: !prev[key] }));
@@ -147,24 +155,24 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onChangeSettings 
                 onToggle={() => handleToggle('showFinancialSummary')}
               />
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                      <label className="block text-sm font-medium text-slate-700">Default View</label>
-                      <select name="defaultView" value={settings.defaultView} onChange={handleChange} className="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm">
+                    <div>
+                      <label htmlFor="defaultView" className="block text-sm font-medium text-slate-700">Default View</label>
+                      <select id="defaultView" name="defaultView" value={settings.defaultView} onChange={handleChange} className="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm">
                           {Object.entries(viewTitles).map(([key, title]) => (
                             <option key={key} value={key}>{title}</option>
                           ))}
                       </select>
                   </div>
                    <div>
-                      <label className="block text-sm font-medium text-slate-700">Default Currency</label>
-                      <select name="currency" value={settings.currency} onChange={handleChange} className="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm">
+                      <label htmlFor="currency" className="block text-sm font-medium text-slate-700">Default Currency</label>
+                      <select id="currency" name="currency" value={settings.currency} onChange={handleChange} className="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm">
                           <option value="USD">USD</option>
                           <option value="ZWL">ZWL</option>
                       </select>
                   </div>
                    <div>
-                      <label className="block text-sm font-medium text-slate-700">Distance Unit</label>
-                      <select name="distanceUnit" value={settings.distanceUnit} onChange={handleChange} className="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm">
+                      <label htmlFor="distanceUnit" className="block text-sm font-medium text-slate-700">Distance Unit</label>
+                      <select id="distanceUnit" name="distanceUnit" value={settings.distanceUnit} onChange={handleChange} className="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm">
                           <option value="km">Kilometers (km)</option>
                           <option value="mi">Miles (mi)</option>
                       </select>
@@ -206,6 +214,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onChangeSettings 
                       onClick={() => setUserToDelete(user.id)}
                       className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-md opacity-0 group-hover:opacity-100 transition-opacity"
                       title="Remove User"
+                      aria-label={`Remove ${user.first_name} ${user.last_name}`}
                     >
                       <TrashIcon className="w-4 h-4" />
                     </button>
@@ -220,11 +229,16 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onChangeSettings 
           <SectionHeader
             title="Security"
             subtitle="Protect your account and organization."
+            actions={(
+              can('audit.view', user?.role) ? (
+                <button onClick={() => setIsAuditOpen(true)} className="text-xs px-2 py-1 rounded-lg bg-slate-50 hover:bg-slate-100">View Audit Log</button>
+              ) : null
+            )}
           />
            <div className="mt-4 space-y-3">
              <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                    <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-600">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-600">
                         <LockIcon className="h-5 w-5" /> 
                     </div>
                     <div className="text-sm">
@@ -237,7 +251,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onChangeSettings 
              
              <div className="flex items-center justify-between pt-3 border-t border-slate-100">
                 <div className="flex items-center gap-3">
-                    <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-600">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-600">
                         <ShieldExclamationIcon className="h-5 w-5" /> 
                     </div>
                     <div className="text-sm">
@@ -269,6 +283,8 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onChangeSettings 
           onInvite={handleInviteUser} 
         />
       )}
+
+      <AuditLogModal isOpen={isAuditOpen} onClose={() => setIsAuditOpen(false)} />
 
       <ConfirmModal
         isOpen={userToDelete !== null}

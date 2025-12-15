@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Invoice, InvoiceStatus } from '../types';
-import { PlusIcon } from './icons/Icons';
+import { PlusIcon } from './icons';
 import { ShellCard, SectionHeader, StatusPill } from './UiKit';
 
 interface InvoiceListProps {
@@ -32,7 +32,7 @@ const InvoiceList: React.FC<InvoiceListProps> = ({ invoices, onAddInvoiceClick }
         subtitle="Money owed and money collected"
         actions={
           <button 
-            className="p-2 rounded-lg bg-orange-500 text-white hover:bg-orange-600 transition flex-shrink-0"
+            className="p-2 rounded-lg bg-orange-500 text-white hover:bg-orange-600 transition shrink-0"
             onClick={onAddInvoiceClick}
             aria-label="Add new invoice"
           >

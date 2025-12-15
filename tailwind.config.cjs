@@ -6,7 +6,11 @@ module.exports = {
     './components/**/*.{ts,tsx}',
   ],
   theme: {
-    extend: {},
+    extend: {
+      zIndex: {
+        100: '100',
+      },
+    },
   },
   plugins: [],
 };

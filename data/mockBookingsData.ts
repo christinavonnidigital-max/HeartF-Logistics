@@ -21,7 +21,7 @@ export const mockBookings: Booking[] = [
     requires_refrigeration: false,
     vehicle_id: 1,
     driver_id: 1,
-    status: BookingStatus.CONFIRMED,
+    status: BookingStatus.SCHEDULED,
     base_price: 3200,
     surcharges: 300,
     total_price: 3500,

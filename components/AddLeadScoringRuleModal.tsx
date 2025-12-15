@@ -1,7 +1,8 @@
 
 import React, { useState } from 'react';
 import { LeadScoringRule } from '../types';
-import { CloseIcon } from './icons/Icons';
+import { CloseIcon } from './icons';
+import { Button, Input, Select, ModalShell } from './UiKit';
 
 interface AddLeadScoringRuleModalProps {
   onClose: () => void;
@@ -44,44 +45,47 @@ const AddLeadScoringRuleModal: React.FC<AddLeadScoringRuleModalProps> = ({ onClo
         });
     };
 
-    return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-[60] flex justify-center items-center p-4" onClick={onClose}>
-        <div className="bg-white rounded-xl shadow-2xl w-full max-w-xl flex flex-col" onClick={(e) => e.stopPropagation()}>
-            <header className="flex justify-between items-center p-4 border-b">
-                <h2 className="text-xl font-bold">Add Scoring Rule</h2>
-                <button onClick={onClose} className="p-1 rounded-full hover:bg-gray-200"><CloseIcon className="w-6 h-6" /></button>
-            </header>
-            <form onSubmit={handleSubmit}>
-                <main className="p-6 space-y-4">
+        return (
+            <ModalShell
+                isOpen={true}
+                onClose={onClose}
+                title="Add Scoring Rule"
+                description="Create a rule to score leads automatically"
+                icon={<CloseIcon className="w-5 h-5 text-brand-600" />}
+                maxWidthClass="max-w-xl"
+                footer={(
+                    <>
+                        <Button variant="ghost" onClick={onClose}>Cancel</Button>
+                        <Button variant="primary" type="submit" form="add-rule-form">Add Rule</Button>
+                    </>
+                )}
+            >
+                <form id="add-rule-form" onSubmit={handleSubmit}>
+                    <main className="p-6 space-y-4">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700">Rule Name</label>
-                        <input type="text" name="rule_name" value={formData.rule_name} onChange={handleChange} className="mt-1 block w-full rounded-md border border-gray-300 bg-white text-gray-900 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm" />
+                        <label className="text-sm font-medium text-foreground-muted">Rule Name</label>
+                        <Input type="text" name="rule_name" value={formData.rule_name} onChange={handleChange} className="mt-1" />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700">Condition</label>
+                        <label className="text-sm font-medium text-foreground-muted">Condition</label>
                         <div className="grid grid-cols-3 gap-2 mt-1">
-                            <input type="text" name="condition_field" value={formData.condition_field} onChange={handleChange} className="block w-full rounded-md border border-gray-300 bg-white text-gray-900 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm" />
-                            <select name="condition_operator" value={formData.condition_operator} onChange={handleChange} className="block w-full rounded-md border border-gray-300 bg-white text-gray-900 pl-3 pr-10 py-2 text-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500">
+                            <Input type="text" name="condition_field" value={formData.condition_field} onChange={handleChange} />
+                            <Select name="condition_operator" value={formData.condition_operator} onChange={handleChange}>
                                 <option value="equals">equals</option>
                                 <option value="contains">contains</option>
                                 <option value="greater_than">greater than</option>
-                            </select>
-                            <input type="text" name="condition_value" value={formData.condition_value} onChange={handleChange} className="block w-full rounded-md border border-gray-300 bg-white text-gray-900 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm" />
+                            </Select>
+                            <Input type="text" name="condition_value" value={formData.condition_value} onChange={handleChange} />
                         </div>
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700">Points</label>
-                        <input type="number" name="points" value={formData.points} onChange={handleChange} className="mt-1 block w-full rounded-md border border-gray-300 bg-white text-gray-900 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm" />
+                        <label className="text-sm font-medium text-foreground-muted">Points</label>
+                        <Input type="number" name="points" value={formData.points as any} onChange={handleChange} className="mt-1" />
                     </div>
-                    {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+                    {error && <p className="text-danger-600 text-sm mt-2 bg-danger-600/10 p-2 rounded-md text-center">{error}</p>}
                 </main>
-                <footer className="p-4 bg-gray-50 border-t flex justify-end space-x-3">
-                    <button type="button" onClick={onClose} className="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50">Cancel</button>
-                    <button type="submit" className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700">Add Rule</button>
-                </footer>
-            </form>
-        </div>
-    </div>
+                </form>
+      </ModalShell>
     );
 };
 

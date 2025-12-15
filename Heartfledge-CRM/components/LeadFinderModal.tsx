@@ -18,7 +18,7 @@ import {
   PhoneIcon,
   CheckCircleIcon,
   TagIcon,
-} from './icons/Icons';
+} from '../../components/icons';
 import {
   findPotentialLeads,
   LeadProspectingCriteria,
@@ -246,32 +246,32 @@ const LeadFinderModal: React.FC<LeadFinderModalProps> = ({ onClose, onImport }) 
   return (
     <>
       {toastMessage && (
-        <div className="fixed inset-x-0 top-6 z-[80] flex justify-center px-4">
-          <div className="bg-slate-900 text-white text-sm font-medium px-4 py-3 rounded-2xl shadow-xl shadow-slate-900/20 flex items-center gap-2">
+        <div className="fixed inset-x-0 top-6 z-80 flex justify-center px-4">
+          <div className="bg-card text-foreground text-sm font-medium px-4 py-3 rounded-2xl shadow-xl shadow-muted/20 flex items-center gap-2">
             <SparklesIcon className="w-4 h-4 text-orange-300" />
             {toastMessage}
           </div>
         </div>
       )}
       <div
-      className="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-[70] flex items-center justify-center p-4 md:pl-64"
+      className="fixed inset-0 bg-muted/70 backdrop-blur-sm z-70 flex items-center justify-center p-4 md:pl-64"
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-3xl shadow-2xl w-full max-w-6xl max-h-[92vh] flex flex-col overflow-hidden border border-slate-100"
+        className="bg-card rounded-3xl shadow-2xl w-full max-w-6xl max-h-[92vh] flex flex-col overflow-hidden border border-border"
         onClick={(e) => e.stopPropagation()}
       >
-        <header className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-orange-50 via-white to-orange-50">
+        <header className="px-6 py-4 border-b border-border flex items-center justify-between bg-card/40">
           <div>
             <p className="text-xs uppercase tracking-[0.2em] text-orange-400 font-semibold flex items-center gap-2">
               <SparklesIcon className="w-4 h-4" /> AI Lead Prospector
             </p>
-            <h2 className="text-2xl font-bold text-slate-900">Search for logistics leads</h2>
-            <p className="text-sm text-slate-500">Find verified companies and contacts from the web.</p>
+            <h2 className="text-2xl font-bold text-foreground">Search for logistics leads</h2>
+            <p className="text-sm text-foreground-muted">Find verified companies and contacts from the web.</p>
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-2xl hover:bg-white text-slate-500 border border-slate-200"
+            className="p-2 rounded-2xl hover:bg-muted text-foreground-muted border border-border"
             aria-label="Close lead finder"
           >
             <CloseIcon className="w-5 h-5" />
@@ -279,11 +279,11 @@ const LeadFinderModal: React.FC<LeadFinderModalProps> = ({ onClose, onImport }) 
         </header>
 
         <main className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[320px_minmax(0,1fr)] divide-y lg:divide-y-0 lg:divide-x divide-slate-100 overflow-hidden">
-          <section className="p-5 space-y-5 bg-slate-50/60 overflow-y-auto">
+          <section className="p-5 space-y-5 bg-muted/60 overflow-y-auto">
             <form className="space-y-4" onSubmit={handleSearch}>
               <label className="space-y-2 block">
-                <span className="text-xs font-semibold text-slate-600 uppercase tracking-wide">Who are you hunting for?</span>
+                <span className="text-xs font-semibold text-foreground-muted uppercase tracking-wide">Who are you hunting for?</span>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <SearchIcon className="w-4 h-4 text-slate-400" />
+                    <SearchIcon className="w-4 h-4 text-foreground-muted" />
                     ... (trimmed for brevity)

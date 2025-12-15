@@ -2,7 +2,8 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Message, GroundingChunk } from '../types';
 import { getGeminiResponse } from '../services/geminiService';
-import { CloseIcon, MapPinIcon, SearchIcon, SendIcon, BoxTruckIconBold } from './icons/Icons';
+import { CloseIcon, MapPinIcon, SearchIcon, SendIcon } from './icons';
+import { BoxTruckIconBold } from './icons';
 
 interface FleetAssistantProps {
     contextData: any;
@@ -65,7 +66,7 @@ const FormattedText: React.FC<{ text: string }> = ({ text }) => {
         if (isList) {
             return (
                 <div key={i} className="flex items-start gap-2.5" style={{ marginLeft: `${indent * 0.5}rem` }}>
-                    <span className="mt-2 w-1.5 h-1.5 bg-orange-500 rounded-full flex-shrink-0 opacity-80" />
+                    <span className="mt-2 w-1.5 h-1.5 bg-orange-500 rounded-full shrink-0 opacity-80" />
                     <div className="flex-1">{parsedParts}</div>
                 </div>
             )
@@ -176,7 +177,7 @@ const FleetAssistant: React.FC<FleetAssistantProps> = ({ contextData, contextTyp
       return (
         <a href={chunk.web.uri} target="_blank" rel="noopener noreferrer" className="flex items-center space-x-2 text-blue-600 hover:underline bg-blue-50 px-2 py-1.5 rounded-lg text-xs mt-1 transition hover:bg-blue-100">
           <SearchIcon className="w-3.5 h-3.5" />
-          <span className="truncate max-w-[200px]">{chunk.web.title}</span>
+          <span className="truncate max-w-50">{chunk.web.title}</span>
         </a>
       );
     }
@@ -184,7 +185,7 @@ const FleetAssistant: React.FC<FleetAssistantProps> = ({ contextData, contextTyp
        return (
         <a href={chunk.maps.uri} target="_blank" rel="noopener noreferrer" className="flex items-center space-x-2 text-green-600 hover:underline bg-green-50 px-2 py-1.5 rounded-lg text-xs mt-1 transition hover:bg-green-100">
           <MapPinIcon className="w-3.5 h-3.5" />
-          <span className="truncate max-w-[200px]">{chunk.maps.title}</span>
+          <span className="truncate max-w-50">{chunk.maps.title}</span>
         </a>
       );
     }
@@ -195,7 +196,7 @@ const FleetAssistant: React.FC<FleetAssistantProps> = ({ contextData, contextTyp
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="group fixed bottom-6 right-6 bg-gradient-to-br from-orange-500 to-orange-600 text-white p-4 rounded-full shadow-2xl hover:shadow-orange-500/50 transition-all duration-300 transform hover:scale-110 focus:outline-none focus:ring-4 focus:ring-orange-500/30 z-50"
+        className="group fixed bottom-6 right-6 bg-linear-to-br from-orange-500 to-orange-600 text-white p-4 rounded-full shadow-2xl hover:shadow-orange-500/50 transition-all duration-300 transform hover:scale-110 focus:outline-none focus:ring-4 focus:ring-orange-500/30 z-50"
         aria-label="Open AI Assistant"
       >
         <BoxTruckIconBold className="w-8 h-8 transition-transform group-hover:translate-x-1" />
@@ -204,10 +205,10 @@ const FleetAssistant: React.FC<FleetAssistantProps> = ({ contextData, contextTyp
   }
 
   return (
-    <div className="fixed bottom-6 right-6 w-[90vw] max-w-md h-[70vh] max-h-[600px] bg-white rounded-2xl shadow-2xl flex flex-col z-50 border border-slate-200 overflow-hidden font-sans">
-      <header className="flex items-center justify-between p-5 border-b border-slate-100 bg-gradient-to-r from-orange-50/30 via-white to-orange-50/20">
+    <div className="fixed bottom-6 right-6 w-[90vw] max-w-md h-[70vh] max-h-150 bg-white rounded-2xl shadow-2xl flex flex-col z-50 border border-slate-200 overflow-hidden font-sans">
+      <header className="flex items-center justify-between p-5 border-b border-slate-100 bg-linear-to-r from-orange-50/30 via-white to-orange-50/20">
         <div className="flex items-center space-x-3">
-          <div className="bg-gradient-to-br from-orange-100 to-orange-200 p-2 rounded-xl shadow-sm">
+          <div className="bg-linear-to-br from-orange-100 to-orange-200 p-2 rounded-xl shadow-sm">
             <BoxTruckIconBold className="w-5 h-5 text-orange-600" />
           </div>
           <div>
@@ -221,17 +222,17 @@ const FleetAssistant: React.FC<FleetAssistantProps> = ({ contextData, contextTyp
             <p className="text-[10px] text-slate-500 font-medium">Powered by Gemini</p>
           </div>
         </div>
-        <button onClick={() => setIsOpen(false)} className="p-2 rounded-full hover:bg-slate-100 text-slate-500 transition">
+        <button onClick={() => setIsOpen(false)} aria-label="Close assistant" title="Close assistant" className="p-2 rounded-full hover:bg-slate-100 text-slate-500 transition">
           <CloseIcon className="w-5 h-5" />
         </button>
       </header>
 
-      <div className="flex-1 p-5 overflow-y-auto space-y-4 bg-gradient-to-b from-slate-50/50 to-white custom-scrollbar">
+      <div className="flex-1 p-5 overflow-y-auto space-y-4 bg-linear-to-b from-slate-50/50 to-white custom-scrollbar">
         {messages.map((msg) => (
           <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-2 duration-300`}>
             <div className={`relative max-w-[85%] md:max-w-[88%] px-4 py-3.5 rounded-2xl shadow-sm transition-all hover:shadow-md ${
                 msg.sender === 'user'
-                ? 'bg-gradient-to-br from-orange-500 to-orange-600 border border-orange-500 text-white rounded-br-sm'
+                ? 'bg-linear-to-br from-orange-500 to-orange-600 border border-orange-500 text-white rounded-br-sm'
                 : 'bg-white border border-slate-200 text-slate-900 rounded-bl-sm hover:border-slate-300'
             }`}>
               <FormattedText text={msg.text} />
@@ -257,7 +258,7 @@ const FleetAssistant: React.FC<FleetAssistantProps> = ({ contextData, contextTyp
         <div ref={chatEndRef} />
       </div>
 
-      <div className="p-4 border-t border-slate-100 bg-gradient-to-r from-slate-50/50 to-white">
+      <div className="p-4 border-t border-slate-100 bg-linear-to-r from-slate-50/50 to-white">
         <div className="flex items-center gap-2.5 bg-white rounded-2xl px-2 py-2 border border-slate-200 focus-within:ring-2 focus-within:ring-orange-500/30 focus-within:border-orange-400 transition-all shadow-sm hover:shadow-md">
           <input
             type="text"
@@ -272,7 +273,9 @@ const FleetAssistant: React.FC<FleetAssistantProps> = ({ contextData, contextTyp
           <button
             onClick={handleSendMessage}
             disabled={isLoading || input.trim() === ''}
-            className="p-2.5 bg-gradient-to-br from-orange-500 to-orange-600 text-white rounded-xl disabled:from-slate-300 disabled:to-slate-300 disabled:cursor-not-allowed hover:from-orange-600 hover:to-orange-700 transition-all shadow-md hover:shadow-lg hover:scale-105 flex-shrink-0"
+            aria-label="Send message"
+            title="Send message"
+            className="p-2.5 bg-linear-to-br from-orange-500 to-orange-600 text-white rounded-xl disabled:from-slate-300 disabled:to-slate-300 disabled:cursor-not-allowed hover:from-orange-600 hover:to-orange-700 transition-all shadow-md hover:shadow-lg hover:scale-105 shrink-0"
           >
             <SendIcon className="w-4 h-4" />
           </button>
