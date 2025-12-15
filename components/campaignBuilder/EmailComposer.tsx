@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { EmailSequence, SendCondition } from '../../types';
-import { EnvelopeIcon, CloseIcon } from '../icons/Icons';
+import { EnvelopeIcon, CloseIcon } from '../icons';
 import { Button, Input, ModalShell, Select, Textarea } from '../UiKit';
 
 interface EmailComposerProps {

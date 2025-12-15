@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { EmailSequence } from '../../types';
-import { PlusIcon } from '../icons/Icons';
+import { PlusIcon } from '../icons';
 import EmailComposer from './EmailComposer';
 import SequenceStep from './SequenceStep';
 
