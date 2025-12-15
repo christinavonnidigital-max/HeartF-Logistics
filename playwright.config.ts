@@ -17,7 +17,8 @@ export default defineConfig({
   webServer: {
     command: 'npm run dev',
     url: 'http://localhost:4002',
-    reuseExistingServer: true,
+    // Force Playwright to start a fresh dev server to avoid HMR cache issues
+    reuseExistingServer: false,
     timeout: 120_000,
   },
   projects: [

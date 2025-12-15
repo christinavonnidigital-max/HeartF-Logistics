@@ -63,7 +63,7 @@ const LoginPage: React.FC = () => {
           <h1 className="text-5xl font-bold leading-tight mb-6">
             Welcome to<br />Heartfledge<br />Logistics Manager
           </h1>
-          <p className="text-xl text-slate-300 leading-relaxed max-w-md">
+          <p className="text-xl text-slate-200 leading-relaxed max-w-md">
             Streamline your fleet operations, manage routes efficiently, and keep your logistics running smoothly.
           </p>
 

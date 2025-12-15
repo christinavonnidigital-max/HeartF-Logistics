@@ -110,6 +110,12 @@ const AuthedApp: React.FC = () => {
               // eslint-disable-next-line no-console
               console.log(v);
             });
+            // Expose violations to window for E2E test capture
+            try {
+              (window as any).__axeViolations__ = results.violations;
+            } catch (e) {
+              // ignore
+            }
             // eslint-disable-next-line no-console
             console.groupEnd();
           } else {

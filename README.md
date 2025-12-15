@@ -48,3 +48,10 @@ Notes:
 Automated accessibility smoke test:
 - A lightweight `axe-core` check is also included as a Playwright test (`tests/e2e/accessibility.spec.ts`).
 - The test fails CI only on *critical* violations and logs all violations (including color-contrast / serious) to help triage.
+
+### Recent test and icon migration notes
+
+- Icons have been standardized to use a canonical barrel at `components/icons` with a lucide-backed implementation in `components/icons/lucide.tsx`. Legacy bespoke illustrations are kept in `components/icons/Icons.tsx` and re-exported from `components/icons/index.tsx`.
+- Playwright E2E now launches a fresh dev server per run (see `playwright.config.ts` - `webServer.reuseExistingServer: false`) to reduce intermittent HMR/serve cache issues observed during development.
+- The app exposes dev-mode axe results to `window.__axeViolations__` and the E2E accessibility test writes `axe-violations.json` when violations are detected to aid CI triage.
+- I fixed a serious color-contrast issue on the login hero copy and ensured the app has a `main` landmark in `Layout.tsx` to address common axe findings. Additional accessibility follow-ups can be implemented in a follow-up PR.
