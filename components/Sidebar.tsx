@@ -137,11 +137,11 @@ const Sidebar: React.FC<SidebarProps> = ({
             <div className="h-9 w-9 rounded-xl bg-linear-to-br from-orange-400 to-amber-500 flex items-center justify-center text-sm font-semibold shadow-lg shadow-orange-500/25">
               HF
             </div>
-              <div>
-              <p className="text-xs uppercase tracking-[0.18em] text-slate-600">
+            <div>
+              <p className="text-xs uppercase tracking-[0.18em] text-slate-300">
                 Heartfledge
               </p>
-              <p className="text-sm font-semibold">Logistics</p>
+              <p className="text-sm font-semibold text-slate-100">Logistics</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -179,7 +179,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             if (!visibleItems.length) return null;
             return (
               <div key={section.title} className="space-y-2">
-                  <p className="px-2 text-[11px] uppercase tracking-[0.16em] text-slate-200/50">
+                  <p className="px-2 text-[11px] uppercase tracking-[0.16em] text-slate-300">
                   {section.title}
                 </p>
                 <div className="space-y-1">
@@ -192,13 +192,13 @@ const Sidebar: React.FC<SidebarProps> = ({
                         onClick={() => handleSelect(item.view)}
                         className={`group flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium transition ${
                               isActive
-                                ? "bg-card text-foreground shadow-md"
-                                : "text-foreground-muted hover:bg-muted"
+                                  ? "bg-card text-foreground shadow-md"
+                                  : "text-slate-300 hover:bg-muted"
                             }`}
                       >
                         <Icon
                               className={`h-5 w-5 inline-block align-middle shrink-0 ${
-                                isActive ? "text-brand-600" : "text-foreground-muted"
+                                  isActive ? "text-brand-600" : "text-slate-300"
                               }`}
                         />
                         <span className="flex-1">{item.label}</span>
