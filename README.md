@@ -30,6 +30,37 @@ This repo includes a GitHub Actions workflow that runs on pull requests and push
 - TypeScript type checks: `npx tsc --noEmit`
 - Playwright E2E tests: `npm run test:e2e` (the workflow starts the dev server and runs the tests)
 
+### Running with more memory (16 GB)
+
+If you encounter memory limits during builds or test runs, you can increase Node's heap to 16 GB without changing the repository (recommended).
+
+- PowerShell (set for the current session):
+
+```powershell
+$env:NODE_OPTIONS="--max-old-space-size=16384"
+npm run build
+# or
+npm run test:e2e
+```
+
+- One-shot Windows command (runs a single command with increased memory):
+
+```powershell
+cmd /c "set NODE_OPTIONS=--max-old-space-size=16384&& npm run build"
+```
+
+- CI (GitHub Actions) example — call `node` directly with the memory flag (no repo changes required):
+
+```yaml
+- name: Build with more memory
+   run: node --max-old-space-size=16384 ./node_modules/vite/bin/vite.js build
+
+- name: Playwright tests with more memory
+   run: node --max-old-space-size=16384 ./node_modules/@playwright/test/lib/cli.js test
+```
+
+These approaches avoid adding extra dev dependencies like `cross-env` while giving a reproducible way to run memory-heavy operations locally or in CI.
+
 ## End-to-end tests (Playwright)
 
 - To run tests locally, ensure the dev server is running (`npm run dev`) and then run:
