@@ -12,7 +12,25 @@ test('login page accessibility check with axe-core', async ({ page }) => {
   await page.addScriptTag({ content: src });
   const results = await page.evaluate(async () => {
     // @ts-ignore
-    return await (window as any).axe.run();
+    // Axe can sometimes be invoked concurrently in CI when tests run in parallel.
+    // Retry a few times if we get an "Axe is already running" error.
+    const maxTries = 3;
+    for (let i = 0; i < maxTries; i++) {
+      try {
+        // @ts-ignore
+        return await (window as any).axe.run();
+      } catch (err: any) {
+        const msg = String(err && err.message ? err.message : err);
+        if (/Axe is already running/.test(msg) && i < maxTries - 1) {
+          // small backoff
+          // eslint-disable-next-line no-await-in-loop
+          await new Promise((r) => setTimeout(r, 300));
+          continue;
+        }
+        throw err;
+      }
+    }
+    throw new Error('Unable to run axe after retries');
   });
 
   // Determine threshold
