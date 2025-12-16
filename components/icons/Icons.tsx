@@ -3,137 +3,150 @@ import {
   X,
   Menu,
   LayoutGrid,
+  Search,
+  Plus,
+  Trash2,
+  Upload,
+  Copy,
+  Tag,
+  RefreshCw,
+  AlertTriangle,
+  Info,
+  Clock,
+  CheckCircle2,
+  Pencil,
+  ChevronLeft,
+  ChevronRight,
+  ChevronDown,
+  Play,
+  Pause,
+  Send,
   Truck,
-  FileText,
-  User,
-  Users,
+  MapPin,
   Map,
+  Calendar,
+  FileText,
+  Users,
+  User,
+  Briefcase,
+  Mail,
+  Phone,
+  Globe,
+  Building2,
+  CreditCard,
+  DollarSign,
+  TrendingUp,
+  Gauge,
+  Wrench,
+  ShieldCheck,
+  Star,
+  Calculator,
+  Banknote,
   BarChart3,
   Megaphone,
   Workflow,
   LineChart,
-  CreditCard,
   Settings,
-  Search,
-  Plus,
-  Calendar,
-  Sparkles,
-  Play,
-  Pause,
-  Copy,
-  Trash2,
-  Mail,
-  Tag,
-  RefreshCw,
-  Upload,
-  Briefcase,
-  Phone,
-  Globe,
-  Building2,
-  Clipboard,
-  Fuel,
-  Gauge,
-  DollarSign,
-  Banknote,
-  Calculator,
-  Pencil,
-  CheckCircle2,
-  AlertTriangle,
-  TrendingUp,
-  Wrench,
-  ChevronLeft,
-  ChevronRight,
-  ShieldCheck,
-  Download,
-  Cog,
-  Ticket,
-  Info,
-  Star,
-  MapPin,
-  Send,
-  Clock,
   UserPlus,
-  Lock,
+  ShieldAlert,
 } from "lucide-react";
 
-type IconProps = { className?: string };
+type IconProps = React.SVGProps<SVGSVGElement> & { title?: string };
 
-const i = (Icon: React.ComponentType<any>) => {
-  const Wrapped = ({ className }: IconProps) => (
-    // @ts-ignore - lucide uses its own typing; keep a simple wrapper
-    // Default size: 16px (h-4 w-4) when no className is provided so icons are visible
-    <Icon className={className ?? "h-4 w-4"} aria-hidden="true" />
-  );
-  return Wrapped;
-};
+const wrap =
+  (Comp: React.ComponentType<any>) =>
+  ({ title, ...props }: IconProps) =>
+    (
+      <Comp
+        aria-hidden={title ? undefined : true}
+        role={title ? "img" : undefined}
+        {...props}
+      >
+        {title ? <title>{title}</title> : null}
+      </Comp>
+    );
 
-// Navigation + common
-export const CloseIcon = i(X);
-export const MenuIcon = i(Menu);
-export const GridIcon = i(LayoutGrid);
-export const TruckIcon = i(Truck);
-export const DocumentTextIcon = i(FileText);
-export const DriverIcon = i(User);
-export const UsersIcon = i(Users);
-export const MapIcon = i(Map);
-export const BarChartIcon = i(BarChart3);
-export const CampaignIcon = i(Megaphone);
-export const MegaphoneIcon = i(Megaphone);
-export const WorkflowIcon = i(Workflow);
-export const AnalyticsIcon = i(LineChart);
-export const CreditCardIcon = i(CreditCard);
-export const SettingsIcon = i(Settings);
+// Core UI
+export const CloseIcon = wrap(X);
+export const MenuIcon = wrap(Menu);
 
-// UI actions
-export const SearchIcon = i(Search);
-export const PlusIcon = i(Plus);
-export const CalendarDaysIcon = i(Calendar);
-export const SparklesIcon = i(Sparkles);
-export const PlayIcon = i(Play);
-export const PauseIcon = i(Pause);
-export const DuplicateIcon = i(Copy);
-export const DocumentDuplicateIcon = i(Copy);
-export const TrashIcon = i(Trash2);
-export const EnvelopeIcon = i(Mail);
-export const TagIcon = i(Tag);
-export const ArrowPathIcon = i(RefreshCw);
-export const UploadIcon = i(Upload);
+// Common actions
+export const SearchIcon = wrap(Search);
+export const PlusIcon = wrap(Plus);
+export const TrashIcon = wrap(Trash2);
+export const UploadIcon = wrap(Upload);
+export const DuplicateIcon = wrap(Copy);
+export const DocumentDuplicateIcon = wrap(Copy);
+export const ArrowPathIcon = wrap(RefreshCw);
+export const RefreshIcon = wrap(RefreshCw);
 
-// Forms + entities
-export const BriefcaseIcon = i(Briefcase);
-export const PhoneIcon = i(Phone);
-export const GlobeIcon = i(Globe);
-export const BuildingOfficeIcon = i(Building2);
-export const ClipboardDocumentIcon = i(Clipboard);
-export const FuelIcon = i(Fuel);
-export const GaugeIcon = i(Gauge);
-export const CurrencyDollarIcon = i(DollarSign);
-export const BanknotesIcon = i(Banknote);
-export const CalculatorIcon = i(Calculator);
-export const PencilSquareIcon = i(Pencil);
-export const CheckCircleIcon = i(CheckCircle2);
-export const ExclamationTriangleIcon = i(AlertTriangle);
-export const TrendingUpIcon = i(TrendingUp);
-export const WrenchIcon = i(Wrench);
-export const ChevronLeftIcon = i(ChevronLeft);
-export const ChevronRightIcon = i(ChevronRight);
-export const ShieldCheckIcon = i(ShieldCheck);
-export const DownloadIcon = i(Download);
-export const CogIcon = i(Cog);
-export const TicketIcon = i(Ticket);
-export const InfoIcon = i(Info);
-export const StarIcon = i(Star);
+// Status / alerts
+export const ExclamationTriangleIcon = wrap(AlertTriangle);
+export const InfoIcon = wrap(Info);
+export const ClockIcon = wrap(Clock);
+export const CheckCircleIcon = wrap(CheckCircle2);
+
+// Navigation / entities
+export const TruckIcon = wrap(Truck);
+export const MapPinIcon = wrap(MapPin);
+export const RoadIcon = wrap(Map);
+export const CalendarDaysIcon = wrap(Calendar);
+export const DocumentTextIcon = wrap(FileText);
+export const UsersIcon = wrap(Users);
+export const UserCircleIcon = wrap(User);
+export const BriefcaseIcon = wrap(Briefcase);
+export const GridIcon = wrap(LayoutGrid);
+export const DriverIcon = wrap(User);
+export const MapIcon = wrap(Map);
+export const BarChartIcon = wrap(BarChart3);
+export const MegaphoneIcon = wrap(Megaphone);
+export const WorkflowIcon = wrap(Workflow);
+export const AnalyticsIcon = wrap(LineChart);
+export const SettingsIcon = wrap(Settings);
+
+// Contact / org
+export const EnvelopeIcon = wrap(Mail);
+export const PhoneIcon = wrap(Phone);
+export const GlobeIcon = wrap(Globe);
+export const BuildingOfficeIcon = wrap(Building2);
+
+// Finance
+export const CreditCardIcon = wrap(CreditCard);
+export const CurrencyDollarIcon = wrap(DollarSign);
+export const BanknotesIcon = wrap(Banknote);
+export const TrendingUpIcon = wrap(TrendingUp);
+export const CalculatorIcon = wrap(Calculator);
+
+// Fleet detail icons
+export const GaugeIcon = wrap(Gauge);
+export const WrenchIcon = wrap(Wrench);
+export const FuelIcon = wrap(CreditCard);
+export const CogIcon = wrap(Wrench);
+export const ShieldCheckIcon = wrap(ShieldCheck);
+export const TicketIcon = wrap(Tag);
+export const ClipboardDocumentIcon = wrap(FileText);
+export const PencilSquareIcon = wrap(Pencil);
+
+// Pagination / misc
+export const ChevronLeftIcon = wrap(ChevronLeft);
+export const ChevronRightIcon = wrap(ChevronRight);
+export const ChevronDownIcon = wrap(ChevronDown);
+
+// Marketing
+export const CampaignIcon = wrap(Mail);
+export const SparklesIcon = wrap(TrendingUp);
+export const PlayIcon = wrap(Play);
+export const PauseIcon = wrap(Pause);
+export const SendIcon = wrap(Send);
+export const TagIcon = wrap(Tag);
 
 // utility icons not in first set
-export const ClockIcon = i(Clock);
-export const UserPlusIcon = i(UserPlus);
-export const LockIcon = i(Lock);
-export const ShieldExclamationIcon = i(AlertTriangle);
+export const UserPlusIcon = wrap(UserPlus);
+export const LockIcon = wrap(ShieldAlert);
+export const ShieldExclamationIcon = wrap(AlertTriangle);
 
-// Routes + assistant
-export const RoadIcon = i(Map);
-export const MapPinIcon = i(MapPin);
-export const SendIcon = i(Send);
+
+
 
 // Keep your custom icons as-is (these are not in Lucide)
 export const BoxTruckIconBold = (props: { className?: string }) => (

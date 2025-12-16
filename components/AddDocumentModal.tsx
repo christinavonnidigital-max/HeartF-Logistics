@@ -69,8 +69,8 @@ const AddDocumentModal: React.FC<AddDocumentModalProps> = ({ onClose, onAddDocum
                     </>
                 )}
             >
-                <form id="add-document-form" onSubmit={handleSubmit}>
-                    <main className="p-6 space-y-4">
+                <form id="add-document-form" onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
+                    <main className="p-6 space-y-4 flex-1 overflow-y-auto custom-scrollbar">
                     <div>
                         <label className="block text-xs font-medium text-foreground-muted mb-1">Document Type</label>
                         <Select name="document_type" value={formData.document_type} onChange={handleChange} className="capitalize">

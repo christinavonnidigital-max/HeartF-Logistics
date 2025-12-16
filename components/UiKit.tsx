@@ -169,7 +169,7 @@ export const ModalShell: React.FC<{
     >
       <div
         className={cn(
-          'w-full overflow-hidden rounded-2xl border border-border bg-background shadow-2xl',
+          'w-full max-h-[90vh] overflow-hidden rounded-2xl border border-border bg-background shadow-2xl',
           maxWidthClass
         )}
         onMouseDown={(e) => e.stopPropagation()}
@@ -189,7 +189,7 @@ export const ModalShell: React.FC<{
           </IconButton>
         </div>
 
-        <div className="px-6 pb-6">{children}</div>
+        <div className="px-6 pb-6 flex flex-col flex-1 min-h-0 overflow-hidden">{children}</div>
 
         {footer && (
           <div className="px-6 py-4 border-t border-border bg-muted/20 flex items-center justify-end gap-2">
