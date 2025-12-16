@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { EmailSequence } from '../../types';
-import { ClockIcon, EnvelopeIcon, PencilSquareIcon, TrashIcon } from '../icons/Icons';
+import { ClockIcon, EnvelopeIcon, PencilSquareIcon, TrashIcon } from '../icons';
 
 interface SequenceStepProps {
     sequence: EmailSequence;

@@ -9,7 +9,7 @@ import {
   ShieldExclamationIcon,
   UserPlusIcon,
   TrashIcon,
-} from "./icons/Icons";
+} from "./icons";
 import { AppSettings, View } from "../App";
 import { Currency, User } from "../types";
 import { useData } from "../contexts/DataContext";
