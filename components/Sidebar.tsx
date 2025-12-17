@@ -128,17 +128,17 @@ const Sidebar: React.FC<SidebarProps> = ({
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-40 w-64 transform bg-[#0B1220] text-slate-200 border-r border-slate-800 transition-transform duration-300 ease-in-out md:translate-x-0 flex flex-col ${
+        className={`fixed inset-y-0 left-0 z-40 w-64 transform bg-slate-900 text-slate-300 border-r border-slate-800/60 transition-transform duration-300 ease-in-out md:translate-x-0 flex flex-col ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <div className="flex items-center justify-between px-4 py-4 border-b border-white/10">
+        <div className="flex items-center justify-between px-5 py-5 border-b border-slate-800/60">
           <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-xl bg-slate-800/60 flex items-center justify-center text-sm font-semibold text-slate-100">
+            <div className="h-9 w-9 rounded-xl bg-slate-800/40 flex items-center justify-center text-sm font-semibold text-slate-200">
               HF
             </div>
             <div>
-              <p className="text-xs uppercase tracking-[0.18em] text-slate-300">
+              <p className="text-xs uppercase tracking-[0.18em] text-slate-400">
                 Heartfledge
               </p>
               <p className="text-sm font-semibold text-slate-200">Logistics</p>
@@ -171,15 +171,15 @@ const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         {/* Scrollable nav */}
-        <nav className="flex-1 min-h-0 p-2 overflow-y-auto custom-scrollbar">
+        <nav className="flex-1 min-h-0 p-3 overflow-y-auto custom-scrollbar">
           {navSections.map((section) => {
             const visibleItems = section.items.filter((item) =>
               isAllowed(item.view)
             );
             if (!visibleItems.length) return null;
             return (
-              <div key={section.title} className="space-y-2">
-                  <p className="px-2 text-[11px] uppercase tracking-[0.16em] text-slate-300">
+              <div key={section.title} className="space-y-2 mb-6">
+                  <p className="px-3 text-[11px] uppercase tracking-[0.16em] text-slate-400">
                   {section.title}
                 </p>
                 <div className="space-y-1">
@@ -190,14 +190,14 @@ const Sidebar: React.FC<SidebarProps> = ({
                       <button
                         key={item.view}
                         onClick={() => handleSelect(item.view)}
-                        className={`group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm transition
+                        className={`group flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm transition
   ${isActive
-    ? "bg-white text-slate-900 shadow-sm"
-    : "text-slate-200/80 hover:bg-white/8 hover:text-white"
+    ? "bg-slate-800/60 text-slate-100 shadow-sm"
+    : "text-slate-400 hover:bg-slate-800/40 hover:text-slate-200"
   }`}
                       >
                         <Icon
-                          className={`h-5 w-5 shrink-0 ${isActive ? "text-orange-600" : "text-slate-300/80 group-hover:text-white"}`}
+                          className={`h-5 w-5 shrink-0 ${isActive ? "text-orange-500" : "text-slate-500 group-hover:text-slate-300"}`}
                         />
                         <span className="flex-1">{item.label}</span>
                         {item.badge && (

@@ -219,7 +219,7 @@ const RevenueTrendChart = ({ invoices, currency, title }: { invoices: Invoice[],
   const currencySymbol = currency === 'ZWL' ? 'Z$' : '$';
 
   return (
-    <div className="rounded-2xl bg-white p-5 shadow-md border border-slate-200/60 h-80 flex flex-col min-w-0">
+    <div className="rounded-2xl bg-white/70 backdrop-blur border border-slate-200/50 p-5 shadow-md h-80 flex flex-col min-w-0">
       <h3 className="text-sm font-bold text-slate-800 shrink-0 tracking-tight">{title || 'Trend (Last 6 Months)'}</h3>
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={data} margin={{ top: 20, right: 20, left: 0, bottom: 0 }}>
@@ -243,7 +243,7 @@ const RevenueByCategoryChart = ({ invoices, currency, title }: { invoices: Invoi
     const COLORS = ['#6366f1', '#ec4899', '#10b981', '#f59e0b', '#0ea5e9'];
 
     return (
-        <div className="rounded-2xl bg-white p-5 shadow-md border border-slate-200/60 h-80 flex flex-col min-w-0">
+        <div className="rounded-2xl bg-white/70 backdrop-blur border border-slate-200/50 p-5 shadow-md h-80 flex flex-col min-w-0">
             <h3 className="text-sm font-bold text-slate-800 shrink-0 tracking-tight">{title || 'Spend by Type'}</h3>
             <div className="flex-1 mt-2">
                 <ResponsiveContainer width="100%" height="100%">
@@ -365,7 +365,7 @@ const Dashboard: React.FC<DashboardProps> = ({ data, settings, userRole }) => {
       <div className="space-y-10">
         {/* Operations Pulse */}
         <section className="grid grid-cols-1 xl:grid-cols-[1.2fr_0.8fr] gap-8">
-          <div className="rounded-2xl bg-white border border-slate-200 shadow-sm p-7 space-y-6 min-w-0">
+          <div className="rounded-2xl bg-white/70 backdrop-blur border border-slate-200/50 shadow-sm p-7 space-y-6 min-w-0">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-bold uppercase tracking-wider text-slate-700">Operations Pulse</p>
@@ -446,7 +446,7 @@ const Dashboard: React.FC<DashboardProps> = ({ data, settings, userRole }) => {
             </div>
           </div>
 
-          <div className="rounded-2xl bg-white border border-slate-200 shadow-sm p-6 min-w-0">
+          <div className="rounded-2xl bg-white/70 backdrop-blur border border-slate-200/50 shadow-sm p-6 min-w-0">
             <div className="flex items-center justify-between mb-4">
               <div>
                 <p className="text-xs font-bold uppercase tracking-wider text-slate-700">Recent Bookings</p>
@@ -546,7 +546,7 @@ const Dashboard: React.FC<DashboardProps> = ({ data, settings, userRole }) => {
         <section className={`grid gap-6 ${isCustomer ? 'grid-cols-1' : 'lg:grid-cols-2'}`}>
             {/* Leads - HIDDEN FOR CUSTOMERS */}
             {!isCustomer && (
-                <div className="rounded-2xl bg-white shadow-md border border-slate-200/60 overflow-hidden min-w-0">
+                <div className="rounded-2xl bg-white/70 backdrop-blur shadow-md border border-slate-200/50 overflow-hidden min-w-0">
                     <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4 bg-slate-50/30">
                         <h2 className="text-sm font-bold text-slate-900 tracking-tight">Recent Leads</h2>
                         <span className="text-xs font-medium text-slate-700 bg-slate-100 px-2 py-1 rounded-md">{totalLeads} total</span>
@@ -583,7 +583,7 @@ const Dashboard: React.FC<DashboardProps> = ({ data, settings, userRole }) => {
 
             {/* Bookings - show here only for customers to avoid duplication */}
             {isCustomer && (
-                <div className="rounded-2xl bg-white shadow-md border border-slate-200/60 overflow-hidden min-w-0">
+                <div className="rounded-2xl bg-white/70 backdrop-blur shadow-md border border-slate-200/50 overflow-hidden min-w-0">
                     <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4 bg-slate-50/30">
                         <h2 className="text-sm font-bold text-slate-900 tracking-tight">Recent Bookings</h2>
                         <span className="text-xs font-medium text-slate-700 bg-slate-100 px-2 py-1 rounded-md">{bookings?.length || 0} total</span>
