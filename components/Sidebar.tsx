@@ -179,7 +179,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             if (!visibleItems.length) return null;
             return (
               <div key={section.title} className="space-y-2 mb-6">
-                  <p className="px-3 text-[11px] uppercase tracking-[0.16em] text-slate-500">
+                  <p className="px-3 text-[11px] uppercase tracking-[0.16em] text-slate-400">
                   {section.title}
                 </p>
                 <div className="space-y-1">
