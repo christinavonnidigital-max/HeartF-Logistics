@@ -9,7 +9,8 @@ import { IllustrationTruckIcon } from './icons';
 import EmptyState from './EmptyState';
 import AddExpenseModal from './AddExpenseModal';
 import AddVehicleModal from './AddVehicleModal';
-import { ShellCard, SectionHeader, StatusPill } from "./UiKit";
+import { SectionHeader, StatusPill } from "./UiKit";
+import { ShellCard, PageHeader, Button, StatCard } from './UiKit_new';
 
 const FleetDashboard: React.FC = () => {
   const { vehicles, addVehicle, deleteVehicle, updateVehicle } = useData();
@@ -91,6 +92,7 @@ const FleetDashboard: React.FC = () => {
 
   return (
     <>
+      <PageHeader title="Fleet" subtitle="Track vehicles, status, and utilization" right={<Button variant="primary" onClick={() => setIsAddVehicleModalOpen(true)}>Add vehicle</Button>} />
       <div className={`grid gap-8 h-auto lg:h-[calc(100vh-8rem)] transition-all duration-300 ${
         isLeftPanelCollapsed
           ? 'lg:grid-cols-[60px_minmax(0,1fr)]'
@@ -118,32 +120,10 @@ const FleetDashboard: React.FC = () => {
             </button>
             {/* Metrics Row */}
             <div className={`grid grid-cols-2 gap-4 shrink-0 transition-opacity duration-300 ${
-                isLeftPanelCollapsed ? 'lg:opacity-0 lg:pointer-events-none' : 'opacity-100'
+              isLeftPanelCollapsed ? 'lg:opacity-0 lg:pointer-events-none' : 'opacity-100'
             }`}>
-                <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
-                    <div className="flex items-center gap-2.5 text-slate-500 mb-2">
-                        <div className="p-1.5 bg-slate-50 rounded-lg">
-                            <GaugeIcon className="w-5 h-5" />
-                        </div>
-                        <span className="text-xs font-bold uppercase tracking-wider">Utilization</span>
-                    </div>
-                    <div className="flex items-end justify-between mt-2">
-                        <span className="text-3xl font-bold text-slate-900">{utilizationPercentage}%</span>
-                        <span className="text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-1 rounded">+2%</span>
-                    </div>
-                </div>
-                <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
-                    <div className="flex items-center gap-2.5 text-slate-500 mb-2">
-                        <div className="p-1.5 bg-slate-50 rounded-lg">
-                            <WrenchIcon className="w-5 h-5" />
-                        </div>
-                        <span className="text-xs font-bold uppercase tracking-wider">Maintenance</span>
-                    </div>
-                    <div className="flex items-end justify-between mt-2">
-                        <span className="text-3xl font-bold text-slate-900">{maintenanceCount}</span>
-                        <span className="text-xs text-slate-700 font-medium">Vehicles</span>
-                    </div>
-                </div>
+              <StatCard label="Utilization" value={`${utilizationPercentage}%`} hint="Vehicles active" icon={<GaugeIcon className="w-6 h-6" />} />
+              <StatCard label="Maintenance" value={maintenanceCount} hint="Vehicles" icon={<WrenchIcon className="w-6 h-6" />} />
             </div>
 
             <ShellCard className={`flex flex-col p-0 overflow-hidden transition-opacity duration-300 ${

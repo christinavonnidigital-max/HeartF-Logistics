@@ -198,7 +198,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onChangeSettings 
           <div className="mt-4 flex-1 overflow-y-auto max-h-80 -mx-2 px-2">
             <div className="space-y-2">
               {users.map(user => (
-                <div key={user.id} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100 group hover:border-orange-200 hover:shadow-sm transition-all">
+                <ShellCard key={user.id} className="p-3 flex items-center justify-between group hover:border-orange-200 hover:shadow-sm transition-all">
                   <div className="flex items-center gap-3">
                     <div className="h-8 w-8 rounded-full bg-white border border-slate-200 flex items-center justify-center text-xs font-bold text-slate-700">
                       {user.first_name[0]}{user.last_name[0]}
@@ -219,7 +219,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onChangeSettings 
                       <TrashIcon className="w-4 h-4" />
                     </button>
                   </div>
-                </div>
+                  </ShellCard>
               ))}
             </div>
           </div>

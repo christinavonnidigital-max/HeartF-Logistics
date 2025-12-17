@@ -46,6 +46,9 @@ type DashboardProps = {
   userRole?: UserRole;
 };
 
+// Using shared StatCard (UiKit_new) for calmer, consistent stats
+import { StatCard as UiStatCard } from './UiKit_new';
+
 type StatCardProps = {
   label: string;
   value: string | number;
@@ -56,48 +59,10 @@ type StatCardProps = {
   color?: 'orange' | 'blue' | 'emerald' | 'indigo';
 };
 
-const StatCard: React.FC<StatCardProps> = ({ label, value, sublabel, icon, trend, trendLabel, color = 'orange' }) => {
-  const formattedValue = typeof value === 'number' ? value.toLocaleString() : value;
-  
-  const colorStyles = {
-    orange: { bg: 'bg-orange-50', text: 'text-orange-600', iconBg: 'bg-white' },
-    blue: { bg: 'bg-sky-50', text: 'text-sky-600', iconBg: 'bg-white' },
-    emerald: { bg: 'bg-emerald-50', text: 'text-emerald-600', iconBg: 'bg-white' },
-    indigo: { bg: 'bg-indigo-50', text: 'text-indigo-600', iconBg: 'bg-white' },
-  };
-
-  const styles = colorStyles[color];
-
+// Local thin wrapper to adapt existing usage to the new UiStatCard API
+const StatCard: React.FC<StatCardProps> = ({ label, value, sublabel, icon }) => {
   return (
-    <div className="relative flex flex-col justify-between rounded-2xl bg-white p-5 shadow-md border border-slate-100 overflow-hidden group hover:border-orange-200/60 transition-all duration-300 min-w-0">
-      <div className={`absolute top-0 right-0 -mt-4 -mr-4 h-24 w-24 rounded-full ${styles.bg} opacity-50 blur-2xl transition-opacity group-hover:opacity-100`}></div>
-      
-      <div className="flex items-start justify-between relative z-10">
-        <div>
-            <p className="text-xs font-bold uppercase tracking-wider text-slate-700">
-            {label}
-            </p>
-            <p className="mt-2 text-3xl font-bold text-slate-900 tracking-tight">
-            {formattedValue}
-            </p>
-        </div>
-        <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${styles.bg} ${styles.text} shadow-sm border border-slate-100/50`}>
-          {icon}
-        </div>
-      </div>
-      
-      <div className="mt-4 flex items-center gap-2 relative z-10">
-        {trend !== undefined && (
-            <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${trend >= 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}`}>
-                {trend >= 0 ? <TrendingUpIcon className="w-3 h-3" /> : <TrendingDownIcon className="w-3 h-3" />}
-                {Math.abs(trend)}%
-            </span>
-        )}
-        {sublabel && (
-          <p className="text-xs text-slate-500 font-medium truncate">{sublabel}</p>
-        )}
-      </div>
-    </div>
+    <UiStatCard label={label} value={value} hint={sublabel} icon={<div className="text-slate-400">{React.cloneElement(icon as React.ReactElement, { className: 'w-6 h-6' })}</div>} />
   );
 };
 

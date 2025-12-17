@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { VehicleExpense, ExpenseType, Currency, RecurringFrequency } from '../types';
 import { CloseIcon, CurrencyDollarIcon, TagIcon, CalendarDaysIcon, DocumentTextIcon, ArrowPathIcon } from './icons';
 import { Button, Input, Select, Textarea, IconButton, ModalShell } from './UiKit';
+import { SubtleCard } from './UiKit_new';
 
 interface AddExpenseModalProps {
   onClose: () => void;
@@ -66,7 +67,7 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ onClose, onAddExpense
         <main className="p-6 space-y-6">
             
             {/* Amount Section */}
-            <div className="bg-card rounded-xl p-4 border border-border">
+            <SubtleCard className="p-4">
                 <label className="block text-xs font-bold text-foreground-muted uppercase tracking-wider mb-2">Total Amount</label>
                 <div className="flex gap-3">
                     <div className="relative grow">
@@ -87,7 +88,7 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ onClose, onAddExpense
                     </Select>
                 </div>
                   {errors.amount && <p className="mt-1 text-xs text-danger-600">{errors.amount}</p>}
-            </div>
+            </SubtleCard>
 
             <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">

@@ -1,5 +1,107 @@
 import React from "react";
 import * as Lucide from "lucide-react";
+// Import common icons directly to avoid bundler/tree-shaking issues with dynamic lookup
+import {
+  X,
+  Menu,
+  LayoutGrid,
+  Search,
+  Plus,
+  Trash2,
+  Upload,
+  Copy,
+  Tag,
+  RefreshCw,
+  AlertTriangle,
+  Info,
+  Clock,
+  CheckCircle2,
+  Pencil,
+  ChevronLeft,
+  ChevronRight,
+  ChevronDown,
+  Play,
+  Pause,
+  Send,
+  Truck,
+  MapPin,
+  Map,
+  Calendar,
+  FileText,
+  Users,
+  User,
+  Briefcase,
+  Mail,
+  Phone,
+  Globe,
+  Building2,
+  CreditCard,
+  DollarSign,
+  TrendingUp,
+  TrendingDown,
+  Gauge,
+  Wrench,
+  ShieldCheck,
+  Star,
+  Calculator,
+  Banknote,
+  BarChart3,
+  Megaphone,
+  Layers,
+  Activity,
+  BarChart2,
+} from "lucide-react";
+
+const NAMED_ICONS: Record<string, any> = {
+  X,
+  Menu,
+  LayoutGrid,
+  Search,
+  Plus,
+  Trash2,
+  Upload,
+  Copy,
+  Tag,
+  RefreshCw,
+  AlertTriangle,
+  Info,
+  Clock,
+  CheckCircle2,
+  Pencil,
+  ChevronLeft,
+  ChevronRight,
+  ChevronDown,
+  Play,
+  Pause,
+  Send,
+  Truck,
+  MapPin,
+  Map,
+  Calendar,
+  FileText,
+  Users,
+  User,
+  Briefcase,
+  Mail,
+  Phone,
+  Globe,
+  Building2,
+  CreditCard,
+  DollarSign,
+  TrendingUp,
+  TrendingDown,
+  Gauge,
+  Wrench,
+  ShieldCheck,
+  Star,
+  Calculator,
+  Banknote,
+  BarChart3,
+  Megaphone,
+  Layers,
+  Activity,
+  BarChart2,
+};
 
 export type IconProps = React.SVGProps<SVGSVGElement> & { className?: string };
 
@@ -35,8 +137,9 @@ type IconLike = React.FC<React.SVGProps<SVGSVGElement> & { className?: string }>
 
 function makeIcon(name: string): IconLike {
   const lucideName = LUCIDE_NAME_OVERRIDES[name] || name.replace(/Icon$/, "");
-  const C = (Lucide as any)[lucideName];
-  if (typeof C === "function") return (props) => <C {...props} />;
+  let C = (Lucide as any)[lucideName];
+  if (!C) C = NAMED_ICONS[lucideName];
+  if (C) return (props) => <C {...props} />;
   return (props) => (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={props.className} aria-hidden="true" focusable="false" {...props}>
       <circle cx={12} cy={12} r={8} />

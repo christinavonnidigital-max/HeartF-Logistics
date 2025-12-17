@@ -2,7 +2,8 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Customer, LoyaltyTier } from '../types';
 import { SearchIcon, UsersIcon, EnvelopeIcon, MapPinIcon, TrashIcon, PlusIcon, CurrencyDollarIcon } from './icons';
-import { ShellCard, SectionHeader, StatusPill } from './UiKit';
+import { SectionHeader, StatusPill } from './UiKit';
+import { ShellCard, StatCard } from './UiKit_new';
 import EmptyState from './EmptyState';
 import { useData } from '../contexts/DataContext';
 import AddCustomerModal from './AddCustomerModal';
@@ -113,15 +114,9 @@ const CustomersPage: React.FC = () => {
   return (
     <div className="space-y-6">
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-            <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-                <p className="text-xs font-bold text-slate-700 uppercase tracking-wider">Total Accounts</p>
-                <p className="text-2xl font-bold text-slate-900 mt-1">{localCustomers.length}</p>
+                <StatCard label="Total Accounts" value={localCustomers.length} />
+                <StatCard label="Total Lifetime Value" value={new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', notation: 'compact' }).format(totalRevenue)} />
             </div>
-            <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-                <p className="text-xs font-bold text-slate-700 uppercase tracking-wider">Total Lifetime Value</p>
-                <p className="text-2xl font-bold text-emerald-600 mt-1">{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', notation: 'compact' }).format(totalRevenue)}</p>
-            </div>
-        </div>
 
         <ShellCard className="p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div>
@@ -154,10 +149,10 @@ const CustomersPage: React.FC = () => {
             {filteredCustomers.map(customer => {
                 const isSelected = selectedCustomer?.id === customer.id;
                 return (
-                <div 
-                    key={customer.id} 
+                <ShellCard
+                    key={customer.id}
                     onClick={() => setSelectedCustomer(customer)}
-                    className={`group bg-white rounded-xl shadow-sm border p-5 hover:shadow-md transition-all duration-300 relative cursor-pointer ${getTierAccent(customer.loyalty_tier)} ${isSelected ? 'border-orange-300 ring-2 ring-orange-100' : 'border-slate-200'}`}
+                    className={`p-5 hover:shadow-md transition-all duration-300 relative cursor-pointer ${getTierAccent(customer.loyalty_tier)} ${isSelected ? 'ring-2 ring-orange-100 border-orange-300' : ''}`}
                 >
                     <div className="flex justify-between items-start mb-4">
                         <div className="flex items-center gap-3">
@@ -203,7 +198,7 @@ const CustomersPage: React.FC = () => {
                     >
                         <TrashIcon className="w-4 h-4" />
                     </button>
-                </div>
+                </ShellCard>
             )})}
             </div>
         ) : (

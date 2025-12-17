@@ -9,6 +9,7 @@ import { useData } from '../contexts/DataContext';
 import AddBookingModal from './AddBookingModal';
 import BookingDetailsModal from './BookingDetailsModal';
 import { StatusPill } from './UiKit';
+import { ShellCard } from './UiKit_new';
 
 const statusToLabelAndTone = (status: Booking['status'] | string) => {
   const normalized = (status || '').toString();
@@ -138,8 +139,10 @@ const BookingsPage: React.FC = () => {
                             <div 
                                 key={booking.id} 
                                 onClick={() => setSelectedBookingId(booking.id)}
-                                className="group relative bg-white p-4 rounded-xl border border-slate-200 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05)] hover:shadow-[0_8px_16px_-4px_rgba(0,0,0,0.1)] hover:border-orange-200/60 cursor-pointer transition-all duration-300 ease-out hover:-translate-y-0.5"
-                            >
+                                as={"div"}
+                                className={`group relative cursor-pointer transition-all duration-300 ease-out hover:-translate-y-0.5`}
+                                >
+                                <ShellCard className="p-4 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05)] hover:shadow-[0_8px_16px_-4px_rgba(0,0,0,0.1)] hover:border-orange-200/60">
                                 {/* Status Indicator Line on Hover */}
                                 <div className={`absolute left-0 top-4 bottom-4 w-1 rounded-r-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${col.accent}`}></div>
 
@@ -193,10 +196,11 @@ const BookingsPage: React.FC = () => {
                                          </p>
                                     </div>
                                 </div>
+                                </ShellCard>
                             </div>
                         ))}
                         {(!bookingsByStatus[col.key] || bookingsByStatus[col.key].length === 0) && (
-                            <div className="h-32 flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-xl text-slate-400 text-xs italic bg-slate-50/50">
+                            <div className="h-32 flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-2xl text-slate-400 text-xs italic bg-slate-50/50">
                                 <DocumentTextIcon className="w-6 h-6 mb-1 opacity-50" />
                                 No bookings
                             </div>

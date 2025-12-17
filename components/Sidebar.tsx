@@ -128,20 +128,20 @@ const Sidebar: React.FC<SidebarProps> = ({
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-40 w-64 transform bg-slate-950 text-slate-200 border-r border-slate-800 transition-transform duration-300 ease-in-out md:translate-x-0 flex flex-col ${
+        className={`fixed inset-y-0 left-0 z-40 w-64 transform bg-[#0B1220] text-slate-200 border-r border-slate-800 transition-transform duration-300 ease-in-out md:translate-x-0 flex flex-col ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         <div className="flex items-center justify-between px-4 py-4 border-b border-white/10">
           <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-xl bg-linear-to-br from-orange-400 to-amber-500 flex items-center justify-center text-sm font-semibold shadow-lg shadow-orange-500/25">
+            <div className="h-9 w-9 rounded-xl bg-slate-800/60 flex items-center justify-center text-sm font-semibold text-slate-100">
               HF
             </div>
             <div>
               <p className="text-xs uppercase tracking-[0.18em] text-slate-300">
                 Heartfledge
               </p>
-              <p className="text-sm font-semibold text-slate-100">Logistics</p>
+              <p className="text-sm font-semibold text-slate-200">Logistics</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -190,16 +190,14 @@ const Sidebar: React.FC<SidebarProps> = ({
                       <button
                         key={item.view}
                         onClick={() => handleSelect(item.view)}
-                        className={`group flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium transition ${
-                              isActive
-                                  ? "bg-card text-foreground shadow-md"
-                                  : "text-slate-300 hover:bg-muted"
-                            }`}
+                        className={`group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm transition
+  ${isActive
+    ? "bg-white text-slate-900 shadow-sm"
+    : "text-slate-200/80 hover:bg-white/8 hover:text-white"
+  }`}
                       >
                         <Icon
-                              className={`h-5 w-5 inline-block align-middle shrink-0 ${
-                                  isActive ? "text-brand-600" : "text-slate-300"
-                              }`}
+                          className={`h-5 w-5 shrink-0 ${isActive ? "text-orange-600" : "text-slate-300/80 group-hover:text-white"}`}
                         />
                         <span className="flex-1">{item.label}</span>
                         {item.badge && (

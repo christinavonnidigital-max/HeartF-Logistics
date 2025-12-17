@@ -8,7 +8,8 @@ import { CurrencyDollarIcon, TrendingUpIcon, DocumentTextIcon, CreditCardIcon } 
 import AddInvoiceModal from './AddInvoiceModal';
 import AddGlobalExpenseModal from './AddGlobalExpenseModal';
 import { useAuth } from '../auth/AuthContext';
-import { ShellCard, SectionHeader } from './UiKit';
+import { SectionHeader } from './UiKit';
+import { ShellCard, PageHeader, StatCard, Button } from './UiKit_new';
 import {
   LineChart,
   Line,
@@ -114,7 +115,8 @@ const FinancialsDashboard: React.FC = () => {
 
     return (
         <>
-            <div className="flex flex-col gap-6 min-w-0">
+                <div className="flex flex-col gap-6 min-w-0">
+                    <PageHeader title="Financials" subtitle="Invoices, expenses, and profitability" right={<Button variant="primary" onClick={() => setIsInvoiceModalOpen(true)}>Add invoice</Button>} />
                 <div className={`grid grid-cols-1 ${isCustomer ? '' : 'md:grid-cols-3'} gap-5`}>
                     <FinStatCard 
                         label={isCustomer ? "Total Paid" : "Total Revenue"}

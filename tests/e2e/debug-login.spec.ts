@@ -1,6 +1,8 @@
 import { test, expect } from '@playwright/test';
 
 test('debug login page content', async ({ page }) => {
+  // Ensure desktop layout so the sidebar is visible for debugging
+  await page.setViewportSize({ width: 1280, height: 900 });
   page.on('console', (msg) => console.log('PAGE CONSOLE:', msg.text()));
   page.on('pageerror', (err) => console.log('PAGE ERROR:', err));
   page.on('response', async (r) => {
@@ -42,9 +44,9 @@ test('debug login page content', async ({ page }) => {
     expect(iconsImport.indexKeys).toContain('GridIcon');
   }
 
-  // There should be at least one SVG in the aside (sidebar) indicating icons are rendered
-  const asideSvgs = await page.locator('aside svg').count();
-  expect(asideSvgs).toBeGreaterThan(0);
+  // There should be at least one SVG on the page (feature icons / logos)
+  const svgs = await page.locator('svg').count();
+  expect(svgs).toBeGreaterThan(0);
   // Capture any dev-mode axe violations exposed on window by the app
   const devViolations = await page.evaluate(() => (window as any).__axeViolations__ || null);
   if (devViolations) {

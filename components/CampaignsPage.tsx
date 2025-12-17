@@ -5,7 +5,8 @@ import { mockCampaigns } from '../data/mockMarketingData';
 import { PlusIcon, SearchIcon, PlayIcon, PauseIcon, DuplicateIcon, TrashIcon, EnvelopeIcon, TagIcon, DocumentTextIcon, CalendarDaysIcon, ArrowPathIcon } from './icons';
 import { SparklesIcon } from './icons';
 import { View } from '../App';
-import { ShellCard, SectionHeader, StatusPill } from './UiKit';
+import { SectionHeader, StatusPill } from './UiKit';
+import { ShellCard } from './UiKit_new';
 import ConfirmModal from './ConfirmModal';
 
 

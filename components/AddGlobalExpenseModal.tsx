@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Expense, ExpenseCategory, Currency, PaymentMethod, ExpensePaymentStatus, RecurringFrequency } from '../types';
 import { CloseIcon, DocumentDuplicateIcon, CurrencyDollarIcon, TagIcon, CalendarDaysIcon, DocumentTextIcon, CreditCardIcon, CheckCircleIcon, ArrowPathIcon, UploadIcon } from './icons';
 import { Button, Input, Select, Textarea, ModalShell } from './UiKit';
+import { ShellCard, SubtleCard } from './UiKit_new';
 
 interface AddGlobalExpenseModalProps {
   onClose: () => void;
@@ -86,7 +87,7 @@ const AddGlobalExpenseModal: React.FC<AddGlobalExpenseModalProps> = ({ onClose, 
         <main className="p-6 space-y-6">
             
             {/* Amount Hero */}
-            <div className="bg-card rounded-xl p-5 border border-border shadow-sm">
+            <ShellCard className="p-5">
               <label className="block text-xs font-bold text-foreground-muted uppercase tracking-wider mb-2">Total Amount</label>
               <div className="flex gap-3">
                     <div className="relative grow">
@@ -112,7 +113,7 @@ const AddGlobalExpenseModal: React.FC<AddGlobalExpenseModalProps> = ({ onClose, 
                   {Object.values(Currency).map(c => <option key={c} value={c}>{c}</option>)}
                 </Select>
               </div>
-            </div>
+            </ShellCard>
 
             {/* Details Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -157,10 +158,7 @@ const AddGlobalExpenseModal: React.FC<AddGlobalExpenseModalProps> = ({ onClose, 
                     </Select>
                 </div>
                 
-                <div 
-                  className={`p-4 rounded-xl border cursor-pointer transition-all duration-200 ${formData.is_recurring ? 'bg-amber-500/10 border-amber-500/20' : 'bg-card border-border hover:bg-muted'}`}
-                  onClick={() => setFormData(prev => ({ ...prev, is_recurring: !prev.is_recurring }))}
-                >
+                <SubtleCard className={`p-4 cursor-pointer transition-all duration-200 ${formData.is_recurring ? 'bg-amber-500/10 border-amber-500/20' : 'bg-card border-border hover:bg-muted'}`} onClick={() => setFormData(prev => ({ ...prev, is_recurring: !prev.is_recurring }))}>
                   <div className="flex items-center h-5">
                     <Input
                       id="is_recurring_global"
@@ -186,7 +184,7 @@ const AddGlobalExpenseModal: React.FC<AddGlobalExpenseModalProps> = ({ onClose, 
                       </Select>
                     </div>
                   )}
-                </div>
+                </SubtleCard>
             </div>
 
             {/* Receipt Upload */}

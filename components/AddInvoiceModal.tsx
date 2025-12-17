@@ -3,7 +3,8 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Booking, Currency, Invoice, InvoiceStatus, InvoiceType } from '../types';
 import { mockCustomers } from '../data/mockCrmData';
 import { DocumentTextIcon, CurrencyDollarIcon, CalendarDaysIcon, UserCircleIcon, BanknotesIcon, CalculatorIcon } from './icons';
-import { ModalShell, Button, Input, Select, SubtleCard, SectionHeader, Label } from './UiKit';
+import { ModalShell, Button, Input, Select, SectionHeader, Label } from './UiKit';
+import { SubtleCard } from './UiKit_new';
 
 interface AddInvoiceModalProps {
   onClose: () => void;
@@ -131,7 +132,7 @@ const AddInvoiceModal: React.FC<AddInvoiceModalProps> = ({ onClose, onAddInvoice
           {/* Financials */}
           <SectionHeader title="Payment Details" actions={<BanknotesIcon className="w-4 h-4" />} />
 
-            <div className="bg-card rounded-xl border border-border p-4 space-y-4">
+            <SubtleCard className="p-4 space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label>Subtotal</Label>
@@ -172,7 +173,7 @@ const AddInvoiceModal: React.FC<AddInvoiceModalProps> = ({ onClose, onAddInvoice
                   </div>
                 </div>
               </div>
-            </div>
+            </SubtleCard>
           </div>
           {error && (
             <div className="bg-danger-600/10 border border-danger-600/20 text-danger-600 px-4 py-3 rounded-lg text-sm text-center">

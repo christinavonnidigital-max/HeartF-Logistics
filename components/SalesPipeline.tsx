@@ -31,15 +31,17 @@ const OpportunityCard: React.FC<{
         <div
             draggable
             onDragStart={handleDragStart}
-            className="bg-white p-4 rounded-xl shadow-sm ring-1 ring-slate-100 mb-4 cursor-move hover:shadow-md hover:ring-2 hover:ring-orange-400 transition-all active:opacity-50"
-            onClick={() => onClick(opp)}
-        >
+            as={"div"}
+            className={`mb-4 cursor-move transition`}
+            >
+            <ShellCard className="p-4 ring-1 ring-slate-100 hover:shadow-md hover:ring-2 hover:ring-orange-400 active:opacity-50" onClick={() => onClick(opp)}>
             <p className="font-semibold text-sm text-slate-900 mb-2">{opp.opportunity_name}</p>
             <p className="text-xs text-slate-500 mb-3">{opp.lead_id ? `Lead ID: ${opp.lead_id}` : `Customer ID: ${opp.customer_id}`}</p>
             <div className="flex justify-between items-center pt-3 border-t border-slate-100">
                 <span className="text-sm font-semibold text-emerald-600">{new Intl.NumberFormat(undefined, { style: 'currency', currency: opp.currency }).format(opp.expected_value)}</span>
                 <span className="text-xs text-slate-400 font-medium">{opp.probability}%</span>
             </div>
+            </ShellCard>
         </div>
     );
 };

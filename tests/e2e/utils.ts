@@ -16,7 +16,7 @@ export async function loginAs(page: Page, role: 'ops' | 'dispatcher' | 'customer
     ops: { email: 'ops@heartfledge.local', pwd: 'routes123' },
     dispatcher: { email: 'dispatcher@heartfledge.local', pwd: 'fleet123' },
     customer: { email: 'customer@heartfledge.local', pwd: 'client123', selector: 'text=Crm Dashboard' },
-    admin: { email: 'ops@heartfledge.local', pwd: 'routes123' },
+    admin: { email: 'admin@heartfledge.local', pwd: 'admin123' },
   };
 
   const { email, pwd, selector } = creds[role] || creds.ops;

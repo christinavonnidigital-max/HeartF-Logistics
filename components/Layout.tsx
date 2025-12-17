@@ -145,7 +145,7 @@ const Layout: React.FC<LayoutProps> = ({
         </header>
 
         {/* Main content */}
-        <main className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-4 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-8 text-[0.96rem] custom-scrollbar">
+        <main className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-5 py-5 sm:px-8 sm:py-7 lg:px-10 lg:py-9 text-[15px] leading-relaxed custom-scrollbar bg-[var(--app-bg)]">
           <div className="mx-auto max-w-7xl space-y-6 relative">
             {children}
           </div>

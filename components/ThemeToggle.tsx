@@ -17,8 +17,8 @@ export const ThemeToggle: React.FC = () => {
       aria-label="Toggle theme"
       title={`Theme: ${theme}`}
     >
-      <SparklesIcon className="h-4 w-4 opacity-80" />
-      <span className="capitalize">{theme}</span>
+      <SparklesIcon className="h-4 w-4 text-slate-700" />
+      <span className="capitalize text-slate-700">{theme}</span>
     </button>
   );
 };
