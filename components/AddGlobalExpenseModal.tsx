@@ -83,7 +83,7 @@ const AddGlobalExpenseModal: React.FC<AddGlobalExpenseModalProps> = ({ onClose, 
         </>
       )}
     >
-      <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto custom-scrollbar">
+      <form onSubmit={handleSubmit} className="flex-1 min-h-0 overflow-y-auto custom-scrollbar">
         <main className="p-6 space-y-6">
             
             {/* Amount Hero */}

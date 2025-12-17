@@ -92,17 +92,32 @@ body {
   z-index: 50 !important;
 }
 
-/* Custom Scrollbar Styling (optional) */
+/* Theme-aware custom scrollbar */
+:root {
+  --scrollbar-thumb: #94a3b8; /* slate-400 */
+  --scrollbar-track: transparent;
+}
+.dark {
+  --scrollbar-thumb: #475569; /* slate-600 */
+  --scrollbar-track: transparent;
+}
+
 /* Keep scroll gutter stable on modern browsers to avoid layout shifts */
 .custom-scrollbar { scrollbar-gutter: stable; }
+.custom-scrollbar::-webkit-scrollbar { width: 10px; height: 10px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: var(--scrollbar-track); }
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { opacity: 0.9; }
+
+/* Firefox only (avoid noisy warnings elsewhere) */
 @supports (scrollbar-color: auto) {
   .custom-scrollbar {
     scrollbar-width: thin;
-    scrollbar-color: #475569 #1e293b;
+    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
   }
 }
-
-.custom-scrollbar::-webkit-scrollbar { width: 8px; }
-.custom-scrollbar::-webkit-scrollbar-track { background: #1e293b; }
-.custom-scrollbar::-webkit-scrollbar-thumb { background: #475569; border-radius: 999px; }
-.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #64748b; }

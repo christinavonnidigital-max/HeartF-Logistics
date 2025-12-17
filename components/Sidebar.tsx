@@ -128,7 +128,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-40 w-64 transform bg-[#0B1220] text-slate-200 border-r border-slate-800 transition-transform duration-300 ease-in-out md:translate-x-0 flex flex-col ${
+        className={`fixed inset-y-0 left-0 z-40 w-64 transform bg-[#0B1220] text-slate-200 border-r border-slate-800 transition-transform duration-300 ease-in-out md:translate-x-0 flex flex-col overflow-hidden ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -171,7 +171,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         {/* Scrollable nav */}
-        <nav className="flex-1 min-h-0 p-2 overflow-y-auto custom-scrollbar">
+        <nav className="mt-2 flex-1 min-h-0 overflow-y-auto px-4 pb-10 custom-scrollbar">
           {navSections.map((section) => {
             const visibleItems = section.items.filter((item) =>
               isAllowed(item.view)

@@ -215,7 +215,7 @@ const MarketingDashboard: React.FC = () => {
                                 <td className="px-4 py-4 text-right font-medium text-slate-700">{openRate}%</td>
                                 <td className="px-4 py-4 text-right font-medium text-slate-700">{replyRate}%</td>
                                 <td className="px-4 py-4 text-center">
-                                    <button className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-600">
+                                    <button aria-label={campaign.status === 'active' ? 'Pause campaign' : 'Start campaign'} className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-600">
                                         {campaign.status === 'active' ? <PauseIcon className="w-4 h-4" /> : <PlayIcon className="w-4 h-4" />}
                                     </button>
                                 </td>

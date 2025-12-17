@@ -61,7 +61,7 @@ const AddLeadScoringRuleModal: React.FC<AddLeadScoringRuleModalProps> = ({ onClo
                 )}
             >
                 <form id="add-rule-form" onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
-                    <main className="p-6 space-y-4 flex-1 overflow-y-auto custom-scrollbar">
+                    <main className="p-6 space-y-4 flex-1 min-h-0 overflow-y-auto custom-scrollbar">
                     <div>
                         <label className="text-sm font-medium text-foreground-muted">Rule Name</label>
                         <Input type="text" name="rule_name" value={formData.rule_name} onChange={handleChange} className="mt-1" />

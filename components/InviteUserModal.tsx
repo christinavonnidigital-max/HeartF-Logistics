@@ -77,7 +77,7 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({ onClose, onInvite }) 
                 </button>
             </header>
             
-            <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto custom-scrollbar">
+            <form onSubmit={handleSubmit} className="flex-1 min-h-0 overflow-y-auto custom-scrollbar">
                 <main className="p-6 space-y-8">
                     
                     {/* Personal Details */}

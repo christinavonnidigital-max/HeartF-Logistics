@@ -177,15 +177,16 @@ const CampaignsPage: React.FC<CampaignsPageProps> = ({ setActiveView }) => {
 
                                     <div className="flex items-center gap-2 self-end md:self-start">
                                         {campaign.status === CampaignStatus.ACTIVE ? (
-                                            <button className="p-2 rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100 transition" title="Pause" onClick={(e) => { e.stopPropagation(); }}>
+                                            <button aria-label="Pause campaign" className="p-2 rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100 transition" title="Pause" onClick={(e) => { e.stopPropagation(); }}>
                                                 <PauseIcon className="w-5 h-5" />
                                             </button>
                                         ) : (
-                                            <button className="p-2 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition" title="Start" onClick={(e) => { e.stopPropagation(); }}>
+                                            <button aria-label="Start campaign" className="p-2 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition" title="Start" onClick={(e) => { e.stopPropagation(); }}>
                                                 <PlayIcon className="w-5 h-5" />
                                             </button>
                                         )}
                                         <button 
+                                            aria-label="Duplicate campaign"
                                             onClick={(e) => { e.stopPropagation(); handleDuplicateCampaign(campaign.id); }}
                                             className="p-2 rounded-lg bg-slate-50 text-slate-500 hover:bg-sky-50 hover:text-sky-600 transition"
                                             title="Duplicate"
@@ -193,6 +194,7 @@ const CampaignsPage: React.FC<CampaignsPageProps> = ({ setActiveView }) => {
                                             <DuplicateIcon className="w-5 h-5" />
                                         </button>
                                         <button 
+                                            aria-label="Delete campaign"
                                             onClick={(e) => { e.stopPropagation(); setCampaignToDelete(campaign.id); }}
                                             className="p-2 rounded-lg bg-slate-50 text-slate-500 hover:bg-rose-50 hover:text-rose-600 transition"
                                             title="Delete"

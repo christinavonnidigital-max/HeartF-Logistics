@@ -68,7 +68,7 @@ const AddLeadModal: React.FC<AddLeadModalProps> = ({ onClose, onAddLead }) => {
                     </>
                 )}
             >
-                <form id="add-lead-form" onSubmit={handleSubmit} className="flex-1 overflow-y-auto custom-scrollbar">
+                <form id="add-lead-form" onSubmit={handleSubmit} className="flex-1 min-h-0 overflow-y-auto custom-scrollbar">
                     <main className="p-6 space-y-8">
                     
                     <SectionHeader title="Contact Information" actions={<UserCircleIcon className="w-4 h-4" />} />

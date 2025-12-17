@@ -225,7 +225,7 @@ const ImportLeadsModal: React.FC<ImportLeadsModalProps> = ({ onClose, onImport }
                     <h2 className="text-xl font-bold">Import Leads</h2>
                     <button onClick={onClose} className="p-1 rounded-full hover:bg-gray-200" aria-label="Close import leads modal"><CloseIcon className="w-6 h-6" /></button>
                 </header>
-                <main className="p-6 flex-1 overflow-y-auto">
+                <main className="p-6 flex-1 min-h-0 overflow-y-auto">
                     {renderStepContent()}
                     {error && <p className="text-red-500 text-sm mt-4">{error}</p>}
                 </main>

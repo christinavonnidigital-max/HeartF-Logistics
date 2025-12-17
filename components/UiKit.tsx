@@ -25,193 +25,106 @@ export const SectionHeader: React.FC<{
   subtitle?: string;
   actions?: React.ReactNode;
 }> = ({ title, subtitle, actions }) => (
-  <div className="flex items-start justify-between gap-4">
-    <div className="min-w-0">
-      <div className="text-base font-semibold tracking-tight">{title}</div>
-      {subtitle && <div className="mt-1 text-sm opacity-70">{subtitle}</div>}
-    </div>
-    {actions && <div className="shrink-0">{actions}</div>}
-  </div>
-);
+  import React from "react";
 
-export const Label: React.FC<React.LabelHTMLAttributes<HTMLLabelElement>> = ({ className = '', children, ...props }) => (
-  <label className={cn('block text-xs font-medium text-foreground-muted mb-1', className)} {...props}>
-    {children}
-  </label>
-);
+  type DivProps = React.HTMLAttributes<HTMLDivElement>;
 
-export const StatusPill: React.FC<{ label: string; tone?: 'neutral' | 'success' | 'warn' | 'danger' }> = ({
-  label,
-  tone = 'neutral',
-}) => {
-  const toneClass =
-    tone === 'success'
-      ? 'bg-emerald-600/10 text-emerald-700 border-emerald-600/20'
-      : tone === 'warn'
-      ? 'bg-amber-600/10 text-amber-700 border-amber-600/20'
-      : tone === 'danger'
-      ? 'bg-rose-600/10 text-rose-700 border-rose-600/20'
-      : 'bg-muted text-foreground/80 border-border';
+  const cx = (...parts: Array<string | undefined | false>) => parts.filter(Boolean).join(" ");
 
-  return (
-    <span className={cn('inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-medium', toneClass)}>
-      {label}
-    </span>
-  );
-};
-
-// Inputs
-export const Input: React.FC<React.InputHTMLAttributes<HTMLInputElement>> = ({ className = '', ...props }) => (
-  <input
-    className={cn(
-      'w-full rounded-lg border border-border bg-card px-3 py-2 text-sm',
-      'focus:outline-none focus:ring-2 focus:ring-brand-600/40 focus:ring-offset-2 focus:ring-offset-background',
-      className
-    )}
-    {...props}
-  />
-);
-
-export const Textarea: React.FC<React.TextareaHTMLAttributes<HTMLTextAreaElement>> = ({ className = '', ...props }) => (
-  <textarea
-    className={cn(
-      'w-full rounded-lg border border-border bg-card px-3 py-2 text-sm',
-      'focus:outline-none focus:ring-2 focus:ring-brand-600/40 focus:ring-offset-2 focus:ring-offset-background',
-      className
-    )}
-    {...props}
-  />
-);
-
-export const Select: React.FC<React.SelectHTMLAttributes<HTMLSelectElement>> = ({ className = '', ...props }) => (
-  <select
-    className={cn(
-      'w-full rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground',
-      'focus:outline-none focus:ring-2 focus:ring-brand-600/40 focus:ring-offset-2 focus:ring-offset-background',
-      className
-    )}
-    {...props}
-  />
-);
-
-// Buttons
-type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
-type ButtonSize = 'sm' | 'md';
-
-export const Button: React.FC<
-  React.ButtonHTMLAttributes<HTMLButtonElement> & { variant?: ButtonVariant; size?: ButtonSize }
-> = ({ className = '', variant = 'secondary', size = 'md', ...props }) => {
-  const v =
-    variant === 'primary'
-      ? 'bg-brand-600 hover:bg-brand-700 text-white border-transparent'
-      : variant === 'danger'
-      ? 'bg-danger-600 hover:opacity-90 text-white border-transparent'
-      : variant === 'ghost'
-      ? 'bg-transparent hover:bg-muted border-transparent'
-      : 'bg-card hover:bg-muted border-border';
-
-  const s = size === 'sm' ? 'h-9 px-3 text-sm' : 'h-10 px-4 text-sm';
-
-  return (
-    <button
-      className={cn(
-        'inline-flex items-center justify-center gap-2 rounded-lg border transition',
-        'focus:outline-none focus:ring-2 focus:ring-brand-600/40 focus:ring-offset-2 focus:ring-offset-background',
-        s,
-        v,
+  export const ShellCard = ({ className, ...props }: DivProps) => (
+    <div
+      className={cx(
+        "rounded-2xl bg-card border border-border/60 shadow-sm",
+        "backdrop-blur-[1px]",
         className
       )}
       {...props}
     />
   );
-};
 
-export const IconButton: React.FC<React.ButtonHTMLAttributes<HTMLButtonElement>> = ({ className = '', ...props }) => (
-  <button
-    className={cn(
-      'inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-card',
-      'hover:bg-muted transition',
-      'focus:outline-none focus:ring-2 focus:ring-brand-600/40 focus:ring-offset-2 focus:ring-offset-background',
-      className
-    )}
-    {...props}
-  />
-);
+  export const SubtleCard = ({ className, ...props }: DivProps) => (
+    <div className={cx("rounded-2xl bg-muted/30 border border-border/50", className)} {...props} />
+  );
 
-// Modal shell
-export const ModalShell: React.FC<{
-  isOpen: boolean;
-  title: string;
-  description?: string;
-  icon?: React.ReactNode;
-  onClose: () => void;
-  children: React.ReactNode;
-  footer?: React.ReactNode;
-  maxWidthClass?: string;
-}> = ({ isOpen, title, description, icon, onClose, children, footer, maxWidthClass = 'max-w-lg' }) => {
-  useEffect(() => {
-    if (!isOpen) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [isOpen, onClose]);
-
-  if (!isOpen) return null;
-
-  return (
-    <div
-      className="fixed inset-0 z-100 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
-      onMouseDown={onClose}
-      role="dialog"
-      aria-modal="true"
-    >
-      <div
-        className={cn(
-          'w-full max-h-[90vh] overflow-hidden rounded-2xl border border-border bg-background shadow-2xl',
-          maxWidthClass
-        )}
-        onMouseDown={(e) => e.stopPropagation()}
-      >
-        <div className="p-6 flex gap-4">
-          {icon && (
-            <div className="mt-0.5 flex h-10 w-10 items-center justify-center rounded-xl bg-muted border border-border">
-              {icon}
-            </div>
-          )}
-          <div className="min-w-0 flex-1">
-            <div className="text-lg font-semibold tracking-tight">{title}</div>
-            {description && <div className="mt-1 text-sm opacity-70">{description}</div>}
-          </div>
-          <IconButton type="button" onClick={onClose} aria-label="Close">
-            <span className="text-base leading-none">×</span>
-          </IconButton>
-        </div>
-
-        <div className="px-6 pb-6 flex flex-col flex-1 min-h-0 overflow-hidden">{children}</div>
-
-        {footer && (
-          <div className="px-6 py-4 border-t border-border bg-muted/20 flex items-center justify-end gap-2">
-            {footer}
-          </div>
-        )}
+  export const SectionHeader: React.FC<{
+    title: string;
+    subtitle?: string;
+    right?: React.ReactNode;
+    className?: string;
+  }> = ({ title, subtitle, right, className }) => (
+    <div className={cx("flex items-start justify-between gap-4", className)}>
+      <div>
+        <div className="text-sm font-semibold text-foreground">{title}</div>
+        {subtitle ? <div className="text-sm text-muted-foreground mt-0.5">{subtitle}</div> : null}
       </div>
+      {right ? <div className="shrink-0">{right}</div> : null}
     </div>
   );
-};
 
-export default {
-  ShellCard,
-  SubtleCard,
-  SectionHeader,
-  StatusPill,
-  Button,
-  IconButton,
-  Input,
-  Textarea,
-  Select,
-  ModalShell,
-  Label,
-};
+  export const PageHeader: React.FC<{
+    title: string;
+    subtitle?: string;
+    right?: React.ReactNode;
+  }> = ({ title, subtitle, right }) => (
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
+      <div className="min-w-0">
+        <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-foreground">{title}</h1>
+        {subtitle ? <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p> : null}
+      </div>
+      {right ? <div className="shrink-0">{right}</div> : null}
+    </div>
+  );
 
+  export const StatusPill: React.FC<{
+    label: string;
+    tone?: "success" | "warn" | "danger" | "neutral";
+  }> = ({ label, tone = "neutral" }) => {
+    const toneClasses =
+      tone === "success"
+        ? "bg-emerald-500/10 text-emerald-700 border-emerald-500/20"
+        : tone === "warn"
+        ? "bg-amber-500/10 text-amber-700 border-amber-500/20"
+        : tone === "danger"
+        ? "bg-rose-500/10 text-rose-700 border-rose-500/20"
+        : "bg-slate-500/10 text-slate-700 border-slate-500/20";
+
+    return (
+      <span
+        className={cx(
+          "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium",
+          toneClasses
+        )}
+      >
+        <span className="h-1.5 w-1.5 rounded-full bg-current opacity-70" />
+        {label}
+      </span>
+    );
+  };
+
+  export const IconButton: React.FC<
+    React.ButtonHTMLAttributes<HTMLButtonElement> & { label: string }
+  > = ({ className, label, ...props }) => (
+    <button
+      aria-label={label}
+      title={label}
+      className={cx(
+        "inline-flex items-center justify-center rounded-xl border border-border/60 bg-card",
+        "h-9 w-9 shadow-sm hover:bg-muted/40 active:scale-[0.98] transition",
+        "focus:outline-none focus:ring-2 focus:ring-brand-500/30",
+        className
+      )}
+      {...props}
+    />
+  );
+
+  export default {
+    ShellCard,
+    SubtleCard,
+    SectionHeader,
+    PageHeader,
+    StatusPill,
+    IconButton,
+  };
+
+
+export const IconButton: React.FC<React.ButtonHTMLAttributes<HTMLButtonElement>> = ({ className = '', ...props }) => (
