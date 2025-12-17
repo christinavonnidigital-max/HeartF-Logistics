@@ -190,7 +190,7 @@ const AddGlobalExpenseModal: React.FC<AddGlobalExpenseModalProps> = ({ onClose, 
             {/* Receipt Upload */}
             <div>
                 <label className="block text-xs font-medium text-foreground-muted mb-1">Receipt / Invoice</label>
-                <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-border border-dashed rounded-xl hover:bg-muted transition-colors bg-card relative group">
+                <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-border border-dashed rounded-lg hover:bg-muted transition-colors bg-card relative group">
                     <div className="space-y-1 text-center">
                         {receiptFile ? (
                             <div className="flex flex-col items-center animate-in fade-in zoom-in-95">

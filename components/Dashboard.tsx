@@ -375,17 +375,17 @@ const Dashboard: React.FC<DashboardProps> = ({ data, settings, userRole }) => {
             </div>
 
             <div className="grid sm:grid-cols-3 gap-3">
-              <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
+              <div className="rounded-lg border border-slate-100 bg-slate-50 p-3">
                 <p className="text-[10px] font-bold uppercase tracking-wider text-slate-700">Fleet Utilization</p>
                 <p className="text-2xl font-bold text-slate-900 mt-1">{utilizationPct}%</p>
                 <p className="text-xs text-slate-700">1 in maintenance</p>
               </div>
-              <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
+              <div className="rounded-lg border border-slate-100 bg-slate-50 p-3">
                 <p className="text-[10px] font-bold uppercase tracking-wider text-slate-700">Pending Bookings</p>
                 <p className="text-2xl font-bold text-slate-900 mt-1">{bookingCounts.pending}</p>
                 <p className="text-xs text-slate-700">Awaiting confirmation</p>
               </div>
-              <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
+              <div className="rounded-lg border border-slate-100 bg-slate-50 p-3">
                 <p className="text-[10px] font-bold uppercase tracking-wider text-slate-700">Out of Service</p>
                 <p className="text-2xl font-bold text-slate-900 mt-1">{vehicles.filter(v => v.status === 'out_of_service').length}</p>
                 <p className="text-xs text-slate-700">Requires attention</p>
@@ -393,7 +393,7 @@ const Dashboard: React.FC<DashboardProps> = ({ data, settings, userRole }) => {
             </div>
 
             <div className="space-y-4">
-              <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
+              <div className="rounded-lg border border-slate-100 bg-slate-50 p-4">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="text-sm font-bold text-slate-900">Bookings pipeline</h3>
                   <span className="text-xs text-slate-700">{bookingCounts.total} bookings</span>
@@ -420,7 +420,7 @@ const Dashboard: React.FC<DashboardProps> = ({ data, settings, userRole }) => {
                 })}
               </div>
 
-              <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
+              <div className="rounded-lg border border-slate-100 bg-slate-50 p-4">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="text-sm font-bold text-slate-900">Revenue pulse</h3>
                   <span className="text-xs text-slate-500">Currency: {settings.currency}</span>

@@ -102,7 +102,7 @@ export const Button: React.FC<
   return (
     <button
       className={cn(
-        'inline-flex items-center justify-center gap-2 rounded-xl border shadow-sm transition',
+        'inline-flex items-center justify-center gap-2 rounded-lg border shadow-sm transition',
         'focus:outline-none focus:ring-2 focus:ring-brand-600/40 focus:ring-offset-2 focus:ring-offset-background',
         s,
         v,
@@ -116,7 +116,7 @@ export const Button: React.FC<
 export const IconButton: React.FC<React.ButtonHTMLAttributes<HTMLButtonElement>> = ({ className = '', ...props }) => (
   <button
     className={cn(
-      'inline-flex h-9 w-9 items-center justify-center rounded-xl border border-border bg-card',
+      'inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-card',
       'hover:bg-muted transition',
       'focus:outline-none focus:ring-2 focus:ring-brand-600/40 focus:ring-offset-2 focus:ring-offset-background',
       className
@@ -140,7 +140,7 @@ export const Input: React.FC<React.InputHTMLAttributes<HTMLInputElement>> = ({ c
 export const Textarea: React.FC<React.TextareaHTMLAttributes<HTMLTextAreaElement>> = ({ className = '', ...props }) => (
   <textarea
     className={cn(
-      'w-full rounded-xl border border-border bg-card px-3 py-2 text-sm',
+      'w-full rounded-lg border border-border bg-card px-3 py-2 text-sm',
       'placeholder:opacity-60',
       'focus:outline-none focus:ring-2 focus:ring-brand-600/40 focus:ring-offset-2 focus:ring-offset-background',
       className
@@ -152,7 +152,7 @@ export const Textarea: React.FC<React.TextareaHTMLAttributes<HTMLTextAreaElement
 export const Select: React.FC<React.SelectHTMLAttributes<HTMLSelectElement>> = ({ className = '', ...props }) => (
   <select
     className={cn(
-      'w-full rounded-xl border border-border bg-card px-3 py-2 text-sm text-foreground',
+      'w-full rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground',
       'focus:outline-none focus:ring-2 focus:ring-brand-600/40 focus:ring-offset-2 focus:ring-offset-background',
       className
     )}

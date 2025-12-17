@@ -121,7 +121,7 @@ const AddVehicleModal: React.FC<AddVehicleModalProps> = ({ onClose, onAddVehicle
     >
       <form id="add-vehicle-form" onSubmit={submit} className="space-y-4">
         {error ? (
-          <div className="rounded-xl border border-danger-600/30 bg-danger-600/10 px-3 py-2 text-sm text-foreground">
+          <div className="rounded-lg border border-danger-600/30 bg-danger-600/10 px-3 py-2 text-sm text-foreground">
             {error}
           </div>
         ) : null}

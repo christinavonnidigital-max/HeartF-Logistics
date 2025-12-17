@@ -21,8 +21,8 @@ const AuditLogModal: React.FC<AuditLogModalProps> = ({ isOpen, onClose }) => {
       maxWidthClass="max-w-2xl"
       footer={(
           <div className="flex items-center gap-2">
-          <button className="text-sm text-slate-600 px-3 py-2 rounded-xl bg-card border border-border" onClick={onClose}>Close</button>
-          <button className="text-sm text-white bg-rose-600 px-3 py-2 rounded-xl hover:bg-rose-700" onClick={() => { clearAuditLog?.(); }}>Clear Log</button>
+          <button className="text-sm text-slate-600 px-3 py-2 rounded-md bg-card border border-border" onClick={onClose}>Close</button>
+          <button className="text-sm text-white bg-rose-600 px-3 py-2 rounded-md hover:bg-rose-700" onClick={() => { clearAuditLog?.(); }}>Clear Log</button>
         </div>
       )}
     >
@@ -32,7 +32,7 @@ const AuditLogModal: React.FC<AuditLogModalProps> = ({ isOpen, onClose }) => {
         ) : (
           <ol className="space-y-2">
             {auditLog.slice().reverse().map((entry: any) => (
-              <li key={entry.id} className="p-3 rounded-xl bg-slate-50 border border-slate-100">
+              <li key={entry.id} className="p-3 rounded-lg bg-slate-50 border border-slate-100">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <div className="text-sm font-semibold text-slate-900">{entry.action.replaceAll('.', ' ')}</div>

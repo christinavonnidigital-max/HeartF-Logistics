@@ -115,7 +115,7 @@ const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
             </p>
           </div>
 
-          <button onClick={onClose} className="rounded-xl px-2 py-1 text-foreground/70 hover:bg-muted/60" aria-label="Close">
+          <button onClick={onClose} className="rounded-md px-2 py-1 text-foreground/70 hover:bg-muted/60" aria-label="Close">
             <CloseIcon className="w-5 h-5" />
           </button>
         </div>
@@ -162,11 +162,11 @@ const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
                       <div className="space-y-3">
                         <div>
                           <label className="text-xs text-foreground/70">Vehicle ID</label>
-                          <input aria-label="Vehicle ID" placeholder="Vehicle ID" className="mt-1 w-full rounded-xl border border-border bg-card px-3 py-2 text-sm" type="number" value={selectedVehicleId ?? ''} onChange={(e) => setSelectedVehicleId(e.target.value ? Number(e.target.value) : undefined)} />
+                          <input aria-label="Vehicle ID" placeholder="Vehicle ID" className="mt-1 w-full rounded-lg border border-border bg-card px-3 py-2 text-sm" type="number" value={selectedVehicleId ?? ''} onChange={(e) => setSelectedVehicleId(e.target.value ? Number(e.target.value) : undefined)} />
                         </div>
                         <div>
                           <label className="text-xs text-foreground/70">Driver ID</label>
-                          <input aria-label="Driver ID" placeholder="Driver ID" className="mt-1 w-full rounded-xl border border-border bg-card px-3 py-2 text-sm" type="number" value={selectedDriverId ?? ''} onChange={(e) => setSelectedDriverId(e.target.value ? Number(e.target.value) : undefined)} />
+                          <input aria-label="Driver ID" placeholder="Driver ID" className="mt-1 w-full rounded-lg border border-border bg-card px-3 py-2 text-sm" type="number" value={selectedDriverId ?? ''} onChange={(e) => setSelectedDriverId(e.target.value ? Number(e.target.value) : undefined)} />
                         </div>
 
                         <div className="flex gap-2">

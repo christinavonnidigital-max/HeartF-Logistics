@@ -87,7 +87,7 @@ const AddDocumentModal: React.FC<AddDocumentModalProps> = ({ onClose, onAddDocum
                     </div>
                     <div>
                         <label className="block text-xs font-medium text-foreground-muted mb-1">File</label>
-                        <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-border border-dashed rounded-xl hover:bg-muted transition-colors group cursor-pointer relative bg-card">
+                        <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-border border-dashed rounded-lg hover:bg-muted transition-colors group cursor-pointer relative bg-card">
                             <div className="space-y-1 text-center">
                                 {file ? (
                                     <div className="flex flex-col items-center">

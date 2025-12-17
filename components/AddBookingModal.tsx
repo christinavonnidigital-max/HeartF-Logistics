@@ -126,7 +126,7 @@ const AddBookingModal: React.FC<AddBookingModalProps> = ({ onClose, onAddBooking
                   value={formData.customer_id}
                   onChange={handleChange}
                   disabled={isCustomer}
-                  className={`block w-full rounded-xl border border-border bg-card pl-10 py-2.5 text-sm font-medium text-foreground shadow-sm transition-shadow ${isCustomer ? 'opacity-75 cursor-not-allowed' : ''}`}
+                  className={`block w-full rounded-lg border border-border bg-card pl-10 py-2.5 text-sm font-medium text-foreground shadow-sm transition-shadow ${isCustomer ? 'opacity-75 cursor-not-allowed' : ''}`}
                 >
                   <option value="">Select Customer...</option>
                   {mockCustomers.map(c => (
@@ -229,7 +229,7 @@ const AddBookingModal: React.FC<AddBookingModalProps> = ({ onClose, onAddBooking
 
               <div className="space-y-3">
                 <SectionHeader title="Financials" />
-                <div className="bg-warn-50 rounded-xl p-4 border border-warn-100 space-y-3">
+                <div className="bg-warn-50 rounded-lg p-4 border border-warn-100 space-y-3">
                   <div>
                     <Label>{isCustomer ? "Offer Price / Value" : "Agreed Rate"}</Label>
                       <div className="relative rounded-md shadow-sm">

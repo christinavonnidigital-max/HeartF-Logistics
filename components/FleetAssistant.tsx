@@ -208,7 +208,7 @@ const FleetAssistant: React.FC<FleetAssistantProps> = ({ contextData, contextTyp
     <div className="fixed bottom-6 right-6 w-[90vw] max-w-md h-[70vh] max-h-150 bg-white rounded-2xl shadow-2xl flex flex-col z-50 border border-slate-200 overflow-hidden font-sans">
       <header className="flex items-center justify-between p-5 border-b border-slate-100 bg-linear-to-r from-orange-50/30 via-white to-orange-50/20">
         <div className="flex items-center space-x-3">
-          <div className="bg-linear-to-br from-orange-100 to-orange-200 p-2 rounded-xl shadow-sm">
+          <div className="bg-linear-to-br from-orange-100 to-orange-200 p-2 rounded-lg shadow-sm">
             <BoxTruckIconBold className="w-5 h-5 text-orange-600" />
           </div>
           <div>
