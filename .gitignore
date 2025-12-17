@@ -32,3 +32,7 @@ nul
 # Accessibility test artifacts
 axe-violations*.json
 dev-axe-violations.json
+
+# Playwright test artifacts
+test-results/
+playwright-report/
