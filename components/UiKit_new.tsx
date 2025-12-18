@@ -183,24 +183,26 @@ export const ModalShell: React.FC<{
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onMouseDown={onClose} role="dialog" aria-modal="true">
-      <div className={cn('w-full overflow-hidden rounded-2xl border border-border bg-card shadow-2xl', maxWidthClass)} onMouseDown={(e) => e.stopPropagation()}>
-        <div className="p-6 flex gap-4">
-          {icon && (
-            <div className="mt-0.5 flex h-10 w-10 items-center justify-center rounded-xl bg-muted border border-border">{icon}</div>
-          )}
-          <div className="min-w-0 flex-1">
-            <div className="text-lg font-semibold tracking-tight">{title}</div>
-            {description && <div className="mt-1 text-sm opacity-70">{description}</div>}
+    <div className="fixed inset-0 z-100 bg-black/50 backdrop-blur-sm overflow-y-auto" onMouseDown={onClose} role="dialog" aria-modal="true">
+      <div className={cn('min-h-full flex items-start justify-center p-4 sm:p-6', maxWidthClass)} onMouseDown={(e) => e.stopPropagation()}>
+        <div className={cn('w-full overflow-hidden rounded-2xl border border-border bg-card shadow-2xl')}>
+          <div className="p-6 flex gap-4">
+            {icon && (
+              <div className="mt-0.5 flex h-10 w-10 items-center justify-center rounded-xl bg-muted border border-border">{icon}</div>
+            )}
+            <div className="min-w-0 flex-1">
+              <div className="text-lg font-semibold tracking-tight">{title}</div>
+              {description && <div className="mt-1 text-sm opacity-70">{description}</div>}
+            </div>
+            <IconButton type="button" onClick={onClose} aria-label="Close">
+              <span className="text-base leading-none">×</span>
+            </IconButton>
           </div>
-          <IconButton type="button" onClick={onClose} aria-label="Close">
-            <span className="text-base leading-none">×</span>
-          </IconButton>
+
+          <div className="px-6 pb-6">{children}</div>
+
+          {footer && <div className="px-6 py-4 border-t border-border bg-muted/40 flex items-center justify-end gap-2">{footer}</div>}
         </div>
-
-        <div className="px-6 pb-6">{children}</div>
-
-        {footer && <div className="px-6 py-4 border-t border-border bg-muted/40 flex items-center justify-end gap-2">{footer}</div>}
       </div>
     </div>
   );

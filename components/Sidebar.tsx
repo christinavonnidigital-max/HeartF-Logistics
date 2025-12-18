@@ -53,7 +53,7 @@ const viewPermissions: Partial<Record<View, UserRole[]>> = {
   analytics: ["admin", "ops_manager"],
   financials: ["admin", "finance", "ops_manager", "customer"],
   reports: ["admin", "finance", "ops_manager"],
-  settings: ["admin", "ops_manager", "finance"],
+  settings: ["admin"],
 };
 
 const navSections: NavSection[] = [
@@ -128,9 +128,9 @@ const Sidebar: React.FC<SidebarProps> = ({
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-40 w-64 transform bg-[#0B1220] text-slate-200 border-r border-slate-800 transition-transform duration-300 ease-in-out md:translate-x-0 flex flex-col overflow-hidden ${
+        className={`fixed inset-y-0 left-0 z-40 w-64 transform bg-slate-950 text-white shadow-xl transition-transform duration-300 md:translate-x-0 ${
           isOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        } flex flex-col`}
       >
         <div className="flex items-center justify-between px-4 py-4 border-b border-white/10">
           <div className="flex items-center gap-3">
@@ -159,9 +159,9 @@ const Sidebar: React.FC<SidebarProps> = ({
 
         <div className="px-4 py-3 md:hidden shrink-0">
           {user ? (
-            <div className="rounded-xl border border-border bg-card p-3">
-              <p className="text-sm font-semibold text-foreground">{user.name}</p>
-              <p className="text-xs text-foreground-muted capitalize">{user.role.replace("_", " ")}</p>
+            <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+              <p className="text-sm font-semibold">{user.name}</p>
+              <p className="text-xs text-slate-200/70 capitalize">{user.role.replace("_", " ")}</p>
             </div>
           ) : (
             <div className="flex items-center gap-2 text-sm text-foreground-muted">
@@ -171,7 +171,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         {/* Scrollable nav */}
-        <nav className="mt-2 flex-1 min-h-0 overflow-y-auto px-4 pb-10 custom-scrollbar">
+        <nav className="mt-2 flex-1 min-h-0 overflow-y-auto px-4 pb-10 space-y-6 custom-scrollbar">
           {navSections.map((section) => {
             const visibleItems = section.items.filter((item) =>
               isAllowed(item.view)
@@ -190,11 +190,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                       <button
                         key={item.view}
                         onClick={() => handleSelect(item.view)}
-                        className={`group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm transition
-  ${isActive
-    ? "bg-white text-slate-900 shadow-sm"
-    : "text-slate-200/80 hover:bg-white/8 hover:text-white"
-  }`}
+                        className={`group flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium transition ${isActive ? "bg-white text-slate-900 shadow-md shadow-orange-500/10" : "text-slate-200 hover:bg-white/10"}`}
                       >
                         <Icon
                           className={`h-5 w-5 shrink-0 ${isActive ? "text-orange-600" : "text-slate-300/80 group-hover:text-white"}`}

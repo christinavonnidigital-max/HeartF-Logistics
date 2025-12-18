@@ -96,13 +96,14 @@ const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-80 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4"
+      className="fixed inset-0 z-80 bg-black/50 backdrop-blur-sm overflow-y-auto"
       onMouseDown={onClose}
     >
-      <div
-        className="w-full max-w-4xl max-h-[90vh] overflow-hidden rounded-2xl border border-border bg-background shadow-2xl flex flex-col"
-        onMouseDown={(e) => e.stopPropagation()}
-      >
+      <div className="min-h-full flex items-start justify-center p-4 sm:p-6 w-full">
+        <div
+          className="w-full max-w-4xl max-h-[90vh] overflow-hidden rounded-2xl border border-border bg-background shadow-2xl flex flex-col"
+          onMouseDown={(e) => e.stopPropagation()}
+        >
         {/* Header */}
         <div className="p-6 border-b border-border flex items-start justify-between gap-4">
           <div className="min-w-0">
@@ -119,6 +120,7 @@ const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
             <CloseIcon className="w-5 h-5" />
           </button>
         </div>
+      </div>
 
         {/* Body */}
         <div className="p-6 overflow-y-auto space-y-6">
