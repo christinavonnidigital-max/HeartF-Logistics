@@ -163,17 +163,18 @@ export const Label: React.FC<React.LabelHTMLAttributes<HTMLLabelElement>> = ({ c
 );
 
 export const ModalShell: React.FC<{
-  isOpen: boolean;
+  isOpen?: boolean;
   title: string;
+  subtitle?: string;
   description?: string;
   icon?: React.ReactNode;
   onClose: () => void;
   children: React.ReactNode;
   footer?: React.ReactNode;
   maxWidthClass?: string;
-}> = ({ isOpen, title, description, icon, onClose, children, footer, maxWidthClass = 'max-w-lg' }) => {
+}> = ({ isOpen, title, subtitle, description, icon, onClose, children, footer, maxWidthClass = 'max-w-lg' }) => {
   React.useEffect(() => {
-    if (!isOpen) return;
+    if (isOpen === false) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
     };
@@ -181,26 +182,49 @@ export const ModalShell: React.FC<{
     return () => window.removeEventListener('keydown', onKey);
   }, [isOpen, onClose]);
 
-  if (!isOpen) return null;
+  // If caller explicitly passes `isOpen={false}` we honor it; otherwise assume it's open when rendered
+  if (isOpen === false) return null;
 
   return (
-    <div className="fixed inset-0 z-100 bg-black/50 backdrop-blur-sm overflow-y-auto" onMouseDown={onClose} role="dialog" aria-modal="true">
-      <div className={cx('min-h-full flex items-start justify-center p-4 sm:p-6', maxWidthClass)} onMouseDown={(e) => e.stopPropagation()}>
-        <div className={cx('w-full max-h-[90vh] overflow-hidden rounded-2xl border border-border bg-background shadow-2xl') }>
-          <div className="p-6 flex gap-4">
-            {icon && (
-              <div className="mt-0.5 flex h-10 w-10 items-center justify-center rounded-xl bg-muted border border-border">{icon}</div>
-            )}
-            <div className="min-w-0 flex-1">
-              <div className="text-lg font-semibold tracking-tight">{title}</div>
-              {description && <div className="mt-1 text-sm opacity-70">{description}</div>}
+    <div
+      className="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-sm md:pl-64 p-4 overflow-y-auto"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+    >
+      {/* overlay scroll container */}
+      <div className="min-h-full flex items-start md:items-center justify-center">
+        <div
+          className={`w-full ${maxWidthClass} bg-white rounded-2xl border border-slate-200 shadow-2xl overflow-hidden flex flex-col max-h-[calc(100vh-2rem)]`}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/60 flex items-start justify-between gap-4">
+            <div className="min-w-0">
+              <div className="text-lg font-bold text-slate-900 leading-tight truncate">{title}</div>
+              {subtitle && <div className="mt-0.5 text-xs text-slate-500">{subtitle}</div>}
+              {description && <div className="mt-1 text-sm text-slate-500">{description}</div>}
             </div>
-            <IconButton type="button" onClick={onClose} label="Close" />
+
+            <button
+              onClick={onClose}
+              className="shrink-0 p-2 rounded-full hover:bg-slate-200/60 text-slate-600 transition"
+              aria-label="Close"
+              type="button"
+            >
+              <span className="text-lg leading-none">×</span>
+            </button>
           </div>
 
-          <div className="px-6 pb-6 flex flex-col flex-1 min-h-0 overflow-hidden">{children}</div>
+          {/* THIS is the key: min-h-0 so the overflow works inside flex */}
+          <div className="min-h-0 flex-1 overflow-y-auto custom-scrollbar">
+            <div className="p-6">{children}</div>
+          </div>
 
-          {footer && <div className="px-6 py-4 border-t border-border bg-muted/20 flex items-center justify-end gap-2">{footer}</div>}
+          {footer && (
+            <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/60 flex items-center justify-end gap-3">
+              {footer}
+            </div>
+          )}
         </div>
       </div>
     </div>
