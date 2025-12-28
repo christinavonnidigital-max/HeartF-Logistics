@@ -20,9 +20,11 @@ test.describe('Modal placement & body scroll lock', () => {
       const sidebar = document.querySelector('aside');
       const dlg = document.querySelector('[role="dialog"]');
       if (!sidebar || !dlg) return null;
+      const card = dlg.querySelector('.rounded-2xl') as HTMLElement | null;
       const s = sidebar.getBoundingClientRect();
-      const d = (dlg as HTMLElement).getBoundingClientRect();
-      return { sidebarRight: s.right, dialogLeft: d.left };
+      const d = (card ?? dlg) as HTMLElement;
+      const rect = d.getBoundingClientRect();
+      return { sidebarRight: s.right, dialogLeft: rect.left };
     });
 
     expect(bbox).not.toBeNull();

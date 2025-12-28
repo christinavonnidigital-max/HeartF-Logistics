@@ -198,9 +198,9 @@ export const ModalShell: React.FC<{
 
   return (
     <div className="fixed inset-0 z-[9999] bg-black/50 backdrop-blur-sm overflow-y-auto" onClick={onClose} role="dialog" aria-modal="true">
-      <div className={cn('min-h-full flex items-start', maxWidthClass)} onClick={(e) => e.stopPropagation()}>
-        <div className="w-full md:w-[calc(100%-16rem)] flex items-start md:items-center justify-center p-4 sm:p-6">
-          <div className={cn('w-full overflow-hidden rounded-2xl border border-border bg-card shadow-2xl flex flex-col max-h-[calc(100vh-2rem)]')}>
+      <div className="min-h-full flex items-start" onClick={(e) => e.stopPropagation()}>
+        <div className="w-full flex items-start md:items-center justify-center p-4 sm:p-6 md:pl-64">
+          <div className={cn('w-full overflow-hidden rounded-2xl border border-border bg-card shadow-2xl flex flex-col max-h-[calc(100vh-2rem)]', maxWidthClass)}>
           <div className="p-6 flex gap-4">
             {icon && (
               <div className="mt-0.5 flex h-10 w-10 items-center justify-center rounded-xl bg-muted border border-border">{icon}</div>
@@ -220,6 +220,7 @@ export const ModalShell: React.FC<{
         </div>
       </div>
     </div>
+  </div>
   );
 };
 

@@ -208,8 +208,8 @@ export const ModalShell: React.FC<{
     >
       {/* overlay scroll container */}
       <div className="min-h-full flex items-start md:items-center">
-        {/* Constrain centering to the area to the right of the sidebar on md+ */}
-        <div className="w-full md:w-[calc(100%-16rem)] flex items-start md:items-center justify-center">
+        {/* Constrain centering by adding left padding on md+ so center is shifted to the right */}
+        <div className="w-full flex items-start md:items-center justify-center md:pl-64">
           <div
             className={`w-full ${maxWidthClass} bg-white rounded-2xl border border-slate-200 shadow-2xl overflow-hidden flex flex-col max-h-[calc(100vh-2rem)]`}
             onClick={(e) => e.stopPropagation()}
@@ -244,6 +244,7 @@ export const ModalShell: React.FC<{
         </div>
       </div>
     </div>
+  </div>
   );
 };
 
