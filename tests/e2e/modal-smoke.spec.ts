@@ -15,6 +15,21 @@ test.describe('Modal placement & body scroll lock', () => {
     const overflow = await page.evaluate(() => document.body.style.overflow);
     expect(overflow).toBe('hidden');
 
+    // ensure the modal is positioned to the right of the sidebar (modal's left >= sidebar's right)
+    const bbox = await page.evaluate(() => {
+      const sidebar = document.querySelector('aside');
+      const dlg = document.querySelector('[role="dialog"]');
+      if (!sidebar || !dlg) return null;
+      const s = sidebar.getBoundingClientRect();
+      const d = (dlg as HTMLElement).getBoundingClientRect();
+      return { sidebarRight: s.right, dialogLeft: d.left };
+    });
+
+    expect(bbox).not.toBeNull();
+    if (bbox) {
+      expect(bbox.dialogLeft).toBeGreaterThanOrEqual(bbox.sidebarRight - 1); // small tolerance
+    }
+
     // capture screenshot
     await page.screenshot({ path: 'tests/screenshots/add-booking.png', fullPage: false });
 

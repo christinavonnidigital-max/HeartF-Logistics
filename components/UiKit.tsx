@@ -201,17 +201,19 @@ export const ModalShell: React.FC<{
 
   return (
     <div
-      className="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto"
+      className="fixed inset-0 z-[9999] bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
     >
       {/* overlay scroll container */}
-      <div className="min-h-full flex items-start md:items-center justify-center">
-        <div
-          className={`w-full ${maxWidthClass} bg-white rounded-2xl border border-slate-200 shadow-2xl overflow-hidden flex flex-col max-h-[calc(100vh-2rem)]`}
-          onClick={(e) => e.stopPropagation()}
-        >
+      <div className="min-h-full flex items-start md:items-center">
+        {/* Constrain centering to the area to the right of the sidebar on md+ */}
+        <div className="w-full md:w-[calc(100%-16rem)] flex items-start md:items-center justify-center">
+          <div
+            className={`w-full ${maxWidthClass} bg-white rounded-2xl border border-slate-200 shadow-2xl overflow-hidden flex flex-col max-h-[calc(100vh-2rem)]`}
+            onClick={(e) => e.stopPropagation()}
+          >
           <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/60 flex items-start justify-between gap-4">
             <div className="min-w-0">
               <div className="text-lg font-bold text-slate-900 leading-tight truncate">{title}</div>
