@@ -20,19 +20,24 @@ test('ops manager can view audit log and entries appear; customers cannot see th
   });
   await expect(page.locator('role=dialog')).toBeHidden({ timeout: 5000 });
 
+  // Logout and login as admin to view Settings (admins can view system settings)
+  await page.click('button:has-text("Log out")');
+  await login(page, 'admin@heartfledge.local', 'admin123');
+
   // Navigate to Settings (open sidebar on small viewports)
   const openNav = page.locator('button[aria-label="Open navigation"]');
   if (await openNav.isVisible()) {
     await openNav.click();
   }
   const settingsEl = page.locator('text=Settings').first();
-  await settingsEl.waitFor({ state: 'visible', timeout: 5000 });
   // Ensure the element is scrolled into view inside the sidebar
   // Scroll the sidebar nav to the bottom so 'Settings' is visible (sidebar uses its own scroll)
   await page.evaluate(() => {
     const nav = document.querySelector('nav');
     if (nav) nav.scrollTop = nav.scrollHeight;
   });
+  // Wait for visibility after scrolling
+  await settingsEl.waitFor({ state: 'visible', timeout: 8000 });
   // Click via evaluate to avoid viewport scroll issues
   await settingsEl.evaluate((el: HTMLElement) => (el as HTMLElement).click());
   await expect(page.locator('text=System settings')).toBeVisible();

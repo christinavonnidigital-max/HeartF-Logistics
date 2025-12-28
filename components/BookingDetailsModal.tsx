@@ -1,5 +1,5 @@
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import type { Booking } from '../types';
 import { BookingStatus } from '../types';
 import { mockCustomers } from '../data/mockCrmData';
@@ -93,6 +93,19 @@ const BookingDetailsModal: React.FC<BookingDetailsModalProps> = ({
   };
 
   const isCustomer = role === 'customer';
+
+  useEffect(() => {
+    // lock body scroll when details modal is mounted
+    const origOverflow = document.body.style.overflow;
+    const origPaddingRight = document.body.style.paddingRight || '';
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+    document.body.style.overflow = 'hidden';
+    if (scrollbarWidth > 0) document.body.style.paddingRight = `${scrollbarWidth}px`;
+    return () => {
+      document.body.style.overflow = origOverflow;
+      document.body.style.paddingRight = origPaddingRight;
+    };
+  }, []);
 
   return (
     <div

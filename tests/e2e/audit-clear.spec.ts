@@ -17,12 +17,17 @@ test('clear audit log via Audit Log modal', async ({ page }) => {
   await page.evaluate(() => { const f = document.getElementById('add-booking-form'); if (f) f.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true })); });
   await expect(page.locator('role=dialog')).toBeHidden({ timeout: 5000 });
 
+  // Logout and login as admin to view Settings/Audit Log
+  await page.click('button:has-text("Log out")');
+  await login(page, 'admin@heartfledge.local', 'admin123');
+
   // Open Settings -> Audit Log
   const openNav = page.locator('button[aria-label="Open navigation"]');
   if (await openNav.isVisible()) await openNav.click();
   const settingsEl = page.locator('text=Settings').first();
-  await settingsEl.waitFor({ state: 'visible', timeout: 5000 });
+  // Ensure the sidebar nav is scrolled so Settings becomes visible
   await page.evaluate(() => { const nav = document.querySelector('nav'); if (nav) nav.scrollTop = nav.scrollHeight; });
+  await settingsEl.waitFor({ state: 'visible', timeout: 8000 });
   await settingsEl.evaluate((el: HTMLElement) => (el as HTMLElement).click());
 
   await page.click('button:has-text("View Audit Log")');

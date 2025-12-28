@@ -162,7 +162,7 @@ export const Select: React.FC<React.SelectHTMLAttributes<HTMLSelectElement>> = (
 
 // Modal shell
 export const ModalShell: React.FC<{
-  isOpen: boolean;
+  isOpen?: boolean;
   title: string;
   description?: string;
   icon?: React.ReactNode;
@@ -172,7 +172,7 @@ export const ModalShell: React.FC<{
   maxWidthClass?: string;
 }> = ({ isOpen, title, description, icon, onClose, children, footer, maxWidthClass = 'max-w-lg' }) => {
   useEffect(() => {
-    if (!isOpen) return;
+    if (isOpen === false) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
     };
@@ -180,12 +180,26 @@ export const ModalShell: React.FC<{
     return () => window.removeEventListener('keydown', onKey);
   }, [isOpen, onClose]);
 
-  if (!isOpen) return null;
+  // Prevent body scrolling while modal is open and avoid layout shift
+  useEffect(() => {
+    if (isOpen === false) return;
+    const origOverflow = document.body.style.overflow;
+    const origPaddingRight = document.body.style.paddingRight || '';
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+    document.body.style.overflow = 'hidden';
+    if (scrollbarWidth > 0) document.body.style.paddingRight = `${scrollbarWidth}px`;
+    return () => {
+      document.body.style.overflow = origOverflow;
+      document.body.style.paddingRight = origPaddingRight;
+    };
+  }, [isOpen]);
+
+  if (isOpen === false) return null;
 
   return (
-    <div className="fixed inset-0 z-100 bg-black/50 backdrop-blur-sm overflow-y-auto" onMouseDown={onClose} role="dialog" aria-modal="true">
-      <div className={cn('min-h-full flex items-start justify-center p-4 sm:p-6', maxWidthClass)} onMouseDown={(e) => e.stopPropagation()}>
-        <div className={cn('w-full overflow-hidden rounded-2xl border border-border bg-card shadow-2xl')}>
+    <div className="fixed inset-0 z-100 bg-black/50 backdrop-blur-sm overflow-y-auto" onClick={onClose} role="dialog" aria-modal="true">
+      <div className={cn('min-h-full flex items-start justify-center p-4 sm:p-6', maxWidthClass)} onClick={(e) => e.stopPropagation()}>
+        <div className={cn('w-full overflow-hidden rounded-2xl border border-border bg-card shadow-2xl flex flex-col max-h-[calc(100vh-2rem)]')}>
           <div className="p-6 flex gap-4">
             {icon && (
               <div className="mt-0.5 flex h-10 w-10 items-center justify-center rounded-xl bg-muted border border-border">{icon}</div>
@@ -199,7 +213,7 @@ export const ModalShell: React.FC<{
             </IconButton>
           </div>
 
-          <div className="px-6 pb-6">{children}</div>
+          <div className="px-6 pb-6 flex-1 min-h-0 overflow-y-auto custom-scrollbar">{children}</div>
 
           {footer && <div className="px-6 py-4 border-t border-border bg-muted/40 flex items-center justify-end gap-2">{footer}</div>}
         </div>

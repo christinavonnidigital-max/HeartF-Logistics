@@ -182,12 +182,26 @@ export const ModalShell: React.FC<{
     return () => window.removeEventListener('keydown', onKey);
   }, [isOpen, onClose]);
 
+  // Prevent body scrolling while modal is open and avoid layout shift from scrollbars
+  React.useEffect(() => {
+    if (isOpen === false) return;
+    const origOverflow = document.body.style.overflow;
+    const origPaddingRight = document.body.style.paddingRight || '';
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+    document.body.style.overflow = 'hidden';
+    if (scrollbarWidth > 0) document.body.style.paddingRight = `${scrollbarWidth}px`;
+    return () => {
+      document.body.style.overflow = origOverflow;
+      document.body.style.paddingRight = origPaddingRight;
+    };
+  }, [isOpen]);
+
   // If caller explicitly passes `isOpen={false}` we honor it; otherwise assume it's open when rendered
   if (isOpen === false) return null;
 
   return (
     <div
-      className="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-sm md:pl-64 p-4 overflow-y-auto"
+      className="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
