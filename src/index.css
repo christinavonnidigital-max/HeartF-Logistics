@@ -1,0 +1,123 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/forms";
+@plugin "@tailwindcss/typography";
+
+/* Tailwind v4: class-based dark mode */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Tokens (Tailwind v4 CSS-first) */
+@theme {
+  /* Typography */
+  --font-sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Helvetica Neue", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+
+  /* Spacing scale base */
+  --spacing: 0.25rem;
+
+  /* Radius */
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.25rem;
+
+  /* Semantic surfaces */
+  --color-background: oklch(0.985 0 0);
+  --color-card: oklch(1 0 0);
+  --color-muted: oklch(0.97 0.01 250);
+  --color-border: oklch(0.9 0.01 250);
+  --color-foreground: oklch(0.18 0.02 250);
+  --color-foreground-muted: oklch(0.45 0.02 250);
+  /* App surface for a soft, off-white canvas */
+  --app-bg: #f6f7fb;
+
+  /* Brand ramp */
+  --color-brand-50:  oklch(0.98 0.02 255);
+  --color-brand-100: oklch(0.95 0.04 255);
+  --color-brand-200: oklch(0.9  0.07 255);
+  --color-brand-300: oklch(0.84 0.11 255);
+  --color-brand-400: oklch(0.76 0.14 255);
+  --color-brand-500: oklch(0.67 0.17 255);
+  --color-brand-600: oklch(0.62 0.18 255);
+  --color-brand-700: oklch(0.55 0.18 255);
+  --color-brand-800: oklch(0.45 0.16 255);
+  --color-brand-900: oklch(0.34 0.12 255);
+
+  /* Status */
+  --color-success-600: oklch(0.62 0.16 150);
+  --color-warn-600:    oklch(0.72 0.16 70);
+  --color-danger-600:  oklch(0.58 0.22 25);
+}
+
+/* Dark token overrides */
+.dark {
+  --color-background: oklch(0.14 0.02 250);
+  --color-card: oklch(0.18 0.02 250);
+  --color-muted: oklch(0.22 0.02 250);
+  --color-border: oklch(0.3 0.02 250);
+  --color-foreground: oklch(0.96 0.01 250);
+  --color-foreground-muted: oklch(0.72 0.02 250);
+
+  --color-brand-600: oklch(0.72 0.14 255);
+  --color-brand-700: oklch(0.66 0.14 255);
+
+  /* App background for dark mode */
+  --app-bg: #0b1220;
+}
+
+/* Base */
+html, body, #root { height: 100%; }
+body {
+  font-family: var(--font-sans);
+  background: var(--color-background);
+  color: var(--color-foreground);
+}
+
+* { box-sizing: border-box; }
+
+/* Reusable helpers and previous declarations */
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+.container { max-width: 1200px; margin: 0 auto; padding: 0 16px; }
+
+/* Leaflet map z-index overrides to prevent overlapping modals */
+.leaflet-pane,
+.leaflet-top,
+.leaflet-bottom {
+  z-index: 1 !important;
+}
+
+.leaflet-control-container {
+  z-index: 10 !important;
+}
+
+.leaflet-popup {
+  z-index: 50 !important;
+}
+
+/* Theme-aware custom scrollbar */
+:root {
+  --scrollbar-thumb: #94a3b8; /* slate-400 */
+  --scrollbar-track: transparent;
+}
+.dark {
+  --scrollbar-thumb: #475569; /* slate-600 */
+  --scrollbar-track: transparent;
+}
+
+/* Keep scroll gutter stable on modern browsers to avoid layout shifts */
+.custom-scrollbar { scrollbar-gutter: stable; }
+.custom-scrollbar::-webkit-scrollbar { width: 10px; height: 10px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: var(--scrollbar-track); }
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { opacity: 0.9; }
+
+/* Firefox only (avoid noisy warnings elsewhere) */
+@supports (scrollbar-color: auto) {
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+  }
+}
