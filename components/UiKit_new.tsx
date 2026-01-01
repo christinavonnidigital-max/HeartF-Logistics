@@ -9,7 +9,7 @@ const cn = (...parts: Array<string | undefined | false | null>) =>
 export const ShellCard: React.FC<DivProps> = ({ className = '', ...props }) => (
   <div
     className={cn(
-      'rounded-2xl bg-white shadow-[0_8px_30px_rgba(15,23,42,0.06)] border border-slate-200/60',
+      'rounded-2xl bg-card shadow-sm border border-border',
       className
     )}
     {...props}
@@ -17,15 +17,15 @@ export const ShellCard: React.FC<DivProps> = ({ className = '', ...props }) => (
 );
 
 export const SubtleCard: React.FC<DivProps> = ({ className = '', ...props }) => (
-  <div className={cn('rounded-2xl bg-white/70 backdrop-blur border border-slate-200/50', className)} {...props} />
+  <div className={cn('rounded-2xl bg-muted/30 backdrop-blur border border-border', className)} {...props} />
 );
 
 // Page header (new pattern)
 export const PageHeader: React.FC<{ title: string; subtitle?: string; right?: React.ReactNode }> = ({ title, subtitle, right }) => (
   <div className="mb-6 flex items-start justify-between gap-4">
     <div>
-      <h1 className="text-2xl font-semibold tracking-tight text-slate-900">{title}</h1>
-      {subtitle ? <p className="mt-1 text-sm text-slate-600">{subtitle}</p> : null}
+      <h1 className="text-2xl font-semibold tracking-tight text-foreground">{title}</h1>
+      {subtitle ? <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p> : null}
     </div>
     {right ? <div className="flex items-center gap-2">{right}</div> : null}
   </div>
@@ -36,11 +36,11 @@ export const StatCard: React.FC<{ label: string; value: string | number; hint?: 
   <ShellCard className="p-5">
     <div className="flex items-start justify-between gap-4">
       <div>
-        <p className="text-xs font-medium uppercase tracking-[0.14em] text-slate-500">{label}</p>
-        <p className="mt-2 text-3xl font-semibold tracking-tight text-slate-900">{value}</p>
-        {hint ? <p className="mt-2 text-sm text-slate-600">{hint}</p> : null}
+        <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">{label}</p>
+        <p className="mt-2 text-3xl font-semibold tracking-tight text-foreground">{value}</p>
+        {hint ? <p className="mt-2 text-sm text-muted-foreground">{hint}</p> : null}
       </div>
-      {icon ? <div className="mt-1 text-slate-400">{icon}</div> : null}
+      {icon ? <div className="mt-1 text-muted-foreground">{icon}</div> : null}
     </div>
   </ShellCard>
 );
@@ -54,7 +54,7 @@ export const SectionHeader: React.FC<{
   <div className="flex items-start justify-between gap-4">
     <div className="flex-1">
       <h2 className="text-base font-semibold tracking-tight">{title}</h2>
-      {subtitle && <p className="mt-1 text-sm opacity-70">{subtitle}</p>}
+      {subtitle && <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>}
     </div>
     {actions && <div className="flex items-center gap-2">{actions}</div>}
   </div>
@@ -76,7 +76,7 @@ export const StatusPill: React.FC<{
       ? 'bg-rose-500/10 text-rose-300 border-rose-500/20 dark:text-rose-200'
       : tone === 'info'
       ? 'bg-sky-500/10 text-sky-300 border-sky-500/20 dark:text-sky-200'
-      : 'bg-muted text-foreground/70 border-border';
+      : 'bg-muted text-muted-foreground border-border';
 
   return <span className={cn(base, toneClass)}>{label}</span>;
 };
@@ -197,7 +197,7 @@ export const ModalShell: React.FC<{
   if (isOpen === false) return null;
 
   return (
-    <div className="fixed inset-0 z-[9999] bg-black/50 backdrop-blur-sm overflow-y-auto" onClick={onClose} role="dialog" aria-modal="true">
+    <div className="fixed inset-0 z-9999 bg-black/50 backdrop-blur-sm overflow-y-auto" onClick={onClose} role="dialog" aria-modal="true">
       <div className="min-h-full flex items-start" onClick={(e) => e.stopPropagation()}>
         <div className="w-full flex items-start md:items-center justify-center p-4 sm:p-6 md:pl-64">
           <div className={cn('w-full overflow-hidden rounded-2xl border border-border bg-card shadow-2xl flex flex-col max-h-[calc(100vh-2rem)]', maxWidthClass)}>

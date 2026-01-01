@@ -1,264 +1,274 @@
 import React from "react";
 
-type DivProps = React.HTMLAttributes<HTMLDivElement>;
-
-const cx = (...parts: Array<string | undefined | false>) =>
+const cn = (...parts: Array<string | undefined | false>) =>
   parts.filter(Boolean).join(" ");
 
-export const ShellCard = ({ className, ...props }: DivProps) => (
+type DivProps = React.HTMLAttributes<HTMLDivElement>;
+type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement>;
+
+export const ShellCard: React.FC<DivProps> = ({ className = "", ...props }) => (
   <div
-    className={cx(
-      "rounded-2xl bg-card border border-border/60 shadow-sm",
-      "backdrop-blur-[1px]",
+    className={cn(
+      "rounded-2xl bg-card text-foreground border border-border shadow-sm",
       className
     )}
     {...props}
   />
 );
 
-export const SubtleCard = ({ className, ...props }: DivProps) => (
-  <div className={cx("rounded-2xl bg-muted/30 border border-border/50", className)} {...props} />
+export const IconButton: React.FC<React.ButtonHTMLAttributes<HTMLButtonElement> & { label?: string }> = ({ className = '', label, ...props }) => (
+  <button
+    aria-label={label}
+    title={label}
+    className={cn(
+      "inline-flex items-center justify-center rounded-xl border border-border h-9 w-9 bg-card",
+      "shadow-sm hover:bg-muted/40 active:scale-[0.98] transition",
+      className
+    )}
+    {...props}
+  />
+);
+
+export const SubtleCard: React.FC<DivProps> = ({ className = "", ...props }) => (
+  <div
+    className={cn(
+      "rounded-2xl bg-muted/30 text-foreground border border-border shadow-sm",
+      className
+    )}
+    {...props}
+  />
 );
 
 export const SectionHeader: React.FC<{
   title: string;
   subtitle?: string;
   right?: React.ReactNode;
-  actions?: React.ReactNode;
   className?: string;
-}> = ({ title, subtitle, right, actions, className }) => (
-  <div className={cx("flex items-start justify-between gap-4", className)}>
-    <div>
-      <div className="text-sm font-semibold text-foreground">{title}</div>
-      {subtitle ? <div className="text-sm text-muted-foreground mt-0.5">{subtitle}</div> : null}
-    </div>
-    {(actions || right) ? <div className="shrink-0">{actions ?? right}</div> : null}
-  </div>
-);
-
-export const PageHeader: React.FC<{
-  title: string;
-  subtitle?: string;
-  right?: React.ReactNode;
-}> = ({ title, subtitle, right }) => (
-  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
+}> = ({ title, subtitle, right, className }) => (
+  <div className={cn("flex items-start justify-between gap-4", className)}>
     <div className="min-w-0">
-      <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-foreground">{title}</h1>
-      {subtitle ? <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p> : null}
+      <div className="text-lg font-semibold tracking-tight">{title}</div>
+      {subtitle ? (
+        <div className="text-sm text-muted-foreground">{subtitle}</div>
+      ) : null}
     </div>
     {right ? <div className="shrink-0">{right}</div> : null}
   </div>
 );
 
 export const StatusPill: React.FC<{
-  label: string;
-  tone?: "success" | "warn" | "danger" | "neutral";
-}> = ({ label, tone = "neutral" }) => {
-  const toneClasses =
-    tone === "success"
-      ? "bg-emerald-500/10 text-emerald-700 border-emerald-500/20"
+  children: React.ReactNode;
+  tone?: "neutral" | "good" | "warn" | "bad";
+  className?: string;
+}> = ({ children, tone = "neutral", className }) => {
+  const toneCls =
+    tone === "good"
+      ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
       : tone === "warn"
       ? "bg-amber-500/10 text-amber-700 border-amber-500/20"
-      : tone === "danger"
-      ? "bg-rose-500/10 text-rose-700 border-rose-500/20"
-      : "bg-slate-500/10 text-slate-700 border-slate-500/20";
+      : tone === "bad"
+      ? "bg-rose-500/10 text-rose-600 border-rose-500/20"
+      : "bg-muted text-muted-foreground border-border";
 
   return (
     <span
-      className={cx(
-        "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium",
-        toneClasses
+      className={cn(
+        "inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-semibold",
+        toneCls,
+        className
       )}
     >
-      <span className="h-1.5 w-1.5 rounded-full bg-current opacity-70" />
-      {label}
+      {children}
     </span>
   );
 };
 
-export const IconButton: React.FC<
-  React.ButtonHTMLAttributes<HTMLButtonElement> & { label: string }
-> = ({ className, label, ...props }) => (
-  <button
-    aria-label={label}
-    title={label}
-    className={cx(
-      "inline-flex items-center justify-center rounded-xl border border-border/60 bg-card",
-      "h-9 w-9 shadow-sm hover:bg-muted/40 active:scale-[0.98] transition",
-      "focus:outline-none focus:ring-2 focus:ring-brand-500/30",
-      className
-    )}
-    {...props}
-  />
-);
+type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
+type ButtonSize = "sm" | "md" | "lg";
 
-// Basic form primitives (kept for compatibility)
 export const Button: React.FC<
-  React.ButtonHTMLAttributes<HTMLButtonElement> & { variant?: 'primary' | 'secondary' | 'ghost' | 'danger'; size?: 'sm' | 'md' }
-> = ({ className = '', variant = 'secondary', size = 'md', ...props }) => {
-  const v =
-    variant === 'primary'
-      ? 'bg-brand-600 hover:bg-brand-700 text-white border-transparent'
-      : variant === 'danger'
-      ? 'bg-danger-600 hover:opacity-90 text-white border-transparent'
-      : variant === 'ghost'
-      ? 'bg-transparent hover:bg-muted text-foreground border-transparent'
-      : 'bg-card hover:opacity-95 border-border';
+  ButtonProps & { variant?: ButtonVariant; size?: ButtonSize }
+> = ({ className = "", variant = "secondary", size = "md", ...props }) => {
+  const base =
+    "inline-flex items-center justify-center gap-2 rounded-xl font-semibold transition active:translate-y-[1px] disabled:opacity-60 disabled:pointer-events-none";
 
-  const s = size === 'sm' ? 'px-3 py-1.5 text-sm' : 'px-4 py-2 text-sm';
+  const sizes =
+    size === "sm"
+      ? "h-9 px-3 text-sm"
+      : size === "lg"
+      ? "h-11 px-5 text-sm"
+      : "h-10 px-4 text-sm";
+
+  const variants =
+    variant === "primary"
+      ? "bg-brand-600 text-white hover:bg-brand-700"
+      : variant === "ghost"
+      ? "bg-transparent hover:bg-muted text-foreground"
+      : variant === "danger"
+      ? "bg-rose-600 text-white hover:bg-rose-700"
+      : "bg-card border border-border hover:bg-muted text-foreground";
 
   return (
-    <button
-      className={cx(
-        'inline-flex items-center justify-center gap-2 rounded-lg border shadow-sm transition',
-        'focus:outline-none focus:ring-2 focus:ring-brand-600/40 focus:ring-offset-2 focus:ring-offset-background',
-        s,
-        v,
-        className
-      )}
-      {...props}
-    />
+    <button className={cn(base, sizes, variants, className)} {...props} />
   );
 };
 
-export const Input: React.FC<React.InputHTMLAttributes<HTMLInputElement>> = ({ className = '', ...props }) => (
+export const Input: React.FC<
+  React.InputHTMLAttributes<HTMLInputElement> & { className?: string }
+> = ({ className = "", ...props }) => (
   <input
-    className={cx(
-      'w-full rounded-lg border border-border bg-card px-3 py-2 text-sm',
-      'placeholder:opacity-60',
-      'focus:outline-none focus:ring-2 focus:ring-brand-600/40 focus:ring-offset-2 focus:ring-offset-background',
+    className={cn(
+      "h-10 w-full rounded-xl border border-border bg-card px-3 text-sm text-foreground shadow-sm",
+      "placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500/50",
       className
     )}
     {...props}
   />
 );
 
-export const Textarea: React.FC<React.TextareaHTMLAttributes<HTMLTextAreaElement>> = ({ className = '', ...props }) => (
+export const Textarea: React.FC<
+  React.TextareaHTMLAttributes<HTMLTextAreaElement> & { className?: string }
+> = ({ className = "", ...props }) => (
   <textarea
-    className={cx(
-      'w-full rounded-lg border border-border bg-card px-3 py-2 text-sm',
-      'placeholder:opacity-60',
-      'focus:outline-none focus:ring-2 focus:ring-brand-600/40 focus:ring-offset-2 focus:ring-offset-background',
+    className={cn(
+      "min-h-[100px] w-full rounded-xl border border-border bg-card px-3 py-2 text-sm text-foreground shadow-sm",
+      "placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500/50",
       className
     )}
     {...props}
   />
 );
 
-export const Select: React.FC<React.SelectHTMLAttributes<HTMLSelectElement>> = ({ className = '', ...props }) => (
+export const Select: React.FC<
+  React.SelectHTMLAttributes<HTMLSelectElement> & { className?: string }
+> = ({ className = "", ...props }) => (
   <select
-    className={cx(
-      'w-full rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground',
-      'focus:outline-none focus:ring-2 focus:ring-brand-600/40 focus:ring-offset-2 focus:ring-offset-background',
+    className={cn(
+      "h-10 w-full rounded-xl border border-border bg-card px-3 text-sm text-foreground shadow-sm",
+      "placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500/50",
       className
     )}
     {...props}
   />
 );
 
-export const Label: React.FC<React.LabelHTMLAttributes<HTMLLabelElement>> = ({ className = '', children, ...props }) => (
-  <label className={cx('block text-xs font-medium text-foreground-muted mb-1', className)} {...props}>
+export const Label: React.FC<{
+  className?: string;
+  children?: React.ReactNode;
+}> = ({ className = "", children, ...props }) => (
+  <label className={cn('block text-xs font-medium text-muted-foreground mb-1', className)} {...props}>
     {children}
   </label>
 );
 
 export const ModalShell: React.FC<{
-  isOpen?: boolean;
+  isOpen: boolean;
   title: string;
-  subtitle?: string;
   description?: string;
   icon?: React.ReactNode;
   onClose: () => void;
-  children: React.ReactNode;
+  children?: React.ReactNode;
   footer?: React.ReactNode;
   maxWidthClass?: string;
-}> = ({ isOpen, title, subtitle, description, icon, onClose, children, footer, maxWidthClass = 'max-w-lg' }) => {
-  React.useEffect(() => {
-    if (isOpen === false) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [isOpen, onClose]);
+}> = ({
+  isOpen,
+  title,
+  description,
+  icon,
+  onClose,
+  children,
+  footer,
+  maxWidthClass = "max-w-3xl",
+}) => {
+  // unique ids for accessibility (used by aria-labelledby/aria-describedby)
+  const uid = React.useId();
+  const titleId = `modal-title-${uid}`;
+  const descId = description ? `modal-desc-${uid}` : undefined;
 
-  // Prevent body scrolling while modal is open and avoid layout shift from scrollbars
   React.useEffect(() => {
-    if (isOpen === false) return;
-    const origOverflow = document.body.style.overflow;
-    const origPaddingRight = document.body.style.paddingRight || '';
-    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
-    document.body.style.overflow = 'hidden';
-    if (scrollbarWidth > 0) document.body.style.paddingRight = `${scrollbarWidth}px`;
+    if (!isOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
     return () => {
-      document.body.style.overflow = origOverflow;
-      document.body.style.paddingRight = origPaddingRight;
+      document.body.style.overflow = prev;
     };
   }, [isOpen]);
 
-  // If caller explicitly passes `isOpen={false}` we honor it; otherwise assume it's open when rendered
-  if (isOpen === false) return null;
+  if (!isOpen) return null;
 
   return (
     <div
-      className="fixed inset-0 z-[9999] bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto"
-      onClick={onClose}
+      className="fixed inset-0 z-50 grid place-items-center p-4"
       role="dialog"
       aria-modal="true"
+      aria-labelledby={titleId}
+      aria-describedby={descId}
+      onMouseDown={onClose}
     >
-      {/* overlay scroll container */}
-      <div className="min-h-full flex items-start md:items-center">
-        {/* Constrain centering by adding left padding on md+ so center is shifted to the right */}
-        <div className="w-full flex items-start md:items-center justify-center md:pl-64">
-          <div
-            className={`w-full ${maxWidthClass} bg-white rounded-2xl border border-slate-200 shadow-2xl overflow-hidden flex flex-col max-h-[calc(100vh-2rem)]`}
-            onClick={(e) => e.stopPropagation()}
-          >
-          <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/60 flex items-start justify-between gap-4">
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+
+      <div
+        className={cn(
+          "relative w-full",
+          maxWidthClass,
+          "w-full max-w-3xl",
+          "max-h-[85vh]",
+          "overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-xl",
+          "flex flex-col"
+        )}
+        onMouseDown={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-start justify-between gap-4 border-b border-border p-6">
+          <div className="flex min-w-0 items-start gap-4">
+            {icon ? (
+              <div className="mt-0.5 grid h-10 w-10 place-items-center rounded-xl border border-border bg-muted">
+                {icon}
+              </div>
+            ) : null}
             <div className="min-w-0">
-              <div className="text-lg font-bold text-slate-900 leading-tight truncate">{title}</div>
-              {subtitle && <div className="mt-0.5 text-xs text-slate-500">{subtitle}</div>}
-              {description && <div className="mt-1 text-sm text-slate-500">{description}</div>}
+              <h2 id={titleId} className="text-lg font-semibold tracking-tight">{title}</h2>
+              {description ? (
+                <div id={descId} className="mt-1 text-sm text-muted-foreground">{description}</div>
+              ) : null}
             </div>
-
-            <button
-              onClick={onClose}
-              className="shrink-0 p-2 rounded-full hover:bg-slate-200/60 text-slate-600 transition"
-              aria-label="Close"
-              type="button"
-            >
-              <span className="text-lg leading-none">×</span>
-            </button>
           </div>
 
-          {/* THIS is the key: min-h-0 so the overflow works inside flex */}
-          <div className="min-h-0 flex-1 overflow-y-auto custom-scrollbar">
-            <div className="p-6">{children}</div>
-          </div>
-
-          {footer && (
-            <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/60 flex items-center justify-end gap-3">
-              {footer}
-            </div>
-          )}
+          <Button variant="ghost" size="sm" onClick={onClose} aria-label="Close">
+            ✕
+          </Button>
         </div>
+
+        {/* Body (THIS is what scrolls) */}
+        <div className="flex-1 px-6 py-5 overflow-y-auto min-h-0 custom-scrollbar">
+          {children}
+        </div>
+
+        {/* Footer (stays pinned) */}
+        {footer ? (
+          <div className="px-6 py-4 border-t border-[var(--border)]">
+            {footer}
+          </div>
+        ) : null}
       </div>
     </div>
-  </div>
   );
 };
 
-export default {
-  ShellCard,
-  SubtleCard,
-  SectionHeader,
-  PageHeader,
-  StatusPill,
-  IconButton,
-  Button,
-  Input,
-  Textarea,
-  Select,
-  Label,
-  ModalShell,
-};
+export const ThemeToggle: React.FC<{
+  isDark: boolean;
+  onToggle: () => void;
+  size?: ButtonSize;
+}> = ({ isDark, onToggle, size = "sm" }) => (
+  <Button
+    variant="ghost"
+    size={size}
+    onClick={onToggle}
+    aria-label={isDark ? "Switch to light theme" : "Switch to dark theme"}
+    title={isDark ? "Light" : "Dark"}
+  >
+    <span className="text-base leading-none">{isDark ? "☀" : "🌙"}</span>
+    <span className="hidden sm:inline">{isDark ? "Light" : "Dark"}</span>
+  </Button>
+);
+
