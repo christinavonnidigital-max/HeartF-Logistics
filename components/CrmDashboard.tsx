@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useData } from '../contexts/DataContext';
-import { mockLeadScoringRules, mockSalesReps, mockLeadActivities } from '../data/mockCrmData';
+import { mockLeadScoringRules, mockSalesReps } from '../data/mockCrmData';
 import SalesPipeline from './SalesPipeline';
 import LeadList from './LeadList';
 import LeadScoringRules from './LeadScoringRules';
@@ -10,9 +10,11 @@ import OpportunityDetailsModal from './OpportunityDetailsModal';
 import { Lead, LeadScoringRule, Opportunity, OpportunityStage } from '../types';
 import AddLeadModal from './AddLeadModal';
 import AddLeadScoringRuleModal from './AddLeadScoringRuleModal';
-import ImportLeadsModal from './ImportLeadsModal';
 import { calculateLeadScore } from '../services/crmService';
 import { BriefcaseIcon, CurrencyDollarIcon, UsersIcon } from './icons';
+import { downloadCsv } from '../dataIO/toCsv';
+import { downloadXlsx } from '../dataIO/toXlsx';
+import ImportModal from '../dataIO/ImportModal';
 
 const StatCard = ({ label, value, icon }: { label: string, value: string | number, icon: React.ReactNode }) => (
   <div className="flex flex-col justify-between rounded-2xl bg-white px-4 py-3 shadow-sm ring-1 ring-slate-100">
@@ -30,7 +32,7 @@ const StatCard = ({ label, value, icon }: { label: string, value: string | numbe
 
 
 const CrmDashboard: React.FC = () => {
-    const { leads, opportunities, addLead, deleteLead, updateLead, updateOpportunity } = useData();
+    const { leads, opportunities, leadActivities, opportunityActivities, addLead, deleteLead, updateLead, updateOpportunity, logAuditEvent } = useData();
     // Rules are still local for now as they weren't part of the initial global scope request
     const [rules, setRules] = useState<LeadScoringRule[]>(mockLeadScoringRules);
     const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
@@ -78,6 +80,24 @@ const CrmDashboard: React.FC = () => {
         setSelectedOpportunity(null);
     };
 
+    const leadColumns = [
+        { key: 'first_name', header: 'First Name' },
+        { key: 'last_name', header: 'Last Name' },
+        { key: 'email', header: 'Email' },
+        { key: 'phone', header: 'Phone' },
+        { key: 'company_name', header: 'Company' },
+        { key: 'city', header: 'City' },
+        { key: 'country', header: 'Country' },
+        { key: 'lead_status', header: 'Status' },
+        { key: 'lead_source', header: 'Source' },
+        { key: 'lead_score', header: 'Score' },
+    ];
+
+    const leadXlsxColumns = leadColumns.map((c) => ({ title: c.header, key: c.key, width: 18 }));
+
+    const handleExportCsv = () => downloadCsv(leads, leadColumns as any, 'leads');
+    const handleExportXlsx = () => downloadXlsx(leads, leadXlsxColumns as any, 'leads');
+
     const handleAddLead = (newLeadData: Omit<Lead, 'id' | 'created_at' | 'updated_at' | 'lead_score'>) => {
         const newLead: Lead = {
             ...newLeadData,
@@ -97,16 +117,44 @@ const CrmDashboard: React.FC = () => {
         }
     };
     
-    const handleImportLeads = (importedLeads: Omit<Lead, 'id' | 'created_at' | 'updated_at' | 'lead_score'>[]) => {
-        importedLeads.forEach((leadData, index) => {
-             const newLead: Lead = {
-                ...leadData,
-                id: Date.now() + index,
-                lead_score: calculateLeadScore(leadData, rules),
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString(),
-            };
-            addLead(newLead);
+    const handleImportLeads = (rows: Record<string, any>[], meta: { imported: number; failed: number }) => {
+        let success = 0;
+        let failed = 0;
+        rows.forEach((row, index) => {
+            try {
+                const payload: Omit<Lead, 'id' | 'created_at' | 'updated_at' | 'lead_score'> = {
+                    first_name: row.first_name || '',
+                    last_name: row.last_name || '',
+                    email: row.email || '',
+                    phone: row.phone || '',
+                    company_name: row.company_name || row.company || '',
+                    city: row.city || '',
+                    country: row.country || '',
+                    lead_status: row.lead_status || 'new',
+                    lead_source: row.lead_source || 'other',
+                    lead_score: 0 as any,
+                    assigned_to: row.assigned_to ? Number(row.assigned_to) : undefined,
+                    industry: row.industry,
+                    position: row.position,
+                    website: row.website,
+                };
+                const newLead: Lead = {
+                    ...payload,
+                    id: Date.now() + index,
+                    lead_score: calculateLeadScore(payload, rules),
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString(),
+                };
+                addLead(newLead);
+                success += 1;
+            } catch {
+                failed += 1;
+            }
+        });
+        logAuditEvent({
+            action: 'data.import',
+            entity: { type: 'lead' },
+            meta: { imported: success, failed: failed || meta.failed, source: 'leads.import' },
         });
         setIsImportModalOpen(false);
     };
@@ -125,6 +173,32 @@ const CrmDashboard: React.FC = () => {
   return (
     <>
         <div className="flex flex-col gap-8">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div>
+                    <h2 className="text-lg font-semibold text-slate-900">Leads</h2>
+                    <p className="text-xs text-slate-500">Manage and sync your lead records.</p>
+                </div>
+                <div className="flex gap-2 flex-wrap">
+                    <button
+                        onClick={() => setIsImportModalOpen(true)}
+                        className="px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:border-orange-300 hover:text-orange-700"
+                    >
+                        Import
+                    </button>
+                    <button
+                        onClick={handleExportCsv}
+                        className="px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:border-orange-300 hover:text-orange-700"
+                    >
+                        Export CSV
+                    </button>
+                    <button
+                        onClick={handleExportXlsx}
+                        className="px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:border-orange-300 hover:text-orange-700"
+                    >
+                        Export XLSX
+                    </button>
+                </div>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <StatCard 
                     label="Total Pipeline Value" 
@@ -161,7 +235,7 @@ const CrmDashboard: React.FC = () => {
                 <LeadDetailsModal 
                     lead={selectedLead} 
                     salesReps={mockSalesReps}
-                    leadActivities={mockLeadActivities}
+                    leadActivities={leadActivities}
                     onClose={handleCloseModal} 
                 />
             )}
@@ -170,6 +244,7 @@ const CrmDashboard: React.FC = () => {
                     opportunity={selectedOpportunity}
                     leads={leads}
                     salesReps={mockSalesReps}
+                    opportunityActivities={opportunityActivities}
                     onClose={handleCloseModal}
                 />
             )}
@@ -187,8 +262,22 @@ const CrmDashboard: React.FC = () => {
             />
         )}
         {isImportModalOpen && (
-            <ImportLeadsModal
+            <ImportModal
+                isOpen={isImportModalOpen}
                 onClose={() => setIsImportModalOpen(false)}
+                title="Import leads"
+                description="Upload a CSV with lead columns, map them, and import."
+                targetFields={[
+                    { key: 'first_name', label: 'First Name', required: true },
+                    { key: 'last_name', label: 'Last Name', required: true },
+                    { key: 'email', label: 'Email', required: true },
+                    { key: 'phone', label: 'Phone' },
+                    { key: 'company_name', label: 'Company', required: true },
+                    { key: 'lead_status', label: 'Status' },
+                    { key: 'lead_source', label: 'Source' },
+                    { key: 'city', label: 'City' },
+                    { key: 'country', label: 'Country' },
+                ]}
                 onImport={handleImportLeads}
             />
         )}

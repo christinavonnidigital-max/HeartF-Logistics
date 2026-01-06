@@ -1,27 +1,13 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { Booking, BookingStatus } from '../types';
-import EmptyState from './EmptyState';
-import { DocumentTextIcon, MapPinIcon, TruckIcon, ClockIcon, SearchIcon, PlusIcon, CalendarDaysIcon } from './icons';
-import { SparklesIcon } from './icons';
+import { DocumentTextIcon, TruckIcon, SearchIcon, PlusIcon, CalendarDaysIcon } from './icons';
 import { useAuth } from '../auth/AuthContext';
 import { useData } from '../contexts/DataContext';
 import AddBookingModal from './AddBookingModal';
 import BookingDetailsModal from './BookingDetailsModal';
-import { StatusPill } from './UiKit';
-import { ShellCard } from './UiKit_new';
-
-const statusToLabelAndTone = (status: Booking['status'] | string) => {
-  const normalized = (status || '').toString();
-  switch (normalized) {
-    case 'pending': return { label: 'Pending', toneClass: 'bg-amber-50 text-amber-700 border border-amber-200' };
-    case 'confirmed': return { label: 'Confirmed', toneClass: 'bg-emerald-50 text-emerald-700 border border-emerald-200' };
-    case 'in_transit': return { label: 'In Transit', toneClass: 'bg-sky-50 text-sky-700 border border-sky-200' };
-    case 'delivered': return { label: 'Delivered', toneClass: 'bg-slate-100 text-slate-700 border border-slate-200' };
-    case 'cancelled': return { label: 'Cancelled', toneClass: 'bg-rose-50 text-rose-700 border border-rose-200' };
-    default: return { label: normalized, toneClass: 'bg-slate-50 text-slate-600 border border-slate-200' };
-  }
-};
+import { StatusPill, ShellCard } from './UiKit';
+import type { AppSettings } from '../App';
 
 type BoardColumnKey = 'pending' | 'confirmed' | 'in_transit' | 'delivered';
 
@@ -32,20 +18,43 @@ const BOARD_COLUMNS: { key: BoardColumnKey; title: string; subtitle: string; col
   { key: 'delivered', title: 'Delivered', subtitle: 'Completed jobs', color: 'bg-slate-50/50', accent: 'bg-slate-400', borderColor: 'border-slate-200' },
 ];
 
-const BookingsPage: React.FC = () => {
+interface BookingsPageProps {
+  settings: AppSettings;
+}
+
+const BookingsPage: React.FC<BookingsPageProps> = ({ settings }) => {
   const { user } = useAuth();
   const { bookings, addBooking, updateBooking } = useData();
   
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<BookingStatus | 'all'>('all');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-    const [selectedBookingId, setSelectedBookingId] = useState<number | null>(null);
+  const [selectedBookingId, setSelectedBookingId] = useState<number | null>(null);
 
-    // Dev/test helper: listen for a custom event to open a booking details modal.
-    // This allows tests to open the modal reliably without relying on complex UI interactions.
-    React.useEffect(() => {
-        const handler = (ev: Event) => {
-            try {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      const isTyping = target?.tagName === 'INPUT' || target?.tagName === 'TEXTAREA' || (target as any)?.isContentEditable;
+      if (isTyping) return;
+
+      if (e.key === 'n') {
+        setIsAddModalOpen(true);
+      }
+      if (e.key === '/') {
+        e.preventDefault();
+        document.getElementById('booking-search')?.focus();
+      }
+    };
+
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
+  // Dev/test helper: listen for a custom event to open a booking details modal.
+  // This allows tests to open the modal reliably without relying on complex UI interactions.
+  React.useEffect(() => {
+      const handler = (ev: Event) => {
+          try {
                 // @ts-ignore
                 const d = (ev as CustomEvent).detail;
                 if (d && d.bookingId != null) setSelectedBookingId(Number(d.bookingId));
@@ -100,8 +109,9 @@ const BookingsPage: React.FC = () => {
             <div className="relative w-full sm:w-64">
                 <SearchIcon className="absolute left-3 top-2.5 w-4 h-4 text-slate-500" />
                 <input 
+                    id="booking-search"
                     type="text" 
-                    placeholder="Search route, ID..." 
+              placeholder={'Search route, ID... (press "/")'}
                     value={searchTerm} 
                     onChange={e => setSearchTerm(e.target.value)} 
                     className="w-full pl-9 pr-4 py-2 rounded-lg border border-slate-200 bg-slate-50 text-sm focus:bg-white focus:ring-2 focus:ring-orange-500 focus:outline-none transition-all"
@@ -116,9 +126,9 @@ const BookingsPage: React.FC = () => {
 
       {/* Kanban Board */}
       <div className="flex-1 overflow-x-auto overflow-y-hidden pb-4 lg:pb-0">
-        <div className="flex h-full gap-5 min-w-max lg:min-w-0 px-1">
+        <div className="flex h-full gap-5 min-w-max lg:min-w-0 px-1 snap-x snap-mandatory">
             {BOARD_COLUMNS.map(col => (
-                <div key={col.key} className="w-80 flex flex-col h-full rounded-2xl bg-slate-100 border border-slate-200/60 overflow-hidden shrink-0 lg:shrink">
+                <div key={col.key} className="w-80 flex flex-col h-full rounded-2xl bg-slate-100 border border-slate-200/60 overflow-hidden shrink-0 lg:shrink snap-start">
                     {/* Column Header */}
                     <div className="p-3 bg-white border-b border-slate-200">
                         <div className="flex justify-between items-center mb-1">
@@ -139,8 +149,7 @@ const BookingsPage: React.FC = () => {
                             <div 
                                 key={booking.id} 
                                 onClick={() => setSelectedBookingId(booking.id)}
-                                as={"div"}
-                                className={`group relative cursor-pointer transition-all duration-300 ease-out hover:-translate-y-0.5`}
+                                className="group relative cursor-pointer transition-all duration-200 hover:-translate-y-0.5 active:scale-[0.98]"
                                 >
                                 <ShellCard className="p-4 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05)] hover:shadow-[0_8px_16px_-4px_rgba(0,0,0,0.1)] hover:border-orange-200/60">
                                 {/* Status Indicator Line on Hover */}
@@ -149,12 +158,28 @@ const BookingsPage: React.FC = () => {
                                 {/* Header */}
                                 <div className="flex justify-between items-start mb-3">
                                     <span className="text-[10px] font-bold tracking-wider text-slate-700 uppercase font-mono bg-slate-50 px-1.5 py-0.5 rounded">{booking.booking_number}</span>
-                                    {booking.requires_refrigeration && (
-                                         <div className="flex items-center gap-1 text-[10px] font-bold text-sky-600 bg-sky-50 px-1.5 py-0.5 rounded border border-sky-100">
-                                            <span className="w-1.5 h-1.5 rounded-full bg-sky-500"></span>
-                                            Cold
-                                         </div>
-                                    )}
+                                    <div className="flex items-center gap-2">
+                                      <StatusPill
+                                        label={booking.status.replace('_', ' ')}
+                                        tone={
+                                          booking.status === 'pending'
+                                            ? 'warn'
+                                            : booking.status === 'confirmed'
+                                            ? 'success'
+                                            : booking.status === 'in_transit'
+                                            ? 'info'
+                                            : booking.status === 'delivered'
+                                            ? 'neutral'
+                                            : 'danger'
+                                        }
+                                      />
+                                      {booking.requires_refrigeration && (
+                                           <div className="flex items-center gap-1 text-[10px] font-bold text-sky-600 bg-sky-50 px-1.5 py-0.5 rounded border border-sky-100">
+                                              <span className="w-1.5 h-1.5 rounded-full bg-sky-500"></span>
+                                              Cold
+                                           </div>
+                                      )}
+                                    </div>
                                 </div>
 
                                 {/* Route Visual */}
@@ -222,6 +247,7 @@ const BookingsPage: React.FC = () => {
                     onClose={() => setSelectedBookingId(null)}
                     onUpdateBooking={updateBooking}
                     userRole={user?.role}
+                    proofMaxMb={settings.proofMaxMb}
                 />
             )}
     </div>

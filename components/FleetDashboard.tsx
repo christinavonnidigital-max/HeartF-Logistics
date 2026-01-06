@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { Vehicle, VehicleStatus, VehicleExpense } from '../types';
+import { Vehicle, VehicleStatus, VehicleExpense, VehicleType } from '../types';
 import { useData } from '../contexts/DataContext';
 import { mockExpenses } from '../data/mockData'; 
 import VehicleDetails from './VehicleDetails';
@@ -9,13 +9,21 @@ import { IllustrationTruckIcon } from './icons';
 import EmptyState from './EmptyState';
 import AddExpenseModal from './AddExpenseModal';
 import AddVehicleModal from './AddVehicleModal';
-import { SectionHeader, StatusPill } from "./UiKit";
-import { ShellCard, PageHeader, Button, StatCard } from './UiKit_new';
+import { SectionHeader, StatusPill, ShellCard, PageHeader, Button, StatCard } from "./UiKit";
+import type { AppSettings } from '../App';
+import { downloadCsv } from '../dataIO/toCsv';
+import { downloadXlsx } from '../dataIO/toXlsx';
+import ImportModal from '../dataIO/ImportModal';
 
-const FleetDashboard: React.FC = () => {
-  const { vehicles, addVehicle, deleteVehicle, updateVehicle } = useData();
+interface FleetDashboardProps {
+  settings: AppSettings;
+}
+
+const FleetDashboard: React.FC<FleetDashboardProps> = ({ settings }) => {
+  const { vehicles, maintenance, addVehicle, deleteVehicle, updateVehicle, logAuditEvent } = useData();
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [serviceFilter, setServiceFilter] = useState<'all' | 'dueSoon'>('all');
   const [isRosterOpen, setIsRosterOpen] = useState(true);
   const [isLeftPanelCollapsed, setIsLeftPanelCollapsed] = useState(false);
   const [expenses, setExpenses] = useState<VehicleExpense[]>(() =>
@@ -23,17 +31,44 @@ const FleetDashboard: React.FC = () => {
   );
   const [isAddExpenseModalOpen, setIsAddExpenseModalOpen] = useState(false);
   const [isAddVehicleModalOpen, setIsAddVehicleModalOpen] = useState(false);
+  const [isImportOpen, setIsImportOpen] = useState(false);
+
+  const vehicleCsvColumns = [
+    { key: 'registration_number', header: 'Registration' },
+    { key: 'make', header: 'Make' },
+    { key: 'model', header: 'Model' },
+    { key: 'year', header: 'Year' },
+    { key: 'vehicle_type', header: 'Type' },
+    { key: 'status', header: 'Status' },
+    { key: 'capacity_tonnes', header: 'Capacity (t)' },
+    { key: 'current_km', header: 'Current KM' },
+    { key: 'next_service_due_km', header: 'Next Service KM' },
+  ];
+
+  const vehicleXlsxColumns = vehicleCsvColumns.map((col) => ({
+    title: col.header,
+    key: col.key,
+    width: 20,
+  }));
 
   const filteredVehicles = useMemo(() => {
+    let list = vehicles;
+    if (serviceFilter === 'dueSoon') {
+      list = list.filter((vehicle) => {
+        const remaining = (vehicle.next_service_due_km ?? 0) - (vehicle.current_km ?? 0);
+        return remaining <= settings.serviceDueSoonKm;
+      });
+    }
+
     if (!searchTerm) {
-      return vehicles;
+      return list;
     }
     const lowercasedFilter = searchTerm.toLowerCase();
-    return vehicles.filter(vehicle =>
+    return list.filter(vehicle =>
       vehicle.registration_number.toLowerCase().includes(lowercasedFilter) ||
       vehicle.make.toLowerCase().includes(lowercasedFilter)
     );
-  }, [vehicles, searchTerm]);
+  }, [vehicles, searchTerm, serviceFilter]);
 
   useEffect(() => {
     if (!selectedVehicle && filteredVehicles.length > 0) {
@@ -75,6 +110,12 @@ const FleetDashboard: React.FC = () => {
     setIsAddExpenseModalOpen(false);
   };
 
+  const handleUpdateOdometer = (vehicle: Vehicle, nextKm: number) => {
+    if (!Number.isFinite(nextKm) || nextKm < 0) return;
+    updateVehicle({ ...vehicle, current_km: nextKm });
+    setSelectedVehicle((prev) => (prev?.id === vehicle.id ? { ...prev, current_km: nextKm } : prev));
+  };
+
   const handleArchiveVehicle = (vehicle: Vehicle) => {
     updateVehicle({
       ...vehicle,
@@ -82,6 +123,44 @@ const FleetDashboard: React.FC = () => {
       updated_at: new Date().toISOString(),
     });
     setSelectedVehicle({ ...vehicle, status: VehicleStatus.OUT_OF_SERVICE });
+  };
+
+  const handleExportCsv = () => downloadCsv(vehicles, vehicleCsvColumns as any, 'fleet');
+  const handleExportXlsx = () => downloadXlsx(vehicles, vehicleXlsxColumns as any, 'fleet');
+
+  const handleImportVehicles = (rows: Record<string, any>[], meta: { imported: number; failed: number }) => {
+    let success = 0;
+    let failed = 0;
+    rows.forEach((row) => {
+      try {
+        const vehicle: Omit<Vehicle, 'id' | 'created_at' | 'updated_at'> = {
+          registration_number: row.registration_number || `NEW-${Date.now()}`,
+          make: row.make || 'Unknown',
+          model: row.model || 'Unknown',
+          year: Number(row.year) || new Date().getFullYear(),
+          vehicle_type: Object.values(VehicleType).includes(row.vehicle_type as VehicleType) ? (row.vehicle_type as VehicleType) : VehicleType.DRY,
+          capacity_tonnes: Number(row.capacity_tonnes) || 0,
+          status: Object.values(VehicleStatus).includes(row.status as VehicleStatus) ? (row.status as VehicleStatus) : VehicleStatus.ACTIVE,
+          purchase_date: row.purchase_date || new Date().toISOString().split('T')[0],
+          purchase_cost: Number(row.purchase_cost) || 0,
+          current_value: row.current_value ? Number(row.current_value) : undefined,
+          current_km: Number(row.current_km) || 0,
+          next_service_due_km: Number(row.next_service_due_km) || 0,
+          fuel_type: row.fuel_type || 'diesel',
+          last_service_date: row.last_service_date || new Date().toISOString().split('T')[0],
+          notes: row.notes || '',
+        } as any;
+        addVehicle(vehicle);
+        success += 1;
+      } catch {
+        failed += 1;
+      }
+    });
+    logAuditEvent({
+      action: 'data.import',
+      entity: { type: 'vehicle' },
+      meta: { imported: success, failed: failed || meta.failed, source: 'fleet.import' },
+    });
   };
 
   // Metrics
@@ -92,7 +171,18 @@ const FleetDashboard: React.FC = () => {
 
   return (
     <>
-      <PageHeader title="Fleet" subtitle="Track vehicles, status, and utilization" right={<Button variant="primary" onClick={() => setIsAddVehicleModalOpen(true)}>Add vehicle</Button>} />
+      <PageHeader
+        title="Fleet"
+        subtitle="Track vehicles, status, and utilization"
+        right={
+          <div className="flex flex-wrap gap-2">
+            <Button variant="ghost" onClick={handleExportCsv}>Export CSV</Button>
+            <Button variant="ghost" onClick={handleExportXlsx}>Export XLSX</Button>
+            <Button variant="secondary" onClick={() => setIsImportOpen(true)}>Import</Button>
+            <Button variant="primary" onClick={() => setIsAddVehicleModalOpen(true)}>Add vehicle</Button>
+          </div>
+        }
+      />
       <div className={`grid gap-8 h-auto lg:h-[calc(100vh-8rem)] transition-all duration-300 ${
         isLeftPanelCollapsed
           ? 'lg:grid-cols-[60px_minmax(0,1fr)]'
@@ -153,17 +243,37 @@ const FleetDashboard: React.FC = () => {
                     </div>
                 </div>
                 {isRosterOpen && (
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <SearchIcon className="w-4 h-4 text-slate-400" />
+                  <div className="space-y-3">
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <SearchIcon className="w-4 h-4 text-slate-400" />
+                      </div>
+                      <input
+                          type="text"
+                          placeholder="Search reg, make, model..."
+                          value={searchTerm}
+                          onChange={e => setSearchTerm(e.target.value)}
+                          className="w-full rounded-lg border-2 border-slate-200 bg-slate-50 pl-10 pr-4 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 focus:bg-white transition-all py-2.5"
+                      />
                     </div>
-                    <input
-                        type="text"
-                        placeholder="Search reg, make, model..."
-                        value={searchTerm}
-                        onChange={e => setSearchTerm(e.target.value)}
-                        className="w-full rounded-lg border-2 border-slate-200 bg-slate-50 pl-10 pr-4 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 focus:bg-white transition-all py-2.5"
-                    />
+                    <div className="flex flex-wrap items-center gap-2">
+                      <button
+                        onClick={() => setServiceFilter(serviceFilter === 'dueSoon' ? 'all' : 'dueSoon')}
+                        className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition ${
+                          serviceFilter === 'dueSoon'
+                            ? 'bg-amber-50 text-amber-700 border-amber-200'
+                            : 'bg-white text-slate-600 border-slate-200 hover:border-orange-200 hover:text-orange-600'
+                        }`}
+                        type="button"
+                      >
+                        Service due soon
+                      </button>
+                      <span className="text-[11px] text-slate-500">
+                        {serviceFilter === 'dueSoon'
+                          ? `Within ${settings.serviceDueSoonKm} km`
+                          : 'Showing all'}
+                      </span>
+                    </div>
                   </div>
                 )}
             </div>
@@ -235,10 +345,12 @@ const FleetDashboard: React.FC = () => {
           {selectedVehicle ? (
             <VehicleDetails 
                 vehicle={selectedVehicle}
+                maintenance={maintenance}
                 expenses={expenses}
                 onAddExpenseClick={() => setIsAddExpenseModalOpen(true)}
                 onDeleteVehicle={() => handleDeleteVehicle(selectedVehicle.id)}
                 onArchiveVehicle={() => handleArchiveVehicle(selectedVehicle)}
+                onUpdateOdometer={(nextKm) => handleUpdateOdometer(selectedVehicle, nextKm)}
             />
           ) : (
              <EmptyState 
@@ -260,6 +372,26 @@ const FleetDashboard: React.FC = () => {
         <AddVehicleModal
             onClose={() => setIsAddVehicleModalOpen(false)}
             onAddVehicle={handleAddVehicle}
+        />
+      )}
+      {isImportOpen && (
+        <ImportModal
+          isOpen={isImportOpen}
+          onClose={() => setIsImportOpen(false)}
+          title="Import vehicles"
+          description="Upload a CSV with vehicle details and map columns to fleet fields."
+          targetFields={[
+            { key: 'registration_number', label: 'Registration', required: true },
+            { key: 'make', label: 'Make', required: true },
+            { key: 'model', label: 'Model', required: true },
+            { key: 'year', label: 'Year' },
+            { key: 'vehicle_type', label: 'Type' },
+            { key: 'status', label: 'Status' },
+            { key: 'capacity_tonnes', label: 'Capacity (t)' },
+            { key: 'current_km', label: 'Current KM' },
+            { key: 'next_service_due_km', label: 'Next Service KM' },
+          ]}
+          onImport={handleImportVehicles}
         />
       )}
     </>

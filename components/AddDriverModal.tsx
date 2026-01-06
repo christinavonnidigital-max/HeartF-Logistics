@@ -1,7 +1,8 @@
 
 import React, { useMemo, useState } from "react";
 import { Driver, EmploymentStatus, User } from "../types";
-import { Button, Input, ModalShell, Select, SubtleCard, Textarea } from "./UiKit_new";
+import { Button, Input, ModalShell, Select, SubtleCard, Textarea } from "./UiKit";
+import { toTitle } from "../utils/toTitle";
 
 type NewDriver = Omit<Driver, "id" | "created_at" | "updated_at" | "user_id"> & {
     user: Omit<User, "id" | "created_at" | "updated_at" | "role" | "email_verified">;
@@ -12,11 +13,10 @@ interface AddDriverModalProps {
     onAddDriver: (driverData: NewDriver) => void;
 }
 
-const toTitle = (s: string) =>
-    s
-        .replaceAll("_", " ")
-        .replace(/\b\w/g, (m) => m.toUpperCase());
-
+/**
+ * Modal for adding a new driver and associated user account.
+ * Validates required fields client-side and passes a NewDriver payload to onAddDriver.
+ */
 const AddDriverModal: React.FC<AddDriverModalProps> = ({ onClose, onAddDriver }) => {
     const [error, setError] = useState<string>("");
 
@@ -106,18 +106,17 @@ const AddDriverModal: React.FC<AddDriverModalProps> = ({ onClose, onAddDriver })
                     <Button variant="secondary" type="button" onClick={onClose}>
                         Cancel
                     </Button>
-                    <Button variant="primary" type="submit" form="add-driver-form">
+                    <Button variant="primary" type="submit" form="add-driver-form" className="transition active:scale-[0.97]">
                         Save driver
                     </Button>
                 </div>
             }
         >
+            <div className="animate-in fade-in zoom-in-95 duration-200">
             <form id="add-driver-form" onSubmit={submit} className="space-y-4">
-                {error ? (
-                    <div className="rounded-lg border border-danger-600/30 bg-danger-600/10 px-3 py-2 text-sm text-foreground">
-                        {error}
-                    </div>
-                ) : null}
+                <div className={`rounded-lg px-3 py-2 text-sm transition ${error ? "border border-danger-600/30 bg-danger-600/10" : "border border-transparent"}`}>
+                    {error}
+                </div>
 
                 <SubtleCard className="p-4">
                     <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
@@ -222,6 +221,7 @@ const AddDriverModal: React.FC<AddDriverModalProps> = ({ onClose, onAddDriver })
                     </div>
                 </SubtleCard>
             </form>
+            </div>
         </ModalShell>
     );
 };

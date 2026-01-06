@@ -153,7 +153,7 @@ const Layout: React.FC<LayoutProps> = ({
       </div>
 
       {settings?.enableAssistant !== false && (
-        <AiAssistant contextData={contextData} contextType={contextType} />
+        <AiAssistant contextData={contextData} contextType={contextType} settings={settings} />
       )}
     </div>
   );

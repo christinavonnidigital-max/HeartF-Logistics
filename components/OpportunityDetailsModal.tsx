@@ -1,12 +1,15 @@
 
 import React, { useState, useEffect } from 'react';
-import { Opportunity, Lead, User, OpportunityStage } from '../types';
-import { CloseIcon, BriefcaseIcon, UserCircleIcon, InfoIcon, DocumentTextIcon, PhoneIcon, EnvelopeIcon, CalendarDaysIcon, ClockIcon, CurrencyDollarIcon } from './icons';
+import { Opportunity, Lead, User, OpportunityStage, OpportunityActivity, OpportunityActivityType } from '../types';
+import { CloseIcon, BriefcaseIcon, UserCircleIcon, InfoIcon, DocumentTextIcon, ClockIcon } from './icons';
+import { Button, Input, Label, Select } from './UiKit';
+import { useData } from '../contexts/DataContext';
 
 interface OpportunityDetailsModalProps {
   opportunity: Opportunity;
   leads: Lead[];
   salesReps: User[];
+  opportunityActivities: OpportunityActivity[];
   onClose: () => void;
 }
 
@@ -43,10 +46,17 @@ const getStagePill = (stage: OpportunityStage) => {
     );
 };
 
-const OpportunityDetailsModal: React.FC<OpportunityDetailsModalProps> = ({ opportunity, leads, salesReps, onClose }) => {
+const OpportunityDetailsModal: React.FC<OpportunityDetailsModalProps> = ({ opportunity, leads, salesReps, opportunityActivities, onClose }) => {
+    const { addOpportunityActivity, updateOpportunity } = useData();
+    const [activityType, setActivityType] = useState<OpportunityActivityType>(OpportunityActivityType.NOTE);
+    const [activityDescription, setActivityDescription] = useState('');
+    const [nextActionDate, setNextActionDate] = useState(opportunity.next_action_date || '');
     
     const lead = leads.find(l => l.id === opportunity.lead_id);
     const salesRep = salesReps.find(rep => rep.id === opportunity.assigned_to);
+    const activitiesForOpp = opportunityActivities
+        .filter((act) => act.opportunity_id === opportunity.id)
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
     // Close on Escape
     useEffect(() => {
@@ -57,9 +67,27 @@ const OpportunityDetailsModal: React.FC<OpportunityDetailsModalProps> = ({ oppor
         };
         document.addEventListener('keydown', handleKeyDown);
         return () => {
-            document.removeEventListener('keydown', handleKeyDown);
+        document.removeEventListener('keydown', handleKeyDown);
         };
     }, [onClose]);
+
+    useEffect(() => {
+        setNextActionDate(opportunity.next_action_date || '');
+    }, [opportunity.next_action_date, opportunity.id]);
+
+    const handleAddActivity = () => {
+        if (!activityDescription.trim()) return;
+        addOpportunityActivity({
+            opportunity_id: opportunity.id,
+            activity_type: activityType,
+            description: activityDescription.trim(),
+            performed_by: opportunity.assigned_to,
+        });
+        if (nextActionDate && nextActionDate !== opportunity.next_action_date) {
+            updateOpportunity({ ...opportunity, next_action_date: nextActionDate });
+        }
+        setActivityDescription('');
+    };
 
   return (
     <div
@@ -91,6 +119,11 @@ const OpportunityDetailsModal: React.FC<OpportunityDetailsModalProps> = ({ oppor
             <DetailSection title="Details" icon={<DocumentTextIcon className="w-5 h-5" />}>
                 <DetailItem label="Description" value={opportunity.description} className="grid-cols-1"/>
                 <DetailItem label="Next Step" value={<span className="font-semibold text-orange-700">{opportunity.next_step}</span>} className="grid-cols-1"/>
+                <DetailItem
+                    label="Next Action Date"
+                    value={opportunity.next_action_date ? new Date(opportunity.next_action_date).toLocaleDateString() : 'Not set'}
+                    className="grid-cols-1"
+                />
             </DetailSection>
 
             {lead && (
@@ -108,6 +141,49 @@ const OpportunityDetailsModal: React.FC<OpportunityDetailsModalProps> = ({ oppor
                      <DetailItem label="Email" value={<a href={`mailto:${salesRep.email}`} className="text-orange-600 hover:underline">{salesRep.email}</a>} />
                 </DetailSection>
             )}
+
+            <DetailSection title="Activity Log" icon={<ClockIcon className="w-5 h-5" />}>
+                <div className="space-y-3">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                            <Label>Activity type</Label>
+                            <Select value={activityType} onChange={(e) => setActivityType(e.target.value as OpportunityActivityType)}>
+                                {Object.values(OpportunityActivityType).map((type) => (
+                                    <option key={type} value={type}>{type.replace(/_/g, ' ')}</option>
+                                ))}
+                            </Select>
+                        </div>
+                        <div className="space-y-1">
+                            <Label>Next action date</Label>
+                            <Input type="date" value={nextActionDate} onChange={(e) => setNextActionDate(e.target.value)} />
+                        </div>
+                    </div>
+                    <div className="space-y-1">
+                        <Label>Description</Label>
+                        <Input value={activityDescription} onChange={(e) => setActivityDescription(e.target.value)} placeholder="Add a quick update..." />
+                    </div>
+                    <div className="flex justify-end">
+                        <Button variant="secondary" size="sm" onClick={handleAddActivity}>
+                            Log activity
+                        </Button>
+                    </div>
+                    <div className="space-y-2">
+                        {activitiesForOpp.length ? (
+                            activitiesForOpp.map((act) => (
+                                <div key={act.id} className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm">
+                                    <div className="flex items-center justify-between text-xs text-gray-500">
+                                        <span className="uppercase tracking-wide">{act.activity_type.replace(/_/g, ' ')}</span>
+                                        <span>{new Date(act.created_at).toLocaleDateString()}</span>
+                                    </div>
+                                    <p className="mt-1 text-gray-800">{act.description}</p>
+                                </div>
+                            ))
+                        ) : (
+                            <p className="text-sm text-gray-500">No activity logged yet.</p>
+                        )}
+                    </div>
+                </div>
+            </DetailSection>
             
           </div>
         </main>

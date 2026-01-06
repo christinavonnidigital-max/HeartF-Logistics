@@ -1,7 +1,8 @@
 
 import React, { useMemo, useState } from "react";
 import { Customer, Currency, Industry, LoyaltyTier } from "../types";
-import { Button, Input, ModalShell, Select, SubtleCard, Textarea } from "./UiKit_new";
+import { Button, Input, ModalShell, Select, SubtleCard, Textarea } from "./UiKit";
+import { toTitle } from "../utils/toTitle";
 
 type NewCustomer = Omit<
     Customer,
@@ -13,11 +14,9 @@ interface AddCustomerModalProps {
     onAddCustomer: (customer: NewCustomer) => void;
 }
 
-const toTitle = (s: string) =>
-    s
-        .replaceAll("_", " ")
-        .replace(/\b\w/g, (m) => m.toUpperCase());
-
+/**
+ * Modal for adding a new customer record with billing details.
+ */
 const AddCustomerModal: React.FC<AddCustomerModalProps> = ({ onClose, onAddCustomer }) => {
     const [error, setError] = useState<string>("");
 

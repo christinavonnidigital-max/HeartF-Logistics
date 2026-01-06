@@ -1,7 +1,9 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Lead, User, LeadActivity, LeadActivityType } from '../types';
 import { CloseIcon, BriefcaseIcon, UserCircleIcon, InfoIcon, DocumentTextIcon, PhoneIcon, EnvelopeIcon, CalendarDaysIcon, PencilSquareIcon } from './icons';
+import { Button, Input, Label, Select } from './UiKit';
+import { useData } from '../contexts/DataContext';
 
 interface LeadDetailsModalProps {
   lead: Lead;
@@ -39,9 +41,43 @@ const activityIcons: { [key in LeadActivityType]: React.ReactNode } = {
 };
 
 const LeadDetailsModal: React.FC<LeadDetailsModalProps> = ({ lead, salesReps, leadActivities, onClose }) => {
+    const { addLeadActivity, updateLead } = useData();
     const [activeTab, setActiveTab] = useState<'details' | 'activity'>('details');
+    const [activityType, setActivityType] = useState<LeadActivityType>(LeadActivityType.NOTE);
+    const [activitySubject, setActivitySubject] = useState('');
+    const [activityDescription, setActivityDescription] = useState('');
+    const [nextAction, setNextAction] = useState(lead.next_action || '');
+    const [nextActionDate, setNextActionDate] = useState(lead.next_action_date || '');
     const assignedRep = salesReps.find(rep => rep.id === lead.assigned_to);
-    const activitiesForLead = leadActivities.filter(act => act.lead_id === lead.id).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    const activitiesForLead = useMemo(
+        () => leadActivities.filter(act => act.lead_id === lead.id).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()),
+        [leadActivities, lead.id]
+    );
+
+    useEffect(() => {
+        setNextAction(lead.next_action || '');
+        setNextActionDate(lead.next_action_date || '');
+    }, [lead.id, lead.next_action, lead.next_action_date]);
+
+    const handleAddActivity = () => {
+        if (!activitySubject.trim() && !activityDescription.trim()) return;
+        addLeadActivity({
+            lead_id: lead.id,
+            activity_type: activityType,
+            subject: activitySubject.trim() || 'Activity update',
+            description: activityDescription.trim() || '',
+            next_action: nextAction.trim() || undefined,
+            next_action_date: nextActionDate || undefined,
+            performed_by: lead.assigned_to ?? 0,
+        });
+        updateLead({
+            ...lead,
+            next_action: nextAction.trim() || undefined,
+            next_action_date: nextActionDate || undefined,
+        });
+        setActivitySubject('');
+        setActivityDescription('');
+    };
 
     return (
         <div 
@@ -106,44 +142,89 @@ const LeadDetailsModal: React.FC<LeadDetailsModalProps> = ({ lead, salesReps, le
                                 <DetailItem label="Lead Source" value={lead.lead_source} />
                                 <DetailItem label="Lead Score" value={lead.lead_score} />
                                 <DetailItem label="Assigned To" value={assignedRep ? `${assignedRep.first_name} ${assignedRep.last_name}` : 'Unassigned'} />
+                                <DetailItem label="Next Action" value={lead.next_action || 'Not set'} />
+                                <DetailItem label="Next Action Date" value={lead.next_action_date ? new Date(lead.next_action_date).toLocaleDateString() : 'Not set'} />
                                 <DetailItem label="Notes" value={lead.notes} />
                             </DetailSection>
                         </div>
                     )}
                     {activeTab === 'activity' && (
-                        <div className="flow-root">
-                            <ul role="list" className="-mb-8">
-                                {activitiesForLead.map((activity, activityIdx) => {
-                                    const performer = salesReps.find(rep => rep.id === activity.performed_by);
-                                    return (
-                                    <li key={activity.id}>
-                                        <div className="relative pb-8">
-                                        {activityIdx !== activitiesForLead.length - 1 ? (
-                                            <span className="absolute left-4 top-4 -ml-px h-full w-0.5 bg-gray-200" aria-hidden="true" />
-                                        ) : null}
-                                        <div className="relative flex space-x-3">
-                                            <div>
-                                                <span className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center ring-8 ring-white text-gray-500">
-                                                    {activityIcons[activity.activity_type]}
-                                                </span>
+                        <div className="space-y-6">
+                            <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+                                <h3 className="text-sm font-semibold text-gray-800">Log activity</h3>
+                                <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    <div className="space-y-1">
+                                        <Label>Activity type</Label>
+                                        <Select value={activityType} onChange={(e) => setActivityType(e.target.value as LeadActivityType)}>
+                                            {Object.values(LeadActivityType).map((type) => (
+                                                <option key={type} value={type}>{type.replace(/_/g, ' ')}</option>
+                                            ))}
+                                        </Select>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <Label>Subject</Label>
+                                        <Input value={activitySubject} onChange={(e) => setActivitySubject(e.target.value)} />
+                                    </div>
+                                    <div className="space-y-1 md:col-span-2">
+                                        <Label>Description</Label>
+                                        <Input value={activityDescription} onChange={(e) => setActivityDescription(e.target.value)} />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <Label>Next action</Label>
+                                        <Input value={nextAction} onChange={(e) => setNextAction(e.target.value)} />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <Label>Next action date</Label>
+                                        <Input type="date" value={nextActionDate} onChange={(e) => setNextActionDate(e.target.value)} />
+                                    </div>
+                                </div>
+                                <div className="mt-3 flex justify-end">
+                                    <Button variant="secondary" size="sm" onClick={handleAddActivity}>
+                                        Log activity
+                                    </Button>
+                                </div>
+                            </div>
+
+                            <div className="flow-root">
+                                <ul role="list" className="-mb-8">
+                                    {activitiesForLead.map((activity, activityIdx) => {
+                                        const performer = salesReps.find(rep => rep.id === activity.performed_by);
+                                        return (
+                                        <li key={activity.id}>
+                                            <div className="relative pb-8">
+                                            {activityIdx !== activitiesForLead.length - 1 ? (
+                                                <span className="absolute left-4 top-4 -ml-px h-full w-0.5 bg-gray-200" aria-hidden="true" />
+                                            ) : null}
+                                            <div className="relative flex space-x-3">
+                                                <div>
+                                                    <span className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center ring-8 ring-white text-gray-500">
+                                                        {activityIcons[activity.activity_type]}
+                                                    </span>
+                                                </div>
+                                                <div className="flex min-w-0 flex-1 justify-between space-x-4 pt-1.5">
+                                                <div>
+                                                    <p className="text-sm text-gray-500">
+                                                        <span className="font-medium text-gray-900">{activity.subject}</span> by {performer ? `${performer.first_name} ${performer.last_name}` : 'System'}
+                                                    </p>
+                                                    <p className="mt-1 text-sm text-gray-600">{activity.description}</p>
+                                                    {activity.next_action ? (
+                                                        <p className="mt-1 text-xs text-gray-500">Next: {activity.next_action}</p>
+                                                    ) : null}
+                                                </div>
+                                                <div className="whitespace-nowrap text-right text-sm text-gray-500">
+                                                    <time dateTime={activity.created_at}>{new Date(activity.created_at).toLocaleDateString()}</time>
+                                                </div>
+                                                </div>
                                             </div>
-                                            <div className="flex min-w-0 flex-1 justify-between space-x-4 pt-1.5">
-                                            <div>
-                                                <p className="text-sm text-gray-500">
-                                                    <span className="font-medium text-gray-900">{activity.subject}</span> by {performer ? `${performer.first_name} ${performer.last_name}` : 'System'}
-                                                </p>
-                                                <p className="mt-1 text-sm text-gray-600">{activity.description}</p>
                                             </div>
-                                            <div className="whitespace-nowrap text-right text-sm text-gray-500">
-                                                <time dateTime={activity.created_at}>{new Date(activity.created_at).toLocaleDateString()}</time>
-                                            </div>
-                                            </div>
-                                        </div>
-                                        </div>
-                                    </li>
-                                    )
-                                })}
-                            </ul>
+                                        </li>
+                                        )
+                                    })}
+                                </ul>
+                                {!activitiesForLead.length ? (
+                                    <p className="text-sm text-gray-500">No activity logged yet.</p>
+                                ) : null}
+                            </div>
                         </div>
                     )}
                 </main>

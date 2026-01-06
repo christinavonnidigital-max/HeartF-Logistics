@@ -382,7 +382,19 @@ export enum PaymentMethod {
 }
 
 // Audit & Status history types
-export type AuditAction = 'booking.status_change' | 'booking.assignment_change' | 'booking.update';
+export type AuditAction =
+    | 'booking.create'
+    | 'booking.status.change'
+    | 'booking.assign'
+    | 'booking.update'
+    | 'lead.status.change'
+    | 'opportunity.stage.change'
+    | 'invoice.paid'
+    | 'invoice.reminder'
+    | 'data.import'
+    | 'document.upload'
+    | 'assistant.tool.call'
+    | 'assistant.tool.error';
 
 export interface AuditLogEntry {
     id: string;
@@ -390,7 +402,7 @@ export interface AuditLogEntry {
     actor_user_id?: string | number;
     actor_role?: string;
     action: AuditAction;
-    entity_type: 'booking' | 'invoice' | 'lead' | 'vehicle';
+    entity_type: 'booking' | 'invoice' | 'lead' | 'vehicle' | 'opportunity' | 'import' | 'document';
     entity_id: number;
     summary: string;
     meta?: Record<string, unknown>;
@@ -414,12 +426,14 @@ export type BookingStatusEvent = {
     note?: string;
 };
 
+export type AuditEntityType = 'booking' | 'lead' | 'opportunity' | 'invoice' | 'import' | 'document' | 'customer' | 'assistant' | 'vehicle';
+
 export type AuditEvent = {
     id: string;
     at: string; // ISO
     actor?: { id?: number | string; name?: string; role?: string };
-    action: 'booking.status.change' | 'booking.assign' | 'booking.update';
-    entity: { type: 'booking'; id: number; ref?: string };
+    action: AuditAction;
+    entity: { type: AuditEntityType; id?: number | string; ref?: string };
     meta?: Record<string, any>;
 };
 
@@ -496,6 +510,21 @@ export interface DeliveryProof {
 }
 
 
+
+export type FileEntityType = 'vehicle' | 'booking' | 'invoice' | 'lead' | 'customer' | 'other';
+
+export interface FileRecord {
+    id: number;
+    name: string;
+    size_bytes: number;
+    mime_type: string;
+    entity_type: FileEntityType;
+    entity_id?: number;
+    uploaded_by?: number; // user.id
+    uploaded_at: string;
+    notes?: string;
+}
+
 // --- CRM & LEAD GENERATION ---
 
 export enum LeadSource {
@@ -559,6 +588,8 @@ export interface Lead {
     preferred_routes?: string;
     assigned_to?: number; // user.id
     next_follow_up_date?: string;
+    next_action?: string;
+    next_action_date?: string;
     last_contact_date?: string;
     converted_to_customer_id?: number; // customer.id
     converted_at?: string;
@@ -850,6 +881,7 @@ export interface Opportunity {
     currency: Currency;
     probability: number;
     expected_close_date: string;
+    next_action_date?: string;
     actual_close_date?: string;
     assigned_to: number; // user.id
     description: string;
@@ -983,6 +1015,9 @@ export interface Invoice {
     invoice_type: InvoiceType;
     issue_date: string;
     due_date: string;
+    reminder_at?: string;
+    reminder_note?: string;
+    last_reminder_at?: string;
     subtotal: number; // decimal
     tax_amount: number; // decimal
     discount_amount: number; // decimal

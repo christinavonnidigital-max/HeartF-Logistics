@@ -2,8 +2,7 @@
 import React, { useState } from 'react';
 import { VehicleExpense, ExpenseType, Currency, RecurringFrequency } from '../types';
 import { CloseIcon, CurrencyDollarIcon, TagIcon, CalendarDaysIcon, DocumentTextIcon, ArrowPathIcon } from './icons';
-import { Button, Input, Select, Textarea, IconButton, ModalShell } from './UiKit';
-import { SubtleCard } from './UiKit_new';
+import { Button, Input, Select, Textarea, IconButton, ModalShell, SubtleCard } from './UiKit';
 
 interface AddExpenseModalProps {
   onClose: () => void;

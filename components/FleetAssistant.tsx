@@ -1,13 +1,19 @@
 
-import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Message, GroundingChunk } from '../types';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import { Message, GroundingChunk, Currency } from '../types';
 import { getGeminiResponse } from '../services/geminiService';
 import { CloseIcon, MapPinIcon, SearchIcon, SendIcon } from './icons';
 import { BoxTruckIconBold } from './icons';
+import { useData } from '../contexts/DataContext';
+import { AssistantBookingDraft, AssistantEmailDraft, getFunctionDeclarations, runAssistantTool, ToolRunResult } from '../assistant/tools';
+import AddBookingModal from './AddBookingModal';
+import EmailComposer from './campaignBuilder/EmailComposer';
+import type { AppSettings } from '../App';
 
 interface FleetAssistantProps {
     contextData: any;
     contextType: 'fleet' | 'crm' | 'financials' | 'routes';
+    settings?: Partial<AppSettings>;
 }
 
 // Enhanced Markdown Parser Component
@@ -78,7 +84,8 @@ const FormattedText: React.FC<{ text: string }> = ({ text }) => {
   );
 };
 
-const FleetAssistant: React.FC<FleetAssistantProps> = ({ contextData, contextType }) => {
+const FleetAssistant: React.FC<FleetAssistantProps> = ({ contextData, contextType, settings }) => {
+  const { bookings, invoices, customers, leads, opportunities, leadActivities, auditLog, addBooking, logAuditEvent } = useData();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     { id: '1', sender: 'bot', text: 'Hi there! I\'m your Heartfledge AI Assistant. I can help with fleet management, CRM insights, financial analysis, and route optimization. What can I do for you today?' }
@@ -86,7 +93,28 @@ const FleetAssistant: React.FC<FleetAssistantProps> = ({ contextData, contextTyp
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [location, setLocation] = useState<{latitude: number, longitude: number} | null>(null);
+  const [bookingDraft, setBookingDraft] = useState<AssistantBookingDraft | null>(null);
+  const [emailDraft, setEmailDraft] = useState<AssistantEmailDraft | null>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const assistantTools = useMemo(() => getFunctionDeclarations(), []);
+
+  const toolContext = useMemo(() => ({
+    data: {
+      bookings,
+      invoices,
+      customers,
+      leads,
+      opportunities,
+      leadActivities,
+      auditLog,
+      leadScoringRules: contextData?.leadScoringRules || [],
+      defaultCurrency: (settings?.currency as Currency | undefined) || Currency.USD,
+    },
+    actions: {
+      openBookingModal: (draft: AssistantBookingDraft) => setBookingDraft(draft),
+      openEmailComposer: (draft: AssistantEmailDraft) => setEmailDraft(draft),
+    },
+  }), [auditLog, bookings, customers, invoices, leadActivities, leads, opportunities, contextData?.leadScoringRules, settings?.currency]);
   
   const getPlaceholderText = () => {
       switch (contextType) {
@@ -128,6 +156,49 @@ const FleetAssistant: React.FC<FleetAssistantProps> = ({ contextData, contextTyp
       }
   }, [isOpen, getLocation]);
 
+  const formatToolResult = (toolName: string, result: ToolRunResult) => {
+    const lines = [result?.message || `${toolName} executed.`];
+    const data = result?.data as any;
+
+    if (toolName === 'find_overdue_invoices' && data?.invoices?.length) {
+      const invoices = data.invoices as any[];
+      invoices.slice(0, 3).forEach((inv: any) => {
+        lines.push(`- ${inv.invoiceNumber} (${inv.customerName}) • ${inv.balanceDue} due ${inv.dueDate} (${inv.daysOverdue}d late)`);
+      });
+      if (invoices.length > 3) lines.push(`...and ${invoices.length - 3} more.`);
+    }
+
+    if (toolName === 'summarize_customer_activity' && data?.customer) {
+      lines.push(`- Bookings: ${data.bookingsCount}, Opportunities: ${data.opportunitiesCount}`);
+      if (data.openBalance !== undefined) lines.push(`- Open balance: ${data.openBalance}`);
+      if (data.lastBooking) lines.push(`- Latest booking: ${data.lastBooking}`);
+      if (data.lastInvoice) lines.push(`- Latest invoice: ${data.lastInvoice}`);
+    }
+
+    if (toolName === 'explain_lead_score_change' && data?.matches) {
+      const drivers = (data.matches as any[]).map((m) => `${m.rule} (${m.points})`).join(', ');
+      lines.push(`- Drivers: ${drivers || 'No matching rules.'}`);
+      lines.push(`- Recomputed score: ${data.recomputedScore} (Δ ${data.delta >= 0 ? '+' : ''}${data.delta})`);
+    }
+
+    if (toolName === 'draft_follow_up_email' && data?.subject) {
+      lines.push(`- Subject: ${data.subject}`);
+    }
+
+    return lines.join('\n');
+  };
+
+  const mapToolToEntity = (toolName: string) => {
+    switch (toolName) {
+      case 'create_booking': return 'booking';
+      case 'find_overdue_invoices': return 'invoice';
+      case 'summarize_customer_activity': return 'customer';
+      case 'draft_follow_up_email': return 'lead';
+      case 'explain_lead_score_change': return 'lead';
+      default: return 'assistant';
+    }
+  };
+
   const handleSendMessage = async () => {
     if (input.trim() === '' || isLoading) return;
 
@@ -147,19 +218,66 @@ const FleetAssistant: React.FC<FleetAssistantProps> = ({ contextData, contextTyp
         chatHistory, 
         contextData,
         contextType,
-        location
+        location,
+        { functionDeclarations: assistantTools, toolConfig: { functionCallingConfig: { mode: 'AUTO' } } }
       );
 
-      const botMessageText = response.text;
-      const groundingChunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks as GroundingChunk[] || [];
+      const candidate = response.candidates?.[0];
+      const parts = (candidate?.content?.parts as any[]) || [];
+      const functionCall = parts.find((part) => part.functionCall)?.functionCall;
 
-      const botMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        sender: 'bot',
-        text: botMessageText,
-        groundingChunks: groundingChunks.length > 0 ? groundingChunks : undefined,
-      };
-      setMessages(prev => [...prev, botMessage]);
+      if (functionCall?.name) {
+        const toolResult = runAssistantTool(functionCall.name, functionCall.args || {}, toolContext);
+        if (logAuditEvent) {
+          logAuditEvent({
+            action: 'assistant.tool.call',
+            entity: { type: mapToolToEntity(functionCall.name), ref: functionCall.name },
+            meta: { args: functionCall.args, ok: toolResult.ok, message: toolResult.message },
+          });
+        }
+
+        const toolMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          sender: 'bot',
+          text: formatToolResult(functionCall.name, toolResult),
+        };
+
+        const followUp = await getGeminiResponse(
+          input,
+          chatHistory,
+          contextData,
+          contextType,
+          location,
+          {
+            functionDeclarations: assistantTools,
+            extraContents: [
+              { role: 'model' as const, parts },
+              { role: 'user' as const, parts: [{ functionResponse: { name: functionCall.name, response: toolResult, id: functionCall.id } as any }] },
+            ],
+          }
+        );
+
+        const groundingChunks = followUp.candidates?.[0]?.groundingMetadata?.groundingChunks as GroundingChunk[] || [];
+        const finalMessage: Message = {
+          id: (Date.now() + 2).toString(),
+          sender: 'bot',
+          text: followUp.text || toolResult.message,
+          groundingChunks: groundingChunks.length > 0 ? groundingChunks : undefined,
+        };
+
+        setMessages(prev => [...prev, toolMessage, finalMessage]);
+      } else {
+        const botMessageText = response.text;
+        const groundingChunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks as GroundingChunk[] || [];
+
+        const botMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          sender: 'bot',
+          text: botMessageText,
+          groundingChunks: groundingChunks.length > 0 ? groundingChunks : undefined,
+        };
+        setMessages(prev => [...prev, botMessage]);
+      }
     } catch (error) {
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -192,96 +310,133 @@ const FleetAssistant: React.FC<FleetAssistantProps> = ({ contextData, contextTyp
     return null;
   };
 
+  const bookingModal = bookingDraft ? (
+    <AddBookingModal
+      onClose={() => setBookingDraft(null)}
+      onAddBooking={(draft) => {
+        addBooking(draft);
+        setBookingDraft(null);
+      }}
+      initialData={bookingDraft}
+    />
+  ) : null;
+
+  const emailComposerModal = emailDraft ? (
+    <EmailComposer
+      isOpen={true}
+      onClose={() => setEmailDraft(null)}
+      onSave={(payload: any) => {
+        if (logAuditEvent) {
+          logAuditEvent({
+            action: 'assistant.tool.call',
+            entity: { type: 'lead', ref: 'draft_follow_up_email' },
+            meta: { subject: payload?.subject_line },
+          });
+        }
+        setEmailDraft(null);
+      }}
+      initialData={{ subject_line: emailDraft.subject, email_body: emailDraft.body, delay_days: 0, delay_hours: 0 } as any}
+    />
+  ) : null;
+
   if (!isOpen) {
     return (
-      <button
-        onClick={() => setIsOpen(true)}
-        className="group fixed bottom-6 right-6 bg-linear-to-br from-orange-500 to-orange-600 text-white p-4 rounded-full shadow-2xl hover:shadow-orange-500/50 transition-all duration-300 transform hover:scale-110 focus:outline-none focus:ring-4 focus:ring-orange-500/30 z-50"
-        aria-label="Open AI Assistant"
-      >
-        <BoxTruckIconBold className="w-8 h-8 transition-transform group-hover:translate-x-1" />
-      </button>
+      <>
+        <button
+          onClick={() => setIsOpen(true)}
+          className="group fixed bottom-6 right-6 bg-linear-to-br from-orange-500 to-orange-600 text-white p-4 rounded-full shadow-2xl hover:shadow-orange-500/50 transition-all duration-300 transform hover:scale-110 focus:outline-none focus:ring-4 focus:ring-orange-500/30 z-50"
+          aria-label="Open AI Assistant"
+        >
+          <BoxTruckIconBold className="w-8 h-8 transition-transform group-hover:translate-x-1" />
+        </button>
+        {bookingModal}
+        {emailComposerModal}
+      </>
     );
   }
 
   return (
-    <div className="fixed bottom-6 right-6 w-[90vw] max-w-md h-[70vh] max-h-150 bg-white rounded-2xl shadow-2xl flex flex-col z-50 border border-slate-200 overflow-hidden font-sans">
-      <header className="flex items-center justify-between p-5 border-b border-slate-100 bg-linear-to-r from-orange-50/30 via-white to-orange-50/20">
-        <div className="flex items-center space-x-3">
-          <div className="bg-linear-to-br from-orange-100 to-orange-200 p-2 rounded-lg shadow-sm">
-            <BoxTruckIconBold className="w-5 h-5 text-orange-600" />
-          </div>
-          <div>
-            <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
-              AI Assistant
-              <span className="flex h-2 w-2 relative">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-              </span>
-            </h3>
-            <p className="text-[10px] text-slate-500 font-medium">Powered by Gemini</p>
-          </div>
-        </div>
-        <button onClick={() => setIsOpen(false)} aria-label="Close assistant" title="Close assistant" className="p-2 rounded-full hover:bg-slate-100 text-slate-500 transition">
-          <CloseIcon className="w-5 h-5" />
-        </button>
-      </header>
-
-      <div className="flex-1 p-5 overflow-y-auto space-y-4 bg-linear-to-b from-slate-50/50 to-white custom-scrollbar">
-        {messages.map((msg) => (
-          <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-2 duration-300`}>
-            <div className={`relative max-w-[85%] md:max-w-[88%] px-4 py-3.5 rounded-2xl shadow-sm transition-all hover:shadow-md ${
-                msg.sender === 'user'
-                ? 'bg-linear-to-br from-orange-500 to-orange-600 border border-orange-500 text-white rounded-br-sm'
-                : 'bg-white border border-slate-200 text-slate-900 rounded-bl-sm hover:border-slate-300'
-            }`}>
-              <FormattedText text={msg.text} />
-              {msg.groundingChunks && msg.groundingChunks.length > 0 && (
-                <div className="mt-3 pt-3 border-t border-black/5 flex flex-wrap gap-2">
-                    {msg.groundingChunks.map((chunk, index) => <GroundingChunkDisplay key={index} chunk={chunk} />)}
-                </div>
-              )}
+    <>
+      <div className="fixed bottom-6 right-6 w-[90vw] max-w-md h-[70vh] max-h-150 bg-white rounded-2xl shadow-2xl flex flex-col z-50 border border-slate-200 overflow-hidden font-sans">
+        <header className="flex items-center justify-between p-5 border-b border-slate-100 bg-linear-to-r from-orange-50/30 via-white to-orange-50/20">
+          <div className="flex items-center space-x-3">
+            <div className="bg-linear-to-br from-orange-100 to-orange-200 p-2 rounded-lg shadow-sm">
+              <BoxTruckIconBold className="w-5 h-5 text-orange-600" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+                AI Assistant
+                <span className="flex h-2 w-2 relative">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                </span>
+              </h3>
+              <p className="text-[10px] text-slate-500 font-medium">Powered by Gemini</p>
             </div>
           </div>
-        ))}
-        {isLoading && (
-            <div className="flex justify-start">
-                <div className="px-4 py-3 rounded-2xl bg-white border border-slate-200 text-slate-900 rounded-bl-sm shadow-sm">
-                    <div className="flex items-center space-x-1.5">
-                        <span className="w-1.5 h-1.5 bg-orange-400 rounded-full animate-pulse"></span>
-                        <span className="w-1.5 h-1.5 bg-orange-400 rounded-full animate-pulse [animation-delay:0.2s]"></span>
-                        <span className="w-1.5 h-1.5 bg-orange-400 rounded-full animate-pulse [animation-delay:0.4s]"></span>
-                    </div>
-                </div>
-            </div>
-        )}
-        <div ref={chatEndRef} />
-      </div>
-
-      <div className="p-4 border-t border-slate-100 bg-linear-to-r from-slate-50/50 to-white">
-        <div className="flex items-center gap-2.5 bg-white rounded-2xl px-2 py-2 border border-slate-200 focus-within:ring-2 focus-within:ring-orange-500/30 focus-within:border-orange-400 transition-all shadow-sm hover:shadow-md">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-            placeholder={getPlaceholderText()}
-            className="flex-1 px-3 py-2 bg-transparent text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none"
-            disabled={isLoading}
-            autoFocus
-          />
-          <button
-            onClick={handleSendMessage}
-            disabled={isLoading || input.trim() === ''}
-            aria-label="Send message"
-            title="Send message"
-            className="p-2.5 bg-linear-to-br from-orange-500 to-orange-600 text-white rounded-xl disabled:from-slate-300 disabled:to-slate-300 disabled:cursor-not-allowed hover:from-orange-600 hover:to-orange-700 transition-all shadow-md hover:shadow-lg hover:scale-105 shrink-0"
-          >
-            <SendIcon className="w-4 h-4" />
+          <button onClick={() => setIsOpen(false)} aria-label="Close assistant" title="Close assistant" className="p-2 rounded-full hover:bg-slate-100 text-slate-500 transition">
+            <CloseIcon className="w-5 h-5" />
           </button>
+        </header>
+
+        <div className="flex-1 p-5 overflow-y-auto space-y-4 bg-linear-to-b from-slate-50/50 to-white custom-scrollbar">
+          {messages.map((msg) => (
+            <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-2 duration-300`}>
+              <div className={`relative max-w-[85%] md:max-w-[88%] px-4 py-3.5 rounded-2xl shadow-sm transition-all hover:shadow-md ${
+                  msg.sender === 'user'
+                  ? 'bg-linear-to-br from-orange-500 to-orange-600 border border-orange-500 text-white rounded-br-sm'
+                  : 'bg-white border border-slate-200 text-slate-900 rounded-bl-sm hover:border-slate-300'
+              }`}>
+                <FormattedText text={msg.text} />
+                {msg.groundingChunks && msg.groundingChunks.length > 0 && (
+                  <div className="mt-3 pt-3 border-t border-black/5 flex flex-wrap gap-2">
+                      {msg.groundingChunks.map((chunk, index) => <GroundingChunkDisplay key={index} chunk={chunk} />)}
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+          {isLoading && (
+              <div className="flex justify-start">
+                  <div className="px-4 py-3 rounded-2xl bg-white border border-slate-200 text-slate-900 rounded-bl-sm shadow-sm">
+                      <div className="flex items-center space-x-1.5">
+                          <span className="w-1.5 h-1.5 bg-orange-400 rounded-full animate-pulse"></span>
+                          <span className="w-1.5 h-1.5 bg-orange-400 rounded-full animate-pulse [animation-delay:0.2s]"></span>
+                          <span className="w-1.5 h-1.5 bg-orange-400 rounded-full animate-pulse [animation-delay:0.4s]"></span>
+                      </div>
+                  </div>
+              </div>
+          )}
+          <div ref={chatEndRef} />
+        </div>
+
+        <div className="p-4 border-t border-slate-100 bg-linear-to-r from-slate-50/50 to-white">
+          <div className="flex items-center gap-2.5 bg-white rounded-2xl px-2 py-2 border border-slate-200 focus-within:ring-2 focus-within:ring-orange-500/30 focus-within:border-orange-400 transition-all shadow-sm hover:shadow-md">
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+              placeholder={getPlaceholderText()}
+              className="flex-1 px-3 py-2 bg-transparent text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none"
+              disabled={isLoading}
+              autoFocus
+            />
+            <button
+              onClick={handleSendMessage}
+              disabled={isLoading || input.trim() === ''}
+              aria-label="Send message"
+              title="Send message"
+              className="p-2.5 bg-linear-to-br from-orange-500 to-orange-600 text-white rounded-xl disabled:from-slate-300 disabled:to-slate-300 disabled:cursor-not-allowed hover:from-orange-600 hover:to-orange-700 transition-all shadow-md hover:shadow-lg hover:scale-105 shrink-0"
+            >
+              <SendIcon className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+      {bookingModal}
+      {emailComposerModal}
+    </>
   );
 };
 

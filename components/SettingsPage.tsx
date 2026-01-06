@@ -83,9 +83,15 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onChangeSettings 
     onChangeSettings(prev => ({ ...prev, [key]: !prev[key] }));
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) => {
     const { name, value } = e.target;
     onChangeSettings(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    const nextValue = value === '' ? 0 : Number(value);
+    onChangeSettings(prev => ({ ...prev, [name]: Number.isFinite(nextValue) ? nextValue : 0 }));
   };
 
   const handleInviteUser = (userData: Omit<User, 'id' | 'created_at' | 'updated_at' | 'is_active' | 'email_verified'>) => {
@@ -177,6 +183,44 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onChangeSettings 
                           <option value="mi">Miles (mi)</option>
                       </select>
                   </div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label htmlFor="serviceDueSoonKm" className="block text-sm font-medium text-slate-700">Service Due Soon (km)</label>
+                  <input
+                    id="serviceDueSoonKm"
+                    name="serviceDueSoonKm"
+                    type="number"
+                    min={100}
+                    value={settings.serviceDueSoonKm}
+                    onChange={handleNumberChange}
+                    className="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="invoiceReminderDays" className="block text-sm font-medium text-slate-700">Invoice Reminder (days)</label>
+                  <input
+                    id="invoiceReminderDays"
+                    name="invoiceReminderDays"
+                    type="number"
+                    min={0}
+                    value={settings.invoiceReminderDays}
+                    onChange={handleNumberChange}
+                    className="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="proofMaxMb" className="block text-sm font-medium text-slate-700">Proof Upload (MB)</label>
+                  <input
+                    id="proofMaxMb"
+                    name="proofMaxMb"
+                    type="number"
+                    min={1}
+                    value={settings.proofMaxMb}
+                    onChange={handleNumberChange}
+                    className="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm"
+                  />
+                </div>
               </div>
           </div>
         </ShellCard>

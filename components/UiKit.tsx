@@ -56,18 +56,50 @@ export const SectionHeader: React.FC<{
   </div>
 );
 
+export const PageHeader: React.FC<{
+  title: string;
+  subtitle?: string;
+  right?: React.ReactNode;
+}> = ({ title, subtitle, right }) => (
+  <div className="mb-6 flex items-start justify-between gap-4">
+    <div>
+      <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+        {title}
+      </h1>
+      {subtitle ? (
+        <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>
+      ) : null}
+    </div>
+    {right ? <div className="flex items-center gap-2">{right}</div> : null}
+  </div>
+);
+
 export const StatusPill: React.FC<{
-  children: React.ReactNode;
-  tone?: "neutral" | "good" | "warn" | "bad";
+  /** Prefer `label`. `children` is kept for backwards compatibility. */
+  label?: string;
+  children?: React.ReactNode;
+  tone?:
+    | "neutral"
+    | "good"
+    | "warn"
+    | "bad"
+    | "success"
+    | "danger"
+    | "info";
   className?: string;
-}> = ({ children, tone = "neutral", className }) => {
+}> = ({ label, children, tone = "neutral", className }) => {
+  const normalized =
+    tone === "good" ? "success" : tone === "bad" ? "danger" : tone;
+
   const toneCls =
-    tone === "good"
+    normalized === "success"
       ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
-      : tone === "warn"
+      : normalized === "warn"
       ? "bg-amber-500/10 text-amber-700 border-amber-500/20"
-      : tone === "bad"
+      : normalized === "danger"
       ? "bg-rose-500/10 text-rose-600 border-rose-500/20"
+      : normalized === "info"
+      ? "bg-sky-500/10 text-sky-600 border-sky-500/20"
       : "bg-muted text-muted-foreground border-border";
 
   return (
@@ -78,10 +110,42 @@ export const StatusPill: React.FC<{
         className
       )}
     >
-      {children}
+      {label ?? children}
     </span>
   );
 };
+
+export const StatCard: React.FC<{
+  label: string;
+  value: string | number;
+  hint?: string;
+  icon?: React.ReactNode;
+}> = ({ label, value, hint, icon }) => (
+  <ShellCard className="p-5">
+    <div className="flex items-start justify-between gap-4">
+      <div>
+        <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
+          {label}
+        </p>
+        <p className="mt-2 text-3xl font-semibold tracking-tight text-foreground">
+          {value}
+        </p>
+        {hint ? <p className="mt-2 text-sm text-muted-foreground">{hint}</p> : null}
+      </div>
+      {icon ? <div className="mt-1 text-muted-foreground">{icon}</div> : null}
+    </div>
+  </ShellCard>
+);
+
+export const Skeleton: React.FC<{ className?: string }> = ({ className = "" }) => (
+  <div className={cn("animate-pulse rounded-xl bg-muted", className)} />
+);
+
+export const Kbd: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <kbd className="rounded border border-border bg-muted px-1.5 py-0.5 text-xs font-mono">
+    {children}
+  </kbd>
+);
 
 type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
 type ButtonSize = "sm" | "md" | "lg";
@@ -198,14 +262,14 @@ export const ModalShell: React.FC<{
 
   return (
     <div
-      className="fixed inset-0 z-50 grid place-items-center p-4"
+      className="fixed inset-0 z-50 grid place-items-center p-4 sm:p-6 md:pl-64"
       role="dialog"
       aria-modal="true"
       aria-labelledby={titleId}
       aria-describedby={descId}
       onMouseDown={onClose}
     >
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm animate-in fade-in duration-150" />
 
       <div
         className={cn(
@@ -213,7 +277,7 @@ export const ModalShell: React.FC<{
           maxWidthClass,
           "w-full max-w-3xl",
           "max-h-[85vh]",
-          "overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-xl",
+          "overflow-hidden rounded-2xl border border-border bg-card shadow-xl animate-in fade-in zoom-in-95 duration-150",
           "flex flex-col"
         )}
         onMouseDown={(e) => e.stopPropagation()}
@@ -246,9 +310,7 @@ export const ModalShell: React.FC<{
 
         {/* Footer (stays pinned) */}
         {footer ? (
-          <div className="px-6 py-4 border-t border-[var(--border)]">
-            {footer}
-          </div>
+          <div className="px-6 py-4 border-t border-border">{footer}</div>
         ) : null}
       </div>
     </div>

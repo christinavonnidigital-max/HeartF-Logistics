@@ -2,44 +2,22 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Customer, LoyaltyTier } from '../types';
 import { SearchIcon, UsersIcon, EnvelopeIcon, MapPinIcon, TrashIcon, PlusIcon, CurrencyDollarIcon } from './icons';
-import { SectionHeader, StatusPill } from './UiKit';
-import { ShellCard, StatCard } from './UiKit_new';
+import { SectionHeader, StatusPill, ShellCard, StatCard } from './UiKit';
 import EmptyState from './EmptyState';
 import { useData } from '../contexts/DataContext';
 import AddCustomerModal from './AddCustomerModal';
 import ConfirmModal from './ConfirmModal';
+import { downloadCsv } from '../dataIO/toCsv';
+import { downloadXlsx } from '../dataIO/toXlsx';
+import ImportModal from '../dataIO/ImportModal';
 
 const CustomersPage: React.FC = () => {
-    const { customers, addInvoice: _addInv, customers: _c, users: _u, ...dataActions } = useData();
-    // "addCustomer" and "deleteCustomer" might need to be added to DataContext in a real app if not present, 
-    // but we will assume we can manipulate the customer list via context if it was fully exposed.
-    // Since DataContext definition in provided files didn't explicitly show addCustomer/deleteCustomer,
-    // I'll simulate it or rely on the standard "users" flow if they are linked, but for this "make it work" request
-    // I will assume the context supports it or I'm extending it logically. 
-    // *Correction*: I see I need to update DataContext to support this properly if it's missing, 
-    // but I can't change DataContext file in this turn unless I output it too. 
-    // I'll assume the user wants the UI to work and I'll mock the add/delete locally if context is missing, 
-    // OR better, I'll verify DataContext.tsx content. 
-    // DataContext.tsx HAS `customers` but NO `addCustomer`. I will stick to local state for now 
-    // or just use the `customers` from context for reading and local state for UI updates to avoid breaking.
-    // actually, to "make it work" properly I should update DataContext. 
-    // BUT I am limited to updating files. I will implement the UI using local state initialized from context
-    // to ensure it works immediately in the view without breaking the build if I don't touch context.
-    
-    // WAIT: The user previously asked to "make it work". I should have updated DataContext then.
-    // I will update DataContext in this response too to be safe.
-    
+    const { customers, addCustomer, deleteCustomer, logAuditEvent } = useData();
     const [searchTerm, setSearchTerm] = useState('');
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [customerToDelete, setCustomerToDelete] = useState<number | null>(null);
     const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
-
-    // Keep a local copy for immediate UI updates (sync from context when it changes)
-    const [localCustomers, setLocalCustomers] = useState<Customer[]>(customers);
-
-    useEffect(() => {
-        setLocalCustomers(customers);
-    }, [customers]);
+    const [isImportOpen, setIsImportOpen] = useState(false);
 
     // Set selected customer when customers load
     useEffect(() => {
@@ -49,37 +27,33 @@ const CustomersPage: React.FC = () => {
     }, [customers, selectedCustomer]);
 
     const handleAddCustomer = (customerData: Omit<Customer, 'id' | 'created_at' | 'updated_at' | 'user_id' | 'total_spent' | 'total_bookings' | 'loyalty_points' | 'is_verified'>) => {
-        const newCustomer: Customer = {
+        const newCustomer: Omit<Customer, 'id' | 'created_at' | 'updated_at' | 'user_id'> = {
             ...customerData,
-            id: Date.now(),
-            user_id: 0, // Placeholder
             total_spent: 0,
             total_bookings: 0,
             loyalty_points: 0,
             is_verified: true,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
         };
-        setLocalCustomers(prev => [newCustomer, ...prev]);
+        addCustomer(newCustomer);
         setIsAddModalOpen(false);
     };
 
     const handleDeleteCustomer = () => {
         if (customerToDelete) {
-            setLocalCustomers(prev => prev.filter(c => c.id !== customerToDelete));
+            deleteCustomer(customerToDelete);
             setCustomerToDelete(null);
         }
     };
 
     const filteredCustomers = useMemo(() => {
-        if (!searchTerm) return localCustomers;
+        if (!searchTerm) return customers;
         const lowerTerm = searchTerm.toLowerCase();
-        return localCustomers.filter(c => 
+        return customers.filter(c => 
             c.company_name.toLowerCase().includes(lowerTerm) ||
             c.billing_email.toLowerCase().includes(lowerTerm) ||
             c.city.toLowerCase().includes(lowerTerm)
         );
-    }, [localCustomers, searchTerm]);
+    }, [customers, searchTerm]);
 
     useEffect(() => {
         if (filteredCustomers.length === 0) {
@@ -109,12 +83,60 @@ const CustomersPage: React.FC = () => {
         }
     }
 
-    const totalRevenue = localCustomers.reduce((sum, c) => sum + c.total_spent, 0);
+    const totalRevenue = customers.reduce((sum, c) => sum + c.total_spent, 0);
+
+    const customerColumns = [
+        { key: 'company_name', header: 'Company' },
+        { key: 'billing_email', header: 'Billing Email' },
+        { key: 'city', header: 'City' },
+        { key: 'country', header: 'Country' },
+        { key: 'loyalty_tier', header: 'Tier' },
+        { key: 'total_spent', header: 'Total Spent' },
+        { key: 'total_bookings', header: 'Total Bookings' },
+    ];
+
+    const customerXlsxColumns = customerColumns.map((c) => ({ title: c.header, key: c.key, width: 18 }));
+
+    const handleExportCsv = () => downloadCsv(customers, customerColumns as any, 'customers');
+    const handleExportXlsx = () => downloadXlsx(customers, customerXlsxColumns as any, 'customers');
+
+    const handleImportCustomers = (rows: Record<string, any>[], meta: { imported: number; failed: number }) => {
+        let success = 0;
+        let failed = 0;
+        rows.forEach((row) => {
+            try {
+                const newCustomer: Omit<Customer, 'id' | 'created_at' | 'updated_at' | 'user_id'> = {
+                    company_name: row.company_name || 'New Customer',
+                    billing_email: row.billing_email || '',
+                    city: row.city || '',
+                    country: row.country || '',
+                    address_line1: row.address_line1 || '',
+                    loyalty_tier: Object.values(LoyaltyTier).includes(row.loyalty_tier as LoyaltyTier) ? row.loyalty_tier as LoyaltyTier : LoyaltyTier.BRONZE,
+                    loyalty_points: Number(row.loyalty_points) || 0,
+                    total_spent: Number(row.total_spent) || 0,
+                    total_bookings: Number(row.total_bookings) || 0,
+                    preferred_currency: row.preferred_currency || 'USD',
+                    is_verified: true,
+                    billing_phone: row.billing_phone || '',
+                    postal_code: row.postal_code || '',
+                } as any;
+                addCustomer(newCustomer);
+                success += 1;
+            } catch {
+                failed += 1;
+            }
+        });
+        logAuditEvent({
+            action: 'data.import',
+            entity: { type: 'customer' },
+            meta: { imported: success, failed: failed || meta.failed, source: 'customers.import' },
+        });
+    };
 
   return (
     <div className="space-y-6">
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-                <StatCard label="Total Accounts" value={localCustomers.length} />
+                <StatCard label="Total Accounts" value={customers.length} />
                 <StatCard label="Total Lifetime Value" value={new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', notation: 'compact' }).format(totalRevenue)} />
             </div>
 
@@ -123,7 +145,7 @@ const CustomersPage: React.FC = () => {
                 <h2 className="text-lg font-bold text-slate-900">Customer Directory</h2>
                 <p className="text-xs text-slate-500">Manage accounts and key relationships</p>
             </div>
-            <div className="flex w-full sm:w-auto gap-3">
+            <div className="flex w-full sm:w-auto gap-2 flex-wrap justify-end">
                 <div className="relative grow sm:grow-0 sm:w-64">
                     <SearchIcon className="absolute left-3 top-2.5 w-4 h-4 text-slate-500" />
                     <input
@@ -134,6 +156,24 @@ const CustomersPage: React.FC = () => {
                         className="w-full pl-9 pr-4 py-2 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:bg-white focus:ring-2 focus:ring-orange-500 focus:outline-none transition-all"
                     />
                 </div>
+                <button
+                    onClick={() => setIsImportOpen(true)}
+                    className="px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:border-orange-300 hover:text-orange-700"
+                >
+                    Import
+                </button>
+                <button
+                    onClick={handleExportCsv}
+                    className="px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:border-orange-300 hover:text-orange-700"
+                >
+                    Export CSV
+                </button>
+                <button
+                    onClick={handleExportXlsx}
+                    className="px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:border-orange-300 hover:text-orange-700"
+                >
+                    Export XLSX
+                </button>
                 <button
                     onClick={() => setIsAddModalOpen(true)}
                     className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-xl text-sm font-bold shadow-md shadow-orange-200 hover:bg-orange-700 transition-all hover:scale-105 active:scale-95"
@@ -244,6 +284,25 @@ const CustomersPage: React.FC = () => {
 
         {isAddModalOpen && (
             <AddCustomerModal onClose={() => setIsAddModalOpen(false)} onAddCustomer={handleAddCustomer} />
+        )}
+
+        {isImportOpen && (
+            <ImportModal
+                isOpen={isImportOpen}
+                onClose={() => setIsImportOpen(false)}
+                title="Import customers"
+                description="Upload a CSV with customer details, map columns, and import."
+                targetFields={[
+                    { key: 'company_name', label: 'Company', required: true },
+                    { key: 'billing_email', label: 'Billing Email', required: true },
+                    { key: 'city', label: 'City' },
+                    { key: 'country', label: 'Country' },
+                    { key: 'loyalty_tier', label: 'Loyalty Tier' },
+                    { key: 'total_spent', label: 'Total Spent' },
+                    { key: 'total_bookings', label: 'Total Bookings' },
+                ]}
+                onImport={handleImportCustomers}
+            />
         )}
 
         <ConfirmModal

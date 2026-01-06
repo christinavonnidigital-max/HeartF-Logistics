@@ -8,8 +8,7 @@ import { CurrencyDollarIcon, TrendingUpIcon, DocumentTextIcon, CreditCardIcon } 
 import AddInvoiceModal from './AddInvoiceModal';
 import AddGlobalExpenseModal from './AddGlobalExpenseModal';
 import { useAuth } from '../auth/AuthContext';
-import { SectionHeader } from './UiKit';
-import { ShellCard, PageHeader, StatCard, Button } from './UiKit_new';
+import { SectionHeader, ShellCard, PageHeader, StatCard, Button } from './UiKit';
 import {
   LineChart,
   Line,
@@ -19,6 +18,10 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
+import type { AppSettings } from '../App';
+import { downloadCsv } from '../dataIO/toCsv';
+import { downloadXlsx } from '../dataIO/toXlsx';
+import ImportModal from '../dataIO/ImportModal';
 
 // Enhanced Stat Card for Financials
 const FinStatCard: React.FC<{ label: string; value: number; icon: React.ReactNode; color: string; trend?: string }> = ({ label, value, icon, color, trend }) => (
@@ -44,15 +47,32 @@ const FinStatCard: React.FC<{ label: string; value: number; icon: React.ReactNod
     </div>
 );
 
-const FinancialsDashboard: React.FC = () => {
+interface FinancialsDashboardProps {
+    settings: AppSettings;
+}
+
+const FinancialsDashboard: React.FC<FinancialsDashboardProps> = ({ settings }) => {
     const { user } = useAuth();
-    const { invoices, expenses, addInvoice, addExpense } = useData();
+    const { invoices, expenses, customers, addInvoice, addExpense, logAuditEvent } = useData();
     
     const [filteredInvoices, setFilteredInvoices] = useState<Invoice[]>([]);
     const [filteredExpenses, setFilteredExpenses] = useState<Expense[]>([]);
     const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
     const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
     const [activeTab, setActiveTab] = useState<'invoices' | 'expenses'>('invoices');
+    const [isImportOpen, setIsImportOpen] = useState(false);
+
+    const invoiceColumns = [
+        { key: 'invoice_number', header: 'Invoice #' },
+        { key: 'customer_id', header: 'Customer ID' },
+        { key: 'issue_date', header: 'Issue Date' },
+        { key: 'due_date', header: 'Due Date' },
+        { key: 'total_amount', header: 'Total' },
+        { key: 'balance_due', header: 'Balance Due' },
+        { key: 'status', header: 'Status' },
+    ];
+
+    const invoiceXlsxColumns = invoiceColumns.map((c) => ({ title: c.header, key: c.key, width: 18 }));
 
     useEffect(() => {
         if (user?.role === 'customer') {
@@ -113,10 +133,66 @@ const FinancialsDashboard: React.FC = () => {
         setIsExpenseModalOpen(false);
     };
 
+    const handleExportCsv = () => downloadCsv(filteredInvoices, invoiceColumns as any, 'invoices');
+    const handleExportXlsx = () => downloadXlsx(filteredInvoices, invoiceXlsxColumns as any, 'invoices');
+
+    const handleImportInvoices = (rows: Record<string, any>[], meta: { imported: number; failed: number }) => {
+        let success = 0;
+        let failed = 0;
+        rows.forEach((row) => {
+            try {
+                const customerByName = row.customer_name
+                    ? customers.find((c) => c.company_name.toLowerCase() === String(row.customer_name).toLowerCase())
+                    : undefined;
+                const total = Number(row.total_amount) || 0;
+                const balance = row.balance_due !== undefined ? Number(row.balance_due) : total - (Number(row.amount_paid) || 0);
+                const invoice: Omit<Invoice, 'id' | 'created_at' | 'updated_at'> = {
+                    invoice_number: row.invoice_number || `IMP-${Date.now() + success}`,
+                    customer_id: row.customer_id ? Number(row.customer_id) : customerByName?.id || 0,
+                    booking_id: row.booking_id ? Number(row.booking_id) : undefined,
+                    invoice_type: row.invoice_type || 'booking',
+                    issue_date: row.issue_date || new Date().toISOString().split('T')[0],
+                    due_date: row.due_date || row.issue_date || new Date().toISOString().split('T')[0],
+                    subtotal: total,
+                    tax_amount: Number(row.tax_amount) || 0,
+                    discount_amount: Number(row.discount_amount) || 0,
+                    total_amount: total,
+                    amount_paid: Number(row.amount_paid) || 0,
+                    balance_due: balance,
+                    currency: row.currency || settings.currency,
+                    status: row.status || 'draft',
+                    payment_terms: row.payment_terms ? Number(row.payment_terms) : undefined,
+                    created_by: user?.id ? Number(user.id) : 0,
+                };
+                addInvoice(invoice);
+                success += 1;
+            } catch {
+                failed += 1;
+            }
+        });
+        logAuditEvent({
+            action: 'data.import',
+            entity: { type: 'invoice' },
+            meta: { imported: success, failed: failed || meta.failed, source: 'invoices.import' },
+        });
+        setIsImportOpen(false);
+    };
+
     return (
         <>
                 <div className="flex flex-col gap-6 min-w-0">
-                    <PageHeader title="Financials" subtitle="Invoices, expenses, and profitability" right={<Button variant="primary" onClick={() => setIsInvoiceModalOpen(true)}>Add invoice</Button>} />
+                    <PageHeader
+                        title="Financials"
+                        subtitle="Invoices, expenses, and profitability"
+                        right={(
+                            <div className="flex gap-2 flex-wrap">
+                                <Button variant="ghost" onClick={handleExportCsv}>Export CSV</Button>
+                                <Button variant="ghost" onClick={handleExportXlsx}>Export XLSX</Button>
+                                <Button variant="secondary" onClick={() => setIsImportOpen(true)}>Import</Button>
+                                <Button variant="primary" onClick={() => setIsInvoiceModalOpen(true)}>Add invoice</Button>
+                            </div>
+                        )}
+                    />
                 <div className={`grid grid-cols-1 ${isCustomer ? '' : 'md:grid-cols-3'} gap-5`}>
                     <FinStatCard 
                         label={isCustomer ? "Total Paid" : "Total Revenue"}
@@ -225,7 +301,8 @@ const FinancialsDashboard: React.FC = () => {
                         {activeTab === 'invoices' && (
                             <InvoiceList 
                                 invoices={filteredInvoices} 
-                                onAddInvoiceClick={() => !isCustomer && setIsInvoiceModalOpen(true)} 
+                                onAddInvoiceClick={() => !isCustomer && setIsInvoiceModalOpen(true)}
+                                reminderLeadDays={settings.invoiceReminderDays}
                             />
                         )}
                         {!isCustomer && activeTab === 'expenses' && (
@@ -240,6 +317,26 @@ const FinancialsDashboard: React.FC = () => {
             )}
             {isExpenseModalOpen && !isCustomer && (
                 <AddGlobalExpenseModal onClose={() => setIsExpenseModalOpen(false)} onAddExpense={handleAddExpense} />
+            )}
+            {isImportOpen && (
+                <ImportModal
+                    isOpen={isImportOpen}
+                    onClose={() => setIsImportOpen(false)}
+                    title="Import invoices"
+                    description="Upload a CSV, map columns to invoice fields, and import."
+                    targetFields={[
+                        { key: 'invoice_number', label: 'Invoice #', required: true },
+                        { key: 'customer_id', label: 'Customer ID' },
+                        { key: 'customer_name', label: 'Customer Name' },
+                        { key: 'issue_date', label: 'Issue Date' },
+                        { key: 'due_date', label: 'Due Date' },
+                        { key: 'total_amount', label: 'Total Amount', required: true },
+                        { key: 'amount_paid', label: 'Amount Paid' },
+                        { key: 'balance_due', label: 'Balance Due' },
+                        { key: 'status', label: 'Status' },
+                    ]}
+                    onImport={handleImportInvoices}
+                />
             )}
         </>
     );

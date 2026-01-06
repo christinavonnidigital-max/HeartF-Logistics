@@ -3,8 +3,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Booking, Currency, Invoice, InvoiceStatus, InvoiceType } from '../types';
 import { mockCustomers } from '../data/mockCrmData';
 import { DocumentTextIcon, CurrencyDollarIcon, CalendarDaysIcon, UserCircleIcon, BanknotesIcon, CalculatorIcon } from './icons';
-import { ModalShell, Button, Input, Select, SectionHeader, Label } from './UiKit';
-import { SubtleCard } from './UiKit_new';
+import { ModalShell, Button, Input, Select, SectionHeader, Label, SubtleCard } from './UiKit';
 
 interface AddInvoiceModalProps {
   onClose: () => void;

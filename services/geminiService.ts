@@ -1,4 +1,4 @@
-import { GoogleGenAI, GenerateContentParameters } from "@google/genai";
+import { GoogleGenAI, GenerateContentParameters, FunctionDeclaration, Content, ToolConfig } from "@google/genai";
 import { Vehicle, VehicleMaintenance, VehicleExpense, Lead, Opportunity, Invoice, Expense, LeadScoringRule, Route, RouteWaypoint } from '../types';
 
 // Gracefully handle missing API key in local/dev to avoid crashing the app
@@ -82,6 +82,14 @@ const getSystemInstruction = (contextType: ContextType) => {
         case 'routes': return ROUTES_DATA_CONTEXT;
         default: return 'You are a helpful assistant.';
     }
+};
+
+export interface GeminiCallOptions {
+  functionDeclarations?: FunctionDeclaration[];
+  extraContents?: Content[];
+  toolConfig?: ToolConfig;
+  includeDataContext?: boolean;
+  modelOverride?: string;
 }
 
 export const getGeminiResponse = async (
@@ -89,7 +97,8 @@ export const getGeminiResponse = async (
   chatHistory: { role: 'user' | 'model'; parts: { text: string }[] }[],
   contextData: FleetData | CrmData | FinancialsData | RoutesData,
   contextType: ContextType,
-  location: { latitude: number, longitude: number } | null
+  location: { latitude: number, longitude: number } | null,
+  options?: GeminiCallOptions
 ) => {
   if (!ai) {
     return {
@@ -99,16 +108,20 @@ export const getGeminiResponse = async (
   }
 
   const { model, tools, config: analyzedConfig } = analyzePrompt(prompt);
+  const chosenModel = options?.modelOverride || model;
 
-  const dataContext = `\n\nCURRENT DATA CONTEXT:\n${JSON.stringify(contextData, null, 2)}`;
+  const dataContext = options?.includeDataContext === false ? '' : `\n\nCURRENT DATA CONTEXT:\n${JSON.stringify(contextData, null, 2)}`;
   const systemInstruction = getSystemInstruction(contextType);
   
   const contents = [...chatHistory, { role: 'user' as const, parts: [{ text: prompt + dataContext }] }];
+  if (options?.extraContents?.length) {
+    contents.push(...options.extraContents);
+  }
 
   // Build the request object step-by-step to avoid syntax errors from complex inline objects
   // FIX: `systemInstruction` should be part of the `config` object per Gemini API guidelines.
   const request: GenerateContentParameters = {
-    model: model,
+    model: chosenModel,
     contents: contents,
     config: {
       systemInstruction: systemInstruction,
@@ -116,11 +129,16 @@ export const getGeminiResponse = async (
     }
   };
 
+  const combinedTools: any[] = [];
   if (tools) {
-    if (!request.config) {
-        request.config = {};
-    }
-    request.config.tools = tools;
+    combinedTools.push(...tools);
+  }
+  if (options?.functionDeclarations?.length) {
+    combinedTools.push({ functionDeclarations: options.functionDeclarations });
+  }
+  if (combinedTools.length) {
+    if (!request.config) request.config = {};
+    request.config.tools = combinedTools as any;
   }
 
   if (location && tools?.some(t => t.googleMaps)) {
@@ -135,6 +153,11 @@ export const getGeminiResponse = async (
         }
       }
     };
+  }
+
+  if (options?.toolConfig) {
+    request.config = request.config || {};
+    request.config.toolConfig = { ...request.config.toolConfig, ...options.toolConfig };
   }
 
   try {

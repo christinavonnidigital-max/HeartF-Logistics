@@ -46,8 +46,8 @@ type DashboardProps = {
   userRole?: UserRole;
 };
 
-// Using shared StatCard (UiKit_new) for calmer, consistent stats
-import { StatCard as UiStatCard } from './UiKit_new';
+// Using shared StatCard from UiKit for consistent stats
+import { StatCard as UiStatCard } from './UiKit';
 
 type StatCardProps = {
   label: string;

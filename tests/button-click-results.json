@@ -1,0 +1,1167 @@
+{
+  "results": [
+    {
+      "index": 0,
+      "text": "Close",
+      "aria": "Close navigation",
+      "visible": false,
+      "enabled": true,
+      "skipped": true,
+      "reason": "not-visible-or-enabled"
+    },
+    {
+      "index": 1,
+      "text": "🌙Dark",
+      "aria": "Switch to dark theme",
+      "snippet": "<button class=\"inline-flex items-center justify-center gap-2 rounded-xl font-semibold transition active:translate-y-[1px] disabled:opacity-60 disabled:pointer-events-none h-9 px-3 text-sm bg-transparent hover:bg-muted text-foreground\" aria-label=\"Swi",
+      "visible": true,
+      "enabled": true,
+      "skipped": false,
+      "outcome": "clicked-no-observable-effect",
+      "latestConsole": [
+        {
+          "type": "debug",
+          "text": "[vite] connecting..."
+        },
+        {
+          "type": "info",
+          "text": "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold"
+        },
+        {
+          "type": "debug",
+          "text": "[vite] connected."
+        },
+        {
+          "type": "warning",
+          "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
+        },
+        {
+          "type": "warning",
+          "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
+        },
+        {
+          "type": "warning",
+          "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
+        },
+        {
+          "type": "info",
+          "text": "Axe: no accessibility violations detected (dev run)"
+        },
+        {
+          "type": "warning",
+          "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
+        },
+        {
+          "type": "info",
+          "text": "Axe: no accessibility violations detected (dev run)"
+        }
+      ],
+      "pageErrors": []
+    },
+    {
+      "index": 2,
+      "text": "DashboardDashboard",
+      "aria": "",
+      "snippet": "<button class=\"group flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium transition bg-muted/10 text-foreground shadow-md shadow-orange-500/10\" data-pw-btn-index=\"2\"><svg class=\"h-5 w-5 shrink-0 text-orange-600\" viewBox=",
+      "visible": true,
+      "enabled": true,
+      "skipped": false,
+      "outcome": "clicked-no-observable-effect",
+      "latestConsole": [
+        {
+          "type": "debug",
+          "text": "[vite] connecting..."
+        },
+        {
+          "type": "info",
+          "text": "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold"
+        },
+        {
+          "type": "debug",
+          "text": "[vite] connected."
+        },
+        {
+          "type": "warning",
+          "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
+        },
+        {
+          "type": "warning",
+          "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
+        },
+        {
+          "type": "warning",
+          "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
+        },
+        {
+          "type": "info",
+          "text": "Axe: no accessibility violations detected (dev run)"
+        },
+        {
+          "type": "warning",
+          "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
+        },
+        {
+          "type": "info",
+          "text": "Axe: no accessibility violations detected (dev run)"
+        }
+      ],
+      "pageErrors": []
+    },
+    {
+      "index": 3,
+      "text": "FleetFleet",
+      "aria": "",
+      "snippet": "<button class=\"group flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium transition text-muted-foreground hover:bg-muted/10\" data-pw-btn-index=\"3\"><svg class=\"h-5 w-5 shrink-0 text-orange-200\" viewBox=\"0 0 24 24\" fill=\"n",
+      "visible": true,
+      "enabled": true,
+      "skipped": false,
+      "outcome": "clicked-no-observable-effect",
+      "latestConsole": [
+        {
+          "type": "warning",
+          "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
+        },
+        {
+          "type": "warning",
+          "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
+        },
+        {
+          "type": "info",
+          "text": "Axe: no accessibility violations detected (dev run)"
+        },
+        {
+          "type": "warning",
+          "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
+        },
+        {
+          "type": "info",
+          "text": "Axe: no accessibility violations detected (dev run)"
+        },
+        {
+          "type": "warning",
+          "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
+        },
+        {
+          "type": "startGroupCollapsed",
+          "text": "Axe accessibility violations (development)"
+        },
+        {
+          "type": "table",
+          "text": "[Object]"
+        },
+        {
+          "type": "log",
+          "text": "{id: color-contrast, impact: serious, tags: Array(10), description: Ensure the contrast between foreground and backgro…meets WCAG 2 AA minimum contrast ratio thresholds, help: Elements must meet minimum color contrast ratio thresholds}"
+        },
+        {
+          "type": "endGroup",
+          "text": "console.groupEnd"
+        }
+      ],
+      "pageErrors": []
+    },
+    {
+      "index": 4,
+      "text": "DocumentsBookings",
+      "aria": "",
+      "snippet": "<button class=\"group flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium transition text-muted-foreground hover:bg-muted/10\" data-pw-btn-index=\"4\"><svg class=\"h-5 w-5 shrink-0 text-orange-200\" viewBox=\"0 0 24 24\" fill=\"n",
+      "visible": true,
+      "enabled": true,
+      "skipped": false,
+      "outcome": "clicked-no-observable-effect",
+      "latestConsole": [
+        {
+          "type": "warning",
+          "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
+        },
+        {
+          "type": "startGroupCollapsed",
+          "text": "Axe accessibility violations (development)"
+        },
+        {
+          "type": "table",
+          "text": "[Object]"
+        },
+        {
+          "type": "log",
+          "text": "{id: color-contrast, impact: serious, tags: Array(10), description: Ensure the contrast between foreground and backgro…meets WCAG 2 AA minimum contrast ratio thresholds, help: Elements must meet minimum color contrast ratio thresholds}"
+        },
+        {
+          "type": "endGroup",
+          "text": "console.groupEnd"
+        },
+        {
+          "type": "warning",
+          "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
+        },
+        {
+          "type": "startGroupCollapsed",
+          "text": "Axe accessibility violations (development)"
+        },
+        {
+          "type": "table",
+          "text": "[Object]"
+        },
+        {
+          "type": "log",
+          "text": "{id: color-contrast, impact: serious, tags: Array(10), description: Ensure the contrast between foreground and backgro…meets WCAG 2 AA minimum contrast ratio thresholds, help: Elements must meet minimum color contrast ratio thresholds}"
+        },
+        {
+          "type": "endGroup",
+          "text": "console.groupEnd"
+        }
+      ],
+      "pageErrors": []
+    },
+    {
+      "index": 5,
+      "text": "DriversDrivers",
+      "aria": "",
+      "snippet": "<button class=\"group flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium transition text-muted-foreground hover:bg-muted/10\" data-pw-btn-index=\"5\"><svg class=\"h-5 w-5 shrink-0 text-orange-200\" viewBox=\"0 0 24 24\" fill=\"n",
+      "visible": true,
+      "enabled": true,
+      "skipped": false,
+      "outcome": "clicked-no-observable-effect",
+      "latestConsole": [
+        {
+          "type": "startGroupCollapsed",
+          "text": "Axe accessibility violations (development)"
+        },
+        {
+          "type": "table",
+          "text": "[Object]"
+        },
+        {
+          "type": "log",
+          "text": "{id: color-contrast, impact: serious, tags: Array(10), description: Ensure the contrast between foreground and backgro…meets WCAG 2 AA minimum contrast ratio thresholds, help: Elements must meet minimum color contrast ratio thresholds}"
+        },
+        {
+          "type": "endGroup",
+          "text": "console.groupEnd"
+        },
+        {
+          "type": "warning",
+          "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
+        },
+        {
+          "type": "startGroupCollapsed",
+          "text": "Axe accessibility violations (development)"
+        },
+        {
+          "type": "table",
+          "text": "[Object, Object]"
+        },
+        {
+          "type": "log",
+          "text": "{id: color-contrast, impact: serious, tags: Array(10), description: Ensure the contrast between foreground and backgro…meets WCAG 2 AA minimum contrast ratio thresholds, help: Elements must meet minimum color contrast ratio thresholds}"
+        },
+        {
+          "type": "log",
+          "text": "{id: heading-order, impact: moderate, tags: Array(2), description: Ensure the order of headings is semantically correct, help: Heading levels should only increase by one}"
+        },
+        {
+          "type": "endGroup",
+          "text": "console.groupEnd"
+        }
+      ],
+      "pageErrors": []
+    },
+    {
+      "index": 6,
+      "text": "RoutesRoutes",
+      "aria": "",
+      "snippet": "<button class=\"group flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium transition text-muted-foreground hover:bg-muted/10\" data-pw-btn-index=\"6\"><svg class=\"h-5 w-5 shrink-0 text-orange-200\" viewBox=\"0 0 24 24\" fill=\"n",
+      "visible": true,
+      "enabled": true,
+      "skipped": false,
+      "outcome": "clicked-no-observable-effect",
+      "latestConsole": [
+        {
+          "type": "log",
+          "text": "{id: color-contrast, impact: serious, tags: Array(10), description: Ensure the contrast between foreground and backgro…meets WCAG 2 AA minimum contrast ratio thresholds, help: Elements must meet minimum color contrast ratio thresholds}"
+        },
+        {
+          "type": "log",
+          "text": "{id: heading-order, impact: moderate, tags: Array(2), description: Ensure the order of headings is semantically correct, help: Heading levels should only increase by one}"
+        },
+        {
+          "type": "endGroup",
+          "text": "console.groupEnd"
+        },
+        {
+          "type": "warning",
+          "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
+        },
+        {
+          "type": "startGroupCollapsed",
+          "text": "Axe accessibility violations (development)"
+        },
+        {
+          "type": "table",
+          "text": "[Object, Object, Object]"
+        },
+        {
+          "type": "log",
+          "text": "{id: aria-command-name, impact: serious, tags: Array(10), description: Ensure every ARIA button, link and menuitem has an accessible name, help: ARIA commands must have an accessible name}"
+        },
+        {
+          "type": "log",
+          "text": "{id: color-contrast, impact: serious, tags: Array(10), description: Ensure the contrast between foreground and backgro…meets WCAG 2 AA minimum contrast ratio thresholds, help: Elements must meet minimum color contrast ratio thresholds}"
+        },
+        {
+          "type": "log",
+          "text": "{id: heading-order, impact: moderate, tags: Array(2), description: Ensure the order of headings is semantically correct, help: Heading levels should only increase by one}"
+        },
+        {
+          "type": "endGroup",
+          "text": "console.groupEnd"
+        }
+      ],
+      "pageErrors": []
+    },
+    {
+      "index": 7,
+      "text": "MarketingLeads",
+      "aria": "",
+      "snippet": "<button class=\"group flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium transition text-muted-foreground hover:bg-muted/10\" data-pw-btn-index=\"7\"><svg class=\"h-5 w-5 shrink-0 text-orange-200\" viewBox=\"0 0 24 24\" fill=\"n",
+      "visible": true,
+      "enabled": true,
+      "skipped": false,
+      "outcome": "clicked-no-observable-effect",
+      "latestConsole": [
+        {
+          "type": "log",
+          "text": "{id: color-contrast, impact: serious, tags: Array(10), description: Ensure the contrast between foreground and backgro…meets WCAG 2 AA minimum contrast ratio thresholds, help: Elements must meet minimum color contrast ratio thresholds}"
+        },
+        {
+          "type": "log",
+          "text": "{id: heading-order, impact: moderate, tags: Array(2), description: Ensure the order of headings is semantically correct, help: Heading levels should only increase by one}"
+        },
+        {
+          "type": "endGroup",
+          "text": "console.groupEnd"
+        },
+        {
+          "type": "warning",
+          "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
+        },
+        {
+          "type": "startGroupCollapsed",
+          "text": "Axe accessibility violations (development)"
+        },
+        {
+          "type": "table",
+          "text": "[Object, Object, Object]"
+        },
+        {
+          "type": "log",
+          "text": "{id: color-contrast, impact: serious, tags: Array(10), description: Ensure the contrast between foreground and backgro…meets WCAG 2 AA minimum contrast ratio thresholds, help: Elements must meet minimum color contrast ratio thresholds}"
+        },
+        {
+          "type": "log",
+          "text": "{id: heading-order, impact: moderate, tags: Array(2), description: Ensure the order of headings is semantically correct, help: Heading levels should only increase by one}"
+        },
+        {
+          "type": "log",
+          "text": "{id: scrollable-region-focusable, impact: serious, tags: Array(11), description: Ensure elements that have scrollable content are accessible by keyboard, help: Scrollable region must have keyboard access}"
+        },
+        {
+          "type": "endGroup",
+          "text": "console.groupEnd"
+        }
+      ],
+      "pageErrors": []
+    },
+    {
+      "index": 8,
+      "text": "CustomersCustomers",
+      "aria": "",
+      "snippet": "<button class=\"group flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium transition text-muted-foreground hover:bg-muted/10\" data-pw-btn-index=\"8\"><svg class=\"h-5 w-5 shrink-0 text-orange-200\" viewBox=\"0 0 24 24\" fill=\"n",
+      "visible": true,
+      "enabled": true,
+      "skipped": false,
+      "outcome": "clicked-no-observable-effect",
+      "latestConsole": [
+        {
+          "type": "table",
+          "text": "[Object, Object, Object]"
+        },
+        {
+          "type": "log",
+          "text": "{id: color-contrast, impact: serious, tags: Array(10), description: Ensure the contrast between foreground and backgro…meets WCAG 2 AA minimum contrast ratio thresholds, help: Elements must meet minimum color contrast ratio thresholds}"
+        },
+        {
+          "type": "log",
+          "text": "{id: heading-order, impact: moderate, tags: Array(2), description: Ensure the order of headings is semantically correct, help: Heading levels should only increase by one}"
+        },
+        {
+          "type": "log",
+          "text": "{id: scrollable-region-focusable, impact: serious, tags: Array(11), description: Ensure elements that have scrollable content are accessible by keyboard, help: Scrollable region must have keyboard access}"
+        },
+        {
+          "type": "endGroup",
+          "text": "console.groupEnd"
+        },
+        {
+          "type": "warning",
+          "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
+        },
+        {
+          "type": "startGroupCollapsed",
+          "text": "Axe accessibility violations (development)"
+        },
+        {
+          "type": "table",
+          "text": "[Object]"
+        },
+        {
+          "type": "log",
+          "text": "{id: color-contrast, impact: serious, tags: Array(10), description: Ensure the contrast between foreground and backgro…meets WCAG 2 AA minimum contrast ratio thresholds, help: Elements must meet minimum color contrast ratio thresholds}"
+        },
+        {
+          "type": "endGroup",
+          "text": "console.groupEnd"
+        }
+      ],
+      "pageErrors": []
+    },
+    {
+      "index": 9,
+      "text": "CampaignsCampaigns",
+      "aria": "",
+      "snippet": "<button class=\"group flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium transition text-muted-foreground hover:bg-muted/10\" data-pw-btn-index=\"9\"><svg class=\"h-5 w-5 shrink-0 text-orange-200\" viewBox=\"0 0 24 24\" fill=\"n",
+      "visible": true,
+      "enabled": true,
+      "skipped": false,
+      "outcome": "clicked-no-observable-effect",
+      "latestConsole": [
+        {
+          "type": "warning",
+          "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
+        },
+        {
+          "type": "startGroupCollapsed",
+          "text": "Axe accessibility violations (development)"
+        },
+        {
+          "type": "table",
+          "text": "[Object]"
+        },
+        {
+          "type": "log",
+          "text": "{id: color-contrast, impact: serious, tags: Array(10), description: Ensure the contrast between foreground and backgro…meets WCAG 2 AA minimum contrast ratio thresholds, help: Elements must meet minimum color contrast ratio thresholds}"
+        },
+        {
+          "type": "endGroup",
+          "text": "console.groupEnd"
+        },
+        {
+          "type": "warning",
+          "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
+        },
+        {
+          "type": "startGroupCollapsed",
+          "text": "Axe accessibility violations (development)"
+        },
+        {
+          "type": "table",
+          "text": "[Object]"
+        },
+        {
+          "type": "log",
+          "text": "{id: color-contrast, impact: serious, tags: Array(10), description: Ensure the contrast between foreground and backgro…meets WCAG 2 AA minimum contrast ratio thresholds, help: Elements must meet minimum color contrast ratio thresholds}"
+        },
+        {
+          "type": "endGroup",
+          "text": "console.groupEnd"
+        }
+      ],
+      "pageErrors": []
+    },
+    {
+      "index": 10,
+      "text": "SequencesSequences",
+      "aria": "",
+      "snippet": "<button class=\"group flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium transition text-muted-foreground hover:bg-muted/10\" data-pw-btn-index=\"10\"><svg class=\"h-5 w-5 shrink-0 text-orange-200\" viewBox=\"0 0 24 24\" fill=\"",
+      "visible": true,
+      "enabled": true,
+      "skipped": false,
+      "outcome": "clicked-no-observable-effect",
+      "latestConsole": [
+        {
+          "type": "startGroupCollapsed",
+          "text": "Axe accessibility violations (development)"
+        },
+        {
+          "type": "table",
+          "text": "[Object]"
+        },
+        {
+          "type": "log",
+          "text": "{id: color-contrast, impact: serious, tags: Array(10), description: Ensure the contrast between foreground and backgro…meets WCAG 2 AA minimum contrast ratio thresholds, help: Elements must meet minimum color contrast ratio thresholds}"
+        },
+        {
+          "type": "endGroup",
+          "text": "console.groupEnd"
+        },
+        {
+          "type": "warning",
+          "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
+        },
+        {
+          "type": "startGroupCollapsed",
+          "text": "Axe accessibility violations (development)"
+        },
+        {
+          "type": "table",
+          "text": "[Object, Object]"
+        },
+        {
+          "type": "log",
+          "text": "{id: color-contrast, impact: serious, tags: Array(10), description: Ensure the contrast between foreground and backgro…meets WCAG 2 AA minimum contrast ratio thresholds, help: Elements must meet minimum color contrast ratio thresholds}"
+        },
+        {
+          "type": "log",
+          "text": "{id: heading-order, impact: moderate, tags: Array(2), description: Ensure the order of headings is semantically correct, help: Heading levels should only increase by one}"
+        },
+        {
+          "type": "endGroup",
+          "text": "console.groupEnd"
+        }
+      ],
+      "pageErrors": []
+    },
+    {
+      "index": 11,
+      "text": "AnalyticsAnalytics",
+      "aria": "",
+      "snippet": "<button class=\"group flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium transition text-muted-foreground hover:bg-muted/10\" data-pw-btn-index=\"11\"><svg class=\"h-5 w-5 shrink-0 text-orange-200\" viewBox=\"0 0 24 24\" fill=\"",
+      "visible": true,
+      "enabled": true,
+      "skipped": false,
+      "outcome": "clicked-no-observable-effect",
+      "latestConsole": [
+        {
+          "type": "startGroupCollapsed",
+          "text": "Axe accessibility violations (development)"
+        },
+        {
+          "type": "table",
+          "text": "[Object, Object]"
+        },
+        {
+          "type": "log",
+          "text": "{id: color-contrast, impact: serious, tags: Array(10), description: Ensure the contrast between foreground and backgro…meets WCAG 2 AA minimum contrast ratio thresholds, help: Elements must meet minimum color contrast ratio thresholds}"
+        },
+        {
+          "type": "log",
+          "text": "{id: heading-order, impact: moderate, tags: Array(2), description: Ensure the order of headings is semantically correct, help: Heading levels should only increase by one}"
+        },
+        {
+          "type": "endGroup",
+          "text": "console.groupEnd"
+        },
+        {
+          "type": "warning",
+          "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
+        },
+        {
+          "type": "startGroupCollapsed",
+          "text": "Axe accessibility violations (development)"
+        },
+        {
+          "type": "table",
+          "text": "[Object]"
+        },
+        {
+          "type": "log",
+          "text": "{id: color-contrast, impact: serious, tags: Array(10), description: Ensure the contrast between foreground and backgro…meets WCAG 2 AA minimum contrast ratio thresholds, help: Elements must meet minimum color contrast ratio thresholds}"
+        },
+        {
+          "type": "endGroup",
+          "text": "console.groupEnd"
+        }
+      ],
+      "pageErrors": []
+    },
+    {
+      "index": 12,
+      "text": "MarketingMarketing",
+      "aria": "",
+      "snippet": "<button class=\"group flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium transition text-muted-foreground hover:bg-muted/10\" data-pw-btn-index=\"12\"><svg class=\"h-5 w-5 shrink-0 text-orange-200\" viewBox=\"0 0 24 24\" fill=\"",
+      "visible": true,
+      "enabled": true,
+      "skipped": false,
+      "outcome": "clicked-no-observable-effect",
+      "latestConsole": [
+        {
+          "type": "table",
+          "text": "[Object]"
+        },
+        {
+          "type": "log",
+          "text": "{id: color-contrast, impact: serious, tags: Array(10), description: Ensure the contrast between foreground and backgro…meets WCAG 2 AA minimum contrast ratio thresholds, help: Elements must meet minimum color contrast ratio thresholds}"
+        },
+        {
+          "type": "endGroup",
+          "text": "console.groupEnd"
+        },
+        {
+          "type": "error",
+          "text": "Warning: %s: Support for defaultProps will be removed from function components in a future major release. Use JavaScript default parameters instead.%s XAxis \n    at XAxis2 (http://localhost:4003/node_modules/.vite/deps/recharts.js?v=90e6742e:28616:22)\n    at svg\n    at Surface (http://localhost:4003/node_modules/.vite/deps/recharts.js?v=90e6742e:5873:25)\n    at div\n    at ChartLayoutContextProvider2 (http://localhost:4003/node_modules/.vite/deps/recharts.js?v=90e6742e:25186:28)\n    at CategoricalChartWrapper (http://localhost:4003/node_modules/.vite/deps/recharts.js?v=90e6742e:29885:7)\n    at div\n    at http://localhost:4003/node_modules/.vite/deps/recharts.js?v=90e6742e:9095:21\n    at div\n    at div\n    at ShellCard (http://localhost:4003/components/UiKit.tsx:5:29)\n    at div\n    at div\n    at MarketingDashboard (http://localhost:4003/components/MarketingDashboard.tsx:24:17)\n    at div\n    at main\n    at div\n    at div\n    at div\n    at Layout (http://localhost:4003/components/Layout.tsx:40:3)\n    at AuthedApp (http://localhost:4003/App.tsx:48:29)\n    at DataProvider (http://localhost:4003/contexts/DataContext.tsx:49:32)\n    at AuthProvider (http://localhost:4003/auth/AuthContext.tsx:58:3)\n    at App"
+        },
+        {
+          "type": "error",
+          "text": "Warning: %s: Support for defaultProps will be removed from function components in a future major release. Use JavaScript default parameters instead.%s YAxis \n    at YAxis2 (http://localhost:4003/node_modules/.vite/deps/recharts.js?v=90e6742e:28677:22)\n    at svg\n    at Surface (http://localhost:4003/node_modules/.vite/deps/recharts.js?v=90e6742e:5873:25)\n    at div\n    at ChartLayoutContextProvider2 (http://localhost:4003/node_modules/.vite/deps/recharts.js?v=90e6742e:25186:28)\n    at CategoricalChartWrapper (http://localhost:4003/node_modules/.vite/deps/recharts.js?v=90e6742e:29885:7)\n    at div\n    at http://localhost:4003/node_modules/.vite/deps/recharts.js?v=90e6742e:9095:21\n    at div\n    at div\n    at ShellCard (http://localhost:4003/components/UiKit.tsx:5:29)\n    at div\n    at div\n    at MarketingDashboard (http://localhost:4003/components/MarketingDashboard.tsx:24:17)\n    at div\n    at main\n    at div\n    at div\n    at div\n    at Layout (http://localhost:4003/components/Layout.tsx:40:3)\n    at AuthedApp (http://localhost:4003/App.tsx:48:29)\n    at DataProvider (http://localhost:4003/contexts/DataContext.tsx:49:32)\n    at AuthProvider (http://localhost:4003/auth/AuthContext.tsx:58:3)\n    at App"
+        },
+        {
+          "type": "warning",
+          "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
+        },
+        {
+          "type": "startGroupCollapsed",
+          "text": "Axe accessibility violations (development)"
+        },
+        {
+          "type": "table",
+          "text": "[Object]"
+        },
+        {
+          "type": "log",
+          "text": "{id: color-contrast, impact: serious, tags: Array(10), description: Ensure the contrast between foreground and backgro…meets WCAG 2 AA minimum contrast ratio thresholds, help: Elements must meet minimum color contrast ratio thresholds}"
+        },
+        {
+          "type": "endGroup",
+          "text": "console.groupEnd"
+        }
+      ],
+      "pageErrors": []
+    },
+    {
+      "index": 13,
+      "text": "FinancialsFinancials",
+      "aria": "",
+      "snippet": "<button class=\"group flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium transition text-muted-foreground hover:bg-muted/10\" data-pw-btn-index=\"13\"><svg class=\"h-5 w-5 shrink-0 text-orange-200\" viewBox=\"0 0 24 24\" fill=\"",
+      "visible": true,
+      "enabled": true,
+      "skipped": false,
+      "outcome": "clicked-no-observable-effect",
+      "latestConsole": [
+        {
+          "type": "warning",
+          "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
+        },
+        {
+          "type": "startGroupCollapsed",
+          "text": "Axe accessibility violations (development)"
+        },
+        {
+          "type": "table",
+          "text": "[Object]"
+        },
+        {
+          "type": "log",
+          "text": "{id: color-contrast, impact: serious, tags: Array(10), description: Ensure the contrast between foreground and backgro…meets WCAG 2 AA minimum contrast ratio thresholds, help: Elements must meet minimum color contrast ratio thresholds}"
+        },
+        {
+          "type": "endGroup",
+          "text": "console.groupEnd"
+        },
+        {
+          "type": "warning",
+          "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
+        },
+        {
+          "type": "startGroupCollapsed",
+          "text": "Axe accessibility violations (development)"
+        },
+        {
+          "type": "table",
+          "text": "[Object]"
+        },
+        {
+          "type": "log",
+          "text": "{id: color-contrast, impact: serious, tags: Array(10), description: Ensure the contrast between foreground and backgro…meets WCAG 2 AA minimum contrast ratio thresholds, help: Elements must meet minimum color contrast ratio thresholds}"
+        },
+        {
+          "type": "endGroup",
+          "text": "console.groupEnd"
+        }
+      ],
+      "pageErrors": []
+    },
+    {
+      "index": 14,
+      "text": "ReportsReports",
+      "aria": "",
+      "snippet": "<button class=\"group flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium transition text-muted-foreground hover:bg-muted/10\" data-pw-btn-index=\"14\"><svg class=\"h-5 w-5 shrink-0 text-orange-200\" viewBox=\"0 0 24 24\" fill=\"",
+      "visible": true,
+      "enabled": true,
+      "skipped": false,
+      "outcome": "clicked-no-observable-effect",
+      "latestConsole": [
+        {
+          "type": "warning",
+          "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
+        },
+        {
+          "type": "startGroupCollapsed",
+          "text": "Axe accessibility violations (development)"
+        },
+        {
+          "type": "table",
+          "text": "[Object]"
+        },
+        {
+          "type": "log",
+          "text": "{id: color-contrast, impact: serious, tags: Array(10), description: Ensure the contrast between foreground and backgro…meets WCAG 2 AA minimum contrast ratio thresholds, help: Elements must meet minimum color contrast ratio thresholds}"
+        },
+        {
+          "type": "endGroup",
+          "text": "console.groupEnd"
+        },
+        {
+          "type": "warning",
+          "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
+        },
+        {
+          "type": "startGroupCollapsed",
+          "text": "Axe accessibility violations (development)"
+        },
+        {
+          "type": "table",
+          "text": "[Object]"
+        },
+        {
+          "type": "log",
+          "text": "{id: color-contrast, impact: serious, tags: Array(10), description: Ensure the contrast between foreground and backgro…meets WCAG 2 AA minimum contrast ratio thresholds, help: Elements must meet minimum color contrast ratio thresholds}"
+        },
+        {
+          "type": "endGroup",
+          "text": "console.groupEnd"
+        }
+      ],
+      "pageErrors": []
+    },
+    {
+      "index": 15,
+      "text": "SettingsSettings",
+      "aria": "",
+      "snippet": "<button data-testid=\"sidebar-settings\" class=\"group flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium transition text-muted-foreground hover:bg-muted/10\" data-pw-btn-index=\"15\"><svg class=\"h-5 w-5 shrink-0 text-orange-",
+      "visible": true,
+      "enabled": true,
+      "skipped": false,
+      "outcome": "clicked-no-observable-effect",
+      "latestConsole": [
+        {
+          "type": "warning",
+          "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
+        },
+        {
+          "type": "startGroupCollapsed",
+          "text": "Axe accessibility violations (development)"
+        },
+        {
+          "type": "table",
+          "text": "[Object]"
+        },
+        {
+          "type": "log",
+          "text": "{id: color-contrast, impact: serious, tags: Array(10), description: Ensure the contrast between foreground and backgro…meets WCAG 2 AA minimum contrast ratio thresholds, help: Elements must meet minimum color contrast ratio thresholds}"
+        },
+        {
+          "type": "endGroup",
+          "text": "console.groupEnd"
+        },
+        {
+          "type": "warning",
+          "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
+        },
+        {
+          "type": "startGroupCollapsed",
+          "text": "Axe accessibility violations (development)"
+        },
+        {
+          "type": "table",
+          "text": "[Object]"
+        },
+        {
+          "type": "log",
+          "text": "{id: color-contrast, impact: serious, tags: Array(10), description: Ensure the contrast between foreground and backgro…meets WCAG 2 AA minimum contrast ratio thresholds, help: Elements must meet minimum color contrast ratio thresholds}"
+        },
+        {
+          "type": "endGroup",
+          "text": "console.groupEnd"
+        }
+      ],
+      "pageErrors": []
+    },
+    {
+      "index": 16,
+      "text": "Menu",
+      "aria": "Open navigation",
+      "visible": false,
+      "enabled": true,
+      "skipped": true,
+      "reason": "not-visible-or-enabled"
+    },
+    {
+      "index": 17,
+      "text": "Log out",
+      "aria": "",
+      "visible": true,
+      "enabled": true,
+      "skipped": true,
+      "reason": "skip-pattern"
+    },
+    {
+      "index": 18,
+      "text": "",
+      "aria": "",
+      "visible": false,
+      "enabled": false,
+      "skipped": true,
+      "reason": "not-visible-or-enabled"
+    },
+    {
+      "index": 19,
+      "text": "",
+      "aria": "",
+      "visible": false,
+      "enabled": false,
+      "skipped": true,
+      "reason": "not-visible-or-enabled"
+    }
+  ],
+  "consoleLogs": [
+    {
+      "type": "debug",
+      "text": "[vite] connecting..."
+    },
+    {
+      "type": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connected."
+    },
+    {
+      "type": "warning",
+      "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
+    },
+    {
+      "type": "warning",
+      "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
+    },
+    {
+      "type": "warning",
+      "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
+    },
+    {
+      "type": "info",
+      "text": "Axe: no accessibility violations detected (dev run)"
+    },
+    {
+      "type": "warning",
+      "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
+    },
+    {
+      "type": "info",
+      "text": "Axe: no accessibility violations detected (dev run)"
+    },
+    {
+      "type": "warning",
+      "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
+    },
+    {
+      "type": "startGroupCollapsed",
+      "text": "Axe accessibility violations (development)"
+    },
+    {
+      "type": "table",
+      "text": "[Object]"
+    },
+    {
+      "type": "log",
+      "text": "{id: color-contrast, impact: serious, tags: Array(10), description: Ensure the contrast between foreground and backgro…meets WCAG 2 AA minimum contrast ratio thresholds, help: Elements must meet minimum color contrast ratio thresholds}"
+    },
+    {
+      "type": "endGroup",
+      "text": "console.groupEnd"
+    },
+    {
+      "type": "warning",
+      "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
+    },
+    {
+      "type": "startGroupCollapsed",
+      "text": "Axe accessibility violations (development)"
+    },
+    {
+      "type": "table",
+      "text": "[Object]"
+    },
+    {
+      "type": "log",
+      "text": "{id: color-contrast, impact: serious, tags: Array(10), description: Ensure the contrast between foreground and backgro…meets WCAG 2 AA minimum contrast ratio thresholds, help: Elements must meet minimum color contrast ratio thresholds}"
+    },
+    {
+      "type": "endGroup",
+      "text": "console.groupEnd"
+    },
+    {
+      "type": "warning",
+      "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
+    },
+    {
+      "type": "startGroupCollapsed",
+      "text": "Axe accessibility violations (development)"
+    },
+    {
+      "type": "table",
+      "text": "[Object, Object]"
+    },
+    {
+      "type": "log",
+      "text": "{id: color-contrast, impact: serious, tags: Array(10), description: Ensure the contrast between foreground and backgro…meets WCAG 2 AA minimum contrast ratio thresholds, help: Elements must meet minimum color contrast ratio thresholds}"
+    },
+    {
+      "type": "log",
+      "text": "{id: heading-order, impact: moderate, tags: Array(2), description: Ensure the order of headings is semantically correct, help: Heading levels should only increase by one}"
+    },
+    {
+      "type": "endGroup",
+      "text": "console.groupEnd"
+    },
+    {
+      "type": "warning",
+      "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
+    },
+    {
+      "type": "startGroupCollapsed",
+      "text": "Axe accessibility violations (development)"
+    },
+    {
+      "type": "table",
+      "text": "[Object, Object, Object]"
+    },
+    {
+      "type": "log",
+      "text": "{id: aria-command-name, impact: serious, tags: Array(10), description: Ensure every ARIA button, link and menuitem has an accessible name, help: ARIA commands must have an accessible name}"
+    },
+    {
+      "type": "log",
+      "text": "{id: color-contrast, impact: serious, tags: Array(10), description: Ensure the contrast between foreground and backgro…meets WCAG 2 AA minimum contrast ratio thresholds, help: Elements must meet minimum color contrast ratio thresholds}"
+    },
+    {
+      "type": "log",
+      "text": "{id: heading-order, impact: moderate, tags: Array(2), description: Ensure the order of headings is semantically correct, help: Heading levels should only increase by one}"
+    },
+    {
+      "type": "endGroup",
+      "text": "console.groupEnd"
+    },
+    {
+      "type": "warning",
+      "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
+    },
+    {
+      "type": "startGroupCollapsed",
+      "text": "Axe accessibility violations (development)"
+    },
+    {
+      "type": "table",
+      "text": "[Object, Object, Object]"
+    },
+    {
+      "type": "log",
+      "text": "{id: color-contrast, impact: serious, tags: Array(10), description: Ensure the contrast between foreground and backgro…meets WCAG 2 AA minimum contrast ratio thresholds, help: Elements must meet minimum color contrast ratio thresholds}"
+    },
+    {
+      "type": "log",
+      "text": "{id: heading-order, impact: moderate, tags: Array(2), description: Ensure the order of headings is semantically correct, help: Heading levels should only increase by one}"
+    },
+    {
+      "type": "log",
+      "text": "{id: scrollable-region-focusable, impact: serious, tags: Array(11), description: Ensure elements that have scrollable content are accessible by keyboard, help: Scrollable region must have keyboard access}"
+    },
+    {
+      "type": "endGroup",
+      "text": "console.groupEnd"
+    },
+    {
+      "type": "warning",
+      "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
+    },
+    {
+      "type": "startGroupCollapsed",
+      "text": "Axe accessibility violations (development)"
+    },
+    {
+      "type": "table",
+      "text": "[Object]"
+    },
+    {
+      "type": "log",
+      "text": "{id: color-contrast, impact: serious, tags: Array(10), description: Ensure the contrast between foreground and backgro…meets WCAG 2 AA minimum contrast ratio thresholds, help: Elements must meet minimum color contrast ratio thresholds}"
+    },
+    {
+      "type": "endGroup",
+      "text": "console.groupEnd"
+    },
+    {
+      "type": "warning",
+      "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
+    },
+    {
+      "type": "startGroupCollapsed",
+      "text": "Axe accessibility violations (development)"
+    },
+    {
+      "type": "table",
+      "text": "[Object]"
+    },
+    {
+      "type": "log",
+      "text": "{id: color-contrast, impact: serious, tags: Array(10), description: Ensure the contrast between foreground and backgro…meets WCAG 2 AA minimum contrast ratio thresholds, help: Elements must meet minimum color contrast ratio thresholds}"
+    },
+    {
+      "type": "endGroup",
+      "text": "console.groupEnd"
+    },
+    {
+      "type": "warning",
+      "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
+    },
+    {
+      "type": "startGroupCollapsed",
+      "text": "Axe accessibility violations (development)"
+    },
+    {
+      "type": "table",
+      "text": "[Object, Object]"
+    },
+    {
+      "type": "log",
+      "text": "{id: color-contrast, impact: serious, tags: Array(10), description: Ensure the contrast between foreground and backgro…meets WCAG 2 AA minimum contrast ratio thresholds, help: Elements must meet minimum color contrast ratio thresholds}"
+    },
+    {
+      "type": "log",
+      "text": "{id: heading-order, impact: moderate, tags: Array(2), description: Ensure the order of headings is semantically correct, help: Heading levels should only increase by one}"
+    },
+    {
+      "type": "endGroup",
+      "text": "console.groupEnd"
+    },
+    {
+      "type": "warning",
+      "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
+    },
+    {
+      "type": "startGroupCollapsed",
+      "text": "Axe accessibility violations (development)"
+    },
+    {
+      "type": "table",
+      "text": "[Object]"
+    },
+    {
+      "type": "log",
+      "text": "{id: color-contrast, impact: serious, tags: Array(10), description: Ensure the contrast between foreground and backgro…meets WCAG 2 AA minimum contrast ratio thresholds, help: Elements must meet minimum color contrast ratio thresholds}"
+    },
+    {
+      "type": "endGroup",
+      "text": "console.groupEnd"
+    },
+    {
+      "type": "error",
+      "text": "Warning: %s: Support for defaultProps will be removed from function components in a future major release. Use JavaScript default parameters instead.%s XAxis \n    at XAxis2 (http://localhost:4003/node_modules/.vite/deps/recharts.js?v=90e6742e:28616:22)\n    at svg\n    at Surface (http://localhost:4003/node_modules/.vite/deps/recharts.js?v=90e6742e:5873:25)\n    at div\n    at ChartLayoutContextProvider2 (http://localhost:4003/node_modules/.vite/deps/recharts.js?v=90e6742e:25186:28)\n    at CategoricalChartWrapper (http://localhost:4003/node_modules/.vite/deps/recharts.js?v=90e6742e:29885:7)\n    at div\n    at http://localhost:4003/node_modules/.vite/deps/recharts.js?v=90e6742e:9095:21\n    at div\n    at div\n    at ShellCard (http://localhost:4003/components/UiKit.tsx:5:29)\n    at div\n    at div\n    at MarketingDashboard (http://localhost:4003/components/MarketingDashboard.tsx:24:17)\n    at div\n    at main\n    at div\n    at div\n    at div\n    at Layout (http://localhost:4003/components/Layout.tsx:40:3)\n    at AuthedApp (http://localhost:4003/App.tsx:48:29)\n    at DataProvider (http://localhost:4003/contexts/DataContext.tsx:49:32)\n    at AuthProvider (http://localhost:4003/auth/AuthContext.tsx:58:3)\n    at App"
+    },
+    {
+      "type": "error",
+      "text": "Warning: %s: Support for defaultProps will be removed from function components in a future major release. Use JavaScript default parameters instead.%s YAxis \n    at YAxis2 (http://localhost:4003/node_modules/.vite/deps/recharts.js?v=90e6742e:28677:22)\n    at svg\n    at Surface (http://localhost:4003/node_modules/.vite/deps/recharts.js?v=90e6742e:5873:25)\n    at div\n    at ChartLayoutContextProvider2 (http://localhost:4003/node_modules/.vite/deps/recharts.js?v=90e6742e:25186:28)\n    at CategoricalChartWrapper (http://localhost:4003/node_modules/.vite/deps/recharts.js?v=90e6742e:29885:7)\n    at div\n    at http://localhost:4003/node_modules/.vite/deps/recharts.js?v=90e6742e:9095:21\n    at div\n    at div\n    at ShellCard (http://localhost:4003/components/UiKit.tsx:5:29)\n    at div\n    at div\n    at MarketingDashboard (http://localhost:4003/components/MarketingDashboard.tsx:24:17)\n    at div\n    at main\n    at div\n    at div\n    at div\n    at Layout (http://localhost:4003/components/Layout.tsx:40:3)\n    at AuthedApp (http://localhost:4003/App.tsx:48:29)\n    at DataProvider (http://localhost:4003/contexts/DataContext.tsx:49:32)\n    at AuthProvider (http://localhost:4003/auth/AuthContext.tsx:58:3)\n    at App"
+    },
+    {
+      "type": "warning",
+      "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
+    },
+    {
+      "type": "startGroupCollapsed",
+      "text": "Axe accessibility violations (development)"
+    },
+    {
+      "type": "table",
+      "text": "[Object]"
+    },
+    {
+      "type": "log",
+      "text": "{id: color-contrast, impact: serious, tags: Array(10), description: Ensure the contrast between foreground and backgro…meets WCAG 2 AA minimum contrast ratio thresholds, help: Elements must meet minimum color contrast ratio thresholds}"
+    },
+    {
+      "type": "endGroup",
+      "text": "console.groupEnd"
+    },
+    {
+      "type": "warning",
+      "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
+    },
+    {
+      "type": "startGroupCollapsed",
+      "text": "Axe accessibility violations (development)"
+    },
+    {
+      "type": "table",
+      "text": "[Object]"
+    },
+    {
+      "type": "log",
+      "text": "{id: color-contrast, impact: serious, tags: Array(10), description: Ensure the contrast between foreground and backgro…meets WCAG 2 AA minimum contrast ratio thresholds, help: Elements must meet minimum color contrast ratio thresholds}"
+    },
+    {
+      "type": "endGroup",
+      "text": "console.groupEnd"
+    },
+    {
+      "type": "warning",
+      "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
+    },
+    {
+      "type": "startGroupCollapsed",
+      "text": "Axe accessibility violations (development)"
+    },
+    {
+      "type": "table",
+      "text": "[Object]"
+    },
+    {
+      "type": "log",
+      "text": "{id: color-contrast, impact: serious, tags: Array(10), description: Ensure the contrast between foreground and backgro…meets WCAG 2 AA minimum contrast ratio thresholds, help: Elements must meet minimum color contrast ratio thresholds}"
+    },
+    {
+      "type": "endGroup",
+      "text": "console.groupEnd"
+    },
+    {
+      "type": "warning",
+      "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
+    },
+    {
+      "type": "startGroupCollapsed",
+      "text": "Axe accessibility violations (development)"
+    },
+    {
+      "type": "table",
+      "text": "[Object]"
+    },
+    {
+      "type": "log",
+      "text": "{id: color-contrast, impact: serious, tags: Array(10), description: Ensure the contrast between foreground and backgro…meets WCAG 2 AA minimum contrast ratio thresholds, help: Elements must meet minimum color contrast ratio thresholds}"
+    },
+    {
+      "type": "endGroup",
+      "text": "console.groupEnd"
+    }
+  ],
+  "pageErrors": []
+}

@@ -20,11 +20,11 @@ import { AuthProvider, useAuth, UserRole } from './auth/AuthContext';
 import { DataProvider, useData } from './contexts/DataContext';
 
 // Static mocks still needed for some secondary data like routes/waypoints/activities which we aren't putting in global state yet
-import { mockLeadScoringRules, mockSalesReps, mockLeadActivities } from './data/mockCrmData';
+import { mockLeadScoringRules, mockSalesReps } from './data/mockCrmData';
 import { mockRoutes, mockWaypoints } from './data/mockRoutesData';
 import { mockCampaigns, mockSalesSequences } from './data/mockMarketingData';
 import { mockDriverAssignments, mockUsersForDrivers } from './data/mockDriversData';
-import { mockMaintenance, mockExpenses } from './data/mockData';
+import { mockExpenses } from './data/mockData';
 
 
 export type View = 'dashboard' | 'fleet' | 'bookings' | 'drivers' | 'customers' | 'routes' | 'reports' | 'leads' | 'campaigns' | 'new-campaign' | 'financials' | 'marketing' | 'settings' | 'analytics';
@@ -35,6 +35,9 @@ export type AppSettings = {
   distanceUnit: 'km' | 'mi';
   currency: 'USD' | 'ZWL';
   showFinancialSummary: boolean;
+  serviceDueSoonKm: number;
+  invoiceReminderDays: number;
+  proofMaxMb: number;
 };
 
 const DEFAULT_SETTINGS: AppSettings = {
@@ -43,6 +46,9 @@ const DEFAULT_SETTINGS: AppSettings = {
   distanceUnit: 'km',
   currency: 'USD',
   showFinancialSummary: true,
+  serviceDueSoonKm: 1000,
+  invoiceReminderDays: 5,
+  proofMaxMb: 5,
 };
 
 const SETTINGS_STORAGE_KEY = 'hf_app_settings';
@@ -61,7 +67,19 @@ function loadSettings(): AppSettings {
 
 const AuthedApp: React.FC = () => {
   const { user, loading } = useAuth();
-  const { vehicles, bookings, leads, opportunities, invoices, expenses, drivers } = useData(); // Consuming global data
+  const {
+    vehicles,
+    bookings,
+    leads,
+    opportunities,
+    invoices,
+    expenses,
+    drivers,
+    maintenance,
+    leadActivities,
+    opportunityActivities,
+    deliveryProofs,
+  } = useData(); // Consuming global data
   const [settings, setSettings] = useState<AppSettings>(() => loadSettings());
   const [activeView, setActiveView] = useState<View>(() => settings.defaultView);
 
@@ -159,7 +177,7 @@ const AuthedApp: React.FC = () => {
     },
     fleet: {
       vehicles,
-      maintenance: mockMaintenance, // Still static for now
+      maintenance,
       expenses: mockExpenses, // Vehicle expenses still static for now, main expenses are global
     },
     drivers: {
@@ -172,7 +190,9 @@ const AuthedApp: React.FC = () => {
       opportunities,
       leadScoringRules: mockLeadScoringRules,
       salesReps: mockSalesReps,
-      leadActivities: mockLeadActivities
+      leadActivities,
+      opportunityActivities,
+      deliveryProofs,
     },
     financials: {
         invoices,
@@ -212,10 +232,10 @@ const AuthedApp: React.FC = () => {
 
     switch(activeView) {
       case 'dashboard': return <Dashboard data={getDashboardData()} settings={settings} userRole={user.role} />;
-      case 'fleet': return <FleetDashboard />;
-      case 'financials': return <FinancialsDashboard />;
+      case 'fleet': return <FleetDashboard settings={settings} />;
+      case 'financials': return <FinancialsDashboard settings={settings} />;
       case 'routes': return <RoutesDashboard />;
-      case 'bookings': return <BookingsPage />;
+      case 'bookings': return <BookingsPage settings={settings} />;
       case 'drivers': return <DriversPage data={contextData.drivers} />;
       case 'customers': return <CustomersPage />;
       case 'reports': return <ReportsPage data={contextData} />;

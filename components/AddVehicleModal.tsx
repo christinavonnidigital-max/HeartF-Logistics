@@ -1,7 +1,8 @@
 
 import React, { useMemo, useState } from "react";
 import { FuelType, Vehicle, VehicleStatus, VehicleType } from "../types";
-import { Button, Input, ModalShell, Select, SubtleCard, Textarea } from "./UiKit_new";
+import { Button, Input, ModalShell, Select, SubtleCard, Textarea } from "./UiKit";
+import { toTitle } from "../utils/toTitle";
 
 type NewVehicle = Omit<Vehicle, "id" | "created_at" | "updated_at">;
 
@@ -10,11 +11,10 @@ interface AddVehicleModalProps {
   onAddVehicle: (vehicle: NewVehicle) => void;
 }
 
-const toTitle = (s: string) =>
-  s
-    .replaceAll("_", " ")
-    .replace(/\b\w/g, (m) => m.toUpperCase());
-
+/**
+ * Modal for adding a new vehicle with fleet metadata.
+ * Validates required fields client-side before submitting the vehicle payload.
+ */
 const AddVehicleModal: React.FC<AddVehicleModalProps> = ({ onClose, onAddVehicle }) => {
   const [error, setError] = useState<string>("");
 
