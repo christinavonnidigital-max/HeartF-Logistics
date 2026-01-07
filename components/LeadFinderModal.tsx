@@ -19,11 +19,50 @@ import {
   CheckCircleIcon,
   TagIcon,
 } from './icons';
-import {
-  findPotentialLeads,
-  LeadProspectingCriteria,
-  LeadProspect,
-} from '../services/geminiService';
+type LeadProspectingCriteria = {
+  query: string;
+  geography?: string;
+  industryFocus?: string;
+  intentFocus?: string;
+  minHeadcount?: string;
+};
+
+type LeadProspect = {
+  id: string;
+  companyName: string;
+  website?: string;
+  location?: string;
+  companySize?: string;
+  industry?: string;
+  summary?: string;
+  intentSignal?: string;
+  confidence?: number;
+  sourceUrl?: string;
+  contact?: {
+    name?: string;
+    title?: string;
+    email?: string;
+    phone?: string;
+  };
+};
+
+async function findPotentialLeads(criteria: LeadProspectingCriteria): Promise<LeadProspect[]> {
+  const res = await fetch("/.netlify/functions/lead-finder-search", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify(criteria),
+  });
+  const text = await res.text();
+  let data: any;
+  try {
+    data = JSON.parse(text);
+  } catch {
+    throw new Error("Unexpected response. Make sure Netlify functions are running (netlify dev).");
+  }
+  if (!res.ok) throw new Error(data?.error || "Lead Finder failed");
+  return (data?.results || []) as LeadProspect[];
+}
 
 interface LeadFinderModalProps {
   onClose: () => void;
@@ -211,14 +250,10 @@ const LeadFinderModal: React.FC<LeadFinderModalProps> = ({ onClose, onImport }) 
     } catch (err: any) {
       console.error('[LeadFinderModal] Search error:', err);
       const message = err?.message || String(err);
-      if (message.includes('API_KEY') || message.includes('apiKey')) {
-        setError('API key not configured. Check your .env.local file has GEMINI_API_KEY set.');
-      } else if (message.includes('googleSearch') || message.includes('tool')) {
-        setError('Google Search grounding not enabled for this API key. Enable it in Google AI Studio.');
-      } else if (message.includes('quota') || message.includes('429')) {
-        setError('Rate limit exceeded. Wait a moment and try again.');
+      if (message.toLowerCase().includes('unauth')) {
+        setError('You are not logged in. Please log in and try again.');
       } else {
-        setError(message || 'We could not reach Gemini right now. Try again shortly.');
+        setError(message || 'Lead Finder is unavailable right now. Try again shortly.');
       }
     } finally {
       setIsSearching(false);

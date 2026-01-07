@@ -32,3 +32,6 @@ nul
 # Accessibility test artifacts
 axe-violations*.json
 dev-axe-violations.json
+
+# Local Netlify folder
+.netlify

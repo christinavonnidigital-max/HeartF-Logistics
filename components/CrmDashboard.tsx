@@ -7,6 +7,7 @@ import LeadList from './LeadList';
 import LeadScoringRules from './LeadScoringRules';
 import LeadDetailsModal from './LeadDetailsModal';
 import OpportunityDetailsModal from './OpportunityDetailsModal';
+import LeadFinderModal from './LeadFinderModal';
 import { Lead, LeadScoringRule, Opportunity, OpportunityStage } from '../types';
 import AddLeadModal from './AddLeadModal';
 import AddLeadScoringRuleModal from './AddLeadScoringRuleModal';
@@ -40,6 +41,7 @@ const CrmDashboard: React.FC = () => {
     const [isAddLeadModalOpen, setIsAddLeadModalOpen] = useState(false);
     const [isAddRuleModalOpen, setIsAddRuleModalOpen] = useState(false);
     const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+    const [isLeadFinderOpen, setIsLeadFinderOpen] = useState(false);
 
 
     // Recalculate lead scores whenever the rules change.
@@ -227,6 +229,7 @@ const CrmDashboard: React.FC = () => {
                   onSelectLead={handleSelectLead} 
                   onAddLeadClick={() => setIsAddLeadModalOpen(true)}
                   onImportClick={() => setIsImportModalOpen(true)}
+                  onFindClick={() => setIsLeadFinderOpen(true)}
                   onDeleteLead={handleDeleteLead}
                 />
                 <LeadScoringRules rules={rules} onAddRuleClick={() => setIsAddRuleModalOpen(true)} />
@@ -279,6 +282,23 @@ const CrmDashboard: React.FC = () => {
                     { key: 'country', label: 'Country' },
                 ]}
                 onImport={handleImportLeads}
+            />
+        )}
+        {isLeadFinderOpen && (
+            <LeadFinderModal
+                onClose={() => setIsLeadFinderOpen(false)}
+                onImport={(payload) => {
+                    payload.forEach((leadData, index) => {
+                        const newLead: Lead = {
+                            ...leadData,
+                            id: Date.now() + index,
+                            lead_score: calculateLeadScore(leadData, rules),
+                            created_at: new Date().toISOString(),
+                            updated_at: new Date().toISOString(),
+                        };
+                        addLead(newLead);
+                    });
+                }}
             />
         )}
     </>

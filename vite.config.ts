@@ -13,6 +13,13 @@ export default defineConfig(({ mode }) => {
         port: 4002,
         strictPort: true,
         host: '0.0.0.0',
+        proxy: {
+          // Forward Netlify Functions to the Netlify dev server when running locally
+          '/.netlify/functions': {
+            target: 'http://localhost:8888',
+            changeOrigin: true,
+          },
+        },
       },
       plugins: [react(), tailwind(), tsconfigPaths()],
       define: {

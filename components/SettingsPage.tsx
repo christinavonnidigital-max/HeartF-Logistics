@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { ShellCard, SubtleCard, SectionHeader, StatusPill } from "./UiKit";
 import {
   UsersIcon,
@@ -12,7 +12,6 @@ import {
 } from "./icons/Icons";
 import { AppSettings, View } from "../App";
 import { Currency, User } from "../types";
-import { useData } from "../contexts/DataContext";
 import InviteUserModal from "./InviteUserModal";
 import ConfirmModal from "./ConfirmModal";
 import AuditLogModal from './AuditLogModal';
@@ -73,11 +72,43 @@ const SettingsToggle: React.FC<{
 
 
 const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onChangeSettings }) => {
-  const { users, addUser, deleteUser } = useData();
   const { user } = useAuth();
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<string | number | null>(null);
   const [isAuditOpen, setIsAuditOpen] = useState(false);
+  const [users, setUsers] = useState<User[]>([]);
+  const [loadingUsers, setLoadingUsers] = useState(false);
+  const [userError, setUserError] = useState<string | null>(null);
+
+  const safeJson = async (res: Response) => {
+    const text = await res.text();
+    try {
+      return JSON.parse(text);
+    } catch {
+      throw new Error("Unexpected response (HTML). Make sure Netlify functions are running. Try `netlify dev` or set the Vite proxy for /.netlify/functions.");
+    }
+  };
+
+  const fetchUsers = async () => {
+    setLoadingUsers(true);
+    setUserError(null);
+    try {
+      const res = await fetch("/.netlify/functions/users", { credentials: "include" });
+      if (!res.ok) throw new Error(`Request failed: ${res.status}`);
+      const data = await safeJson(res);
+      if (!data?.ok) throw new Error(data?.error || "Failed to load users");
+      setUsers(data.users || []);
+    } catch (err: any) {
+      setUserError(err?.message || "Failed to load users");
+      setUsers([]);
+    } finally {
+      setLoadingUsers(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
 
   const handleToggle = (key: keyof AppSettings) => {
     onChangeSettings(prev => ({ ...prev, [key]: !prev[key] }));
@@ -94,23 +125,38 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onChangeSettings 
     onChangeSettings(prev => ({ ...prev, [name]: Number.isFinite(nextValue) ? nextValue : 0 }));
   };
 
-  const handleInviteUser = (userData: Omit<User, 'id' | 'created_at' | 'updated_at' | 'is_active' | 'email_verified'>) => {
-    const newUser: User = {
-      ...userData,
-      id: Date.now(),
-      is_active: true,
-      email_verified: false, // Invite flow usually means pending verification
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
-    addUser(newUser);
-    setIsInviteModalOpen(false);
+  const handleInviteUser = async (userData: Omit<User, 'id' | 'created_at' | 'updated_at' | 'is_active' | 'email_verified'>) => {
+    try {
+      setUserError(null);
+      const res = await fetch("/.netlify/functions/invites", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: userData.email, role: userData.role }),
+      });
+      const data = await safeJson(res);
+      if (!res.ok || !data?.ok) throw new Error(data?.error || "Failed to send invite");
+      setIsInviteModalOpen(false);
+      await fetchUsers();
+    } catch (err: any) {
+      setUserError(err?.message || "Failed to send invite");
+    }
   };
 
-  const confirmDeleteUser = () => {
-    if (userToDelete !== null) {
-      deleteUser(userToDelete);
+  const confirmDeleteUser = async () => {
+    if (userToDelete === null) return;
+    try {
+      setUserError(null);
+      const res = await fetch(`/.netlify/functions/users?id=${encodeURIComponent(String(userToDelete))}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      const data = await safeJson(res);
+      if (!res.ok || !data?.ok) throw new Error(data?.error || "Failed to remove user");
       setUserToDelete(null);
+      await fetchUsers();
+    } catch (err: any) {
+      setUserError(err?.message || "Failed to remove user");
     }
   };
 
@@ -239,33 +285,46 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onChangeSettings 
               </button>
             }
           />
+          {userError ? (
+            <div className="mt-3 text-sm text-red-600">{userError}</div>
+          ) : null}
           <div className="mt-4 flex-1 overflow-y-auto max-h-80 -mx-2 px-2">
-            <div className="space-y-2">
-              {users.map(user => (
-                <ShellCard key={user.id} className="p-3 flex items-center justify-between group hover:border-orange-200 hover:shadow-sm transition-all">
-                  <div className="flex items-center gap-3">
-                    <div className="h-8 w-8 rounded-full bg-white border border-slate-200 flex items-center justify-center text-xs font-bold text-slate-700">
-                      {user.first_name[0]}{user.last_name[0]}
+            {loadingUsers ? (
+              <div className="space-y-2">
+                {Array.from({ length: 4 }).map((_, idx) => (
+                  <div key={idx} className="h-14 rounded-xl bg-slate-100 animate-pulse" />
+                ))}
+              </div>
+            ) : users.length === 0 ? (
+              <div className="text-sm text-slate-500">No users found.</div>
+            ) : (
+              <div className="space-y-2">
+                {users.map(user => (
+                  <ShellCard key={user.id} className="p-3 flex items-center justify-between group hover:border-orange-200 hover:shadow-sm transition-all">
+                    <div className="flex items-center gap-3">
+                      <div className="h-8 w-8 rounded-full bg-white border border-slate-200 flex items-center justify-center text-xs font-bold text-slate-700">
+                        {user.first_name[0]}{user.last_name[0]}
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-slate-900">{user.first_name} {user.last_name}</p>
+                        <p className="text-[11px] text-slate-500">{user.email}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm font-medium text-slate-900">{user.first_name} {user.last_name}</p>
-                      <p className="text-[11px] text-slate-500">{user.email}</p>
+                    <div className="flex items-center gap-2">
+                      <StatusPill label={user.role.replace('_', ' ')} tone={getRoleTone(user.role)} />
+                      <button 
+                        onClick={() => setUserToDelete(user.id)}
+                        className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-md opacity-0 group-hover:opacity-100 transition-opacity"
+                        title="Remove User"
+                        aria-label={`Remove ${user.first_name} ${user.last_name}`}
+                      >
+                        <TrashIcon className="w-4 h-4" />
+                      </button>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <StatusPill label={user.role.replace('_', ' ')} tone={getRoleTone(user.role)} />
-                    <button 
-                      onClick={() => setUserToDelete(user.id)}
-                      className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-md opacity-0 group-hover:opacity-100 transition-opacity"
-                      title="Remove User"
-                      aria-label={`Remove ${user.first_name} ${user.last_name}`}
-                    >
-                      <TrashIcon className="w-4 h-4" />
-                    </button>
-                  </div>
                   </ShellCard>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </ShellCard>
 

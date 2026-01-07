@@ -5,6 +5,7 @@ import { MenuIcon } from "./icons"; // Updated import path
 import AiAssistant from "./FleetAssistant";
 import { AppSettings, View } from "../App";
 import { useAuth } from "../auth/AuthContext";
+import SupportChatWidget from "./SupportChatWidget";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -20,6 +21,7 @@ const viewTitles: Record<View, string> = {
   bookings: "Bookings",
   drivers: "Driver management",
   customers: "Customer management",
+  "lead-finder": "Lead finder",
   routes: "Route management",
   leads: "Leads and pipeline",
   campaigns: "Sequences",
@@ -37,6 +39,7 @@ const viewSubtitles: Partial<Record<View, string>> = {
   bookings: "Keep upcoming jobs and loads organized",
   drivers: "Manage drivers, documents, and compliance",
   customers: "Accounts, contacts, and key relationships",
+  "lead-finder": "Find and import new companies",
   routes: "Plan and monitor routes and waypoints",
   leads: "Capture, qualify, and move deals forward",
   campaigns: "Automated outreach across your pipeline",
@@ -96,9 +99,9 @@ const Layout: React.FC<LayoutProps> = ({
               </button>
 
               <img
-                src="/heartfledge-logo-transparent-navy.png"
-                alt="Heartfledge logo"
-                className="hidden h-7 w-auto object-contain md:block"
+                src="/heartfledge-logo.svg"
+                alt="Heartfledge Logistics"
+                className="hidden h-8 w-auto object-contain md:block"
                 onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
               />
 
@@ -152,9 +155,15 @@ const Layout: React.FC<LayoutProps> = ({
         </main>
       </div>
 
-      {settings?.enableAssistant !== false && (
+      {settings?.enableAssistant !== false && user && !['customer', 'driver'].includes(user.role) && (
         <AiAssistant contextData={contextData} contextType={contextType} settings={settings} />
       )}
+      {user && ['customer', 'driver'].includes(user.role) ? (
+        <SupportChatWidget
+          module={viewTitles[activeView]?.replace(/\\s+overview/i, "") || "App"}
+          selectedEntity={null}
+        />
+      ) : null}
     </div>
   );
 };

@@ -18,6 +18,8 @@ import SettingsPage from './components/SettingsPage';
 import LoginPage from './components/LoginPage';
 import { AuthProvider, useAuth, UserRole } from './auth/AuthContext';
 import { DataProvider, useData } from './contexts/DataContext';
+import AcceptInvitePage from './components/AcceptInvitePage';
+import LeadFinderPage from './components/LeadFinderPage';
 
 // Static mocks still needed for some secondary data like routes/waypoints/activities which we aren't putting in global state yet
 import { mockLeadScoringRules, mockSalesReps } from './data/mockCrmData';
@@ -27,7 +29,7 @@ import { mockDriverAssignments, mockUsersForDrivers } from './data/mockDriversDa
 import { mockExpenses } from './data/mockData';
 
 
-export type View = 'dashboard' | 'fleet' | 'bookings' | 'drivers' | 'customers' | 'routes' | 'reports' | 'leads' | 'campaigns' | 'new-campaign' | 'financials' | 'marketing' | 'settings' | 'analytics';
+export type View = 'dashboard' | 'fleet' | 'bookings' | 'drivers' | 'customers' | 'routes' | 'reports' | 'leads' | 'lead-finder' | 'campaigns' | 'new-campaign' | 'financials' | 'marketing' | 'settings' | 'analytics';
 
 export type AppSettings = {
   defaultView: View;
@@ -96,6 +98,7 @@ const AuthedApp: React.FC = () => {
     drivers: ['admin', 'dispatcher', 'ops_manager'],
     routes: ['admin', 'dispatcher', 'ops_manager'],
     leads: ['admin', 'ops_manager', 'dispatcher'],
+    "lead-finder": ['admin', 'ops_manager', 'dispatcher'],
     marketing: ['admin', 'ops_manager'],
     campaigns: ['admin', 'ops_manager'],
     "new-campaign": ['admin', 'ops_manager'],
@@ -240,6 +243,7 @@ const AuthedApp: React.FC = () => {
       case 'customers': return <CustomersPage />;
       case 'reports': return <ReportsPage data={contextData} />;
       case 'leads': return <CrmDashboard />; // leads is main part of CRM
+      case 'lead-finder': return <LeadFinderPage />;
       case 'campaigns': return <CampaignsPage setActiveView={setActiveView} />;
       case 'new-campaign': return <NewCampaignPage setActiveView={setActiveView} />;
       case 'marketing': return <MarketingDashboard />;
@@ -272,7 +276,11 @@ const AuthedApp: React.FC = () => {
 const App: React.FC = () => (
   <AuthProvider>
     <DataProvider>
-        <AuthedApp />
+        {typeof window !== 'undefined' && window.location.pathname.startsWith('/accept-invite') ? (
+          <AcceptInvitePage />
+        ) : (
+          <AuthedApp />
+        )}
     </DataProvider>
   </AuthProvider>
 );

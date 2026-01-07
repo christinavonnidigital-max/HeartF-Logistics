@@ -15,6 +15,7 @@ import {
   SettingsIcon,
   CloseIcon,
   MenuIcon,
+  SearchIcon,
 } from "./icons/Icons";
 import { View } from "../App";
 import { useAuth, UserRole } from "../auth/AuthContext";
@@ -46,6 +47,7 @@ const viewPermissions: Partial<Record<View, UserRole[]>> = {
   drivers: ["admin", "dispatcher", "ops_manager"],
   routes: ["admin", "dispatcher", "ops_manager"],
   leads: ["admin", "ops_manager", "dispatcher"],
+  "lead-finder": ["admin", "ops_manager", "dispatcher"],
   marketing: ["admin", "ops_manager"],
   campaigns: ["admin", "ops_manager"],
   "new-campaign": ["admin", "ops_manager"],
@@ -73,6 +75,7 @@ const navSections: NavSection[] = [
     title: "CRM",
     items: [
       { label: "Leads", view: "leads", icon: UsersIcon },
+      { label: "Lead Finder", view: "lead-finder", icon: SearchIcon },
       { label: "Customers", view: "customers", icon: UsersIcon },
     ],
   },
