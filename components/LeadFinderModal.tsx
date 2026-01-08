@@ -186,6 +186,7 @@ const LeadFinderModal: React.FC<LeadFinderModalProps> = ({ onClose, onImport }) 
   const [lastSearchAt, setLastSearchAt] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const toastTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [hasSearched, setHasSearched] = useState(false);
 
   const showToast = (message: string) => {
     setToastMessage(message);
@@ -237,6 +238,7 @@ const LeadFinderModal: React.FC<LeadFinderModalProps> = ({ onClose, onImport }) 
     setIsSearching(true);
     setError(null);
     setProspects([]);
+    setHasSearched(true);
     try {
       console.log('[LeadFinderModal] Starting search...', form);
       const results = await findPotentialLeads(form);
@@ -277,6 +279,23 @@ const LeadFinderModal: React.FC<LeadFinderModalProps> = ({ onClose, onImport }) 
   };
 
   const selectedCount = selectedIds.size;
+  const isVerifiedLead = (p: LeadProspect) => {
+    const conf = Math.round(p.confidence ?? 0);
+    const hasContact = Boolean(p.contact?.email || p.contact?.phone);
+    return conf >= 80 || hasContact;
+  };
+  const sortedProspects = [...prospects].sort((a, b) => {
+    const va = isVerifiedLead(a) ? 1 : 0;
+    const vb = isVerifiedLead(b) ? 1 : 0;
+    if (va !== vb) return vb - va;
+    const ca = Math.round(a.confidence ?? 0);
+    const cb = Math.round(b.confidence ?? 0);
+    if (ca !== cb) return cb - ca;
+    const wa = a.website ? 1 : 0;
+    const wb = b.website ? 1 : 0;
+    if (wa !== wb) return wb - wa;
+    return 0;
+  });
 
   return (
     <>
@@ -423,7 +442,7 @@ const LeadFinderModal: React.FC<LeadFinderModalProps> = ({ onClose, onImport }) 
               </div>
             )}
 
-            {!prospects.length && !isSearching && !error && (
+            {!hasSearched && !isSearching && !error && (
               <div className="rounded-3xl border border-dashed border-slate-200 p-8 text-center space-y-3 text-slate-500 bg-white">
                 <SparklesIcon className="w-10 h-10 mx-auto text-orange-400" />
                 <p className="text-base font-semibold text-slate-800">Describe your dream lead, then let Gemini do the legwork.</p>
@@ -435,7 +454,7 @@ const LeadFinderModal: React.FC<LeadFinderModalProps> = ({ onClose, onImport }) 
 
             {isSearching && (
               <div className="space-y-3">
-                {[1, 2, 3].map((idx) => (
+                {[1, 2, 3, 4, 5, 6].map((idx) => (
                   <div key={idx} className="animate-pulse rounded-3xl border border-slate-100 bg-white p-5 space-y-3">
                     <div className="h-4 bg-slate-100 rounded-full w-2/3" />
                     <div className="h-3 bg-slate-100 rounded-full w-full" />
@@ -449,11 +468,20 @@ const LeadFinderModal: React.FC<LeadFinderModalProps> = ({ onClose, onImport }) 
               </div>
             )}
 
-            {prospects.map((prospect) => {
+            {!isSearching && hasSearched && !error && !sortedProspects.length && (
+              <div className="rounded-3xl border border-slate-200 p-8 text-center space-y-2 bg-white">
+                <p className="text-base font-semibold text-slate-800">No results found</p>
+                <p className="text-sm text-slate-600">Try broader keywords, a wider geography, or fewer constraints.</p>
+              </div>
+            )}
+
+            {sortedProspects.map((prospect) => {
               const selected = selectedIds.has(prospect.id);
               const imported = importedIds.has(prospect.id);
-              const confidence = Math.round((prospect.confidence ?? 0) * 100);
+              const confidence = Math.round(prospect.confidence ?? 0);
               const contact = prospect.contact;
+              const hasVerifiedContact = Boolean(contact?.email || contact?.phone);
+              const isVerified = confidence >= 80 || hasVerifiedContact;
               return (
                 <article
                   key={prospect.id}
@@ -470,7 +498,18 @@ const LeadFinderModal: React.FC<LeadFinderModalProps> = ({ onClose, onImport }) 
                             <CheckCircleIcon className="w-4 h-4" /> Added
                           </span>
                         )}
+                        {isVerified && !imported && (
+                          <span className="inline-flex items-center gap-1 text-emerald-700 text-xs font-semibold bg-emerald-50 border border-emerald-100 px-2 py-1 rounded-full">
+                            <CheckCircleIcon className="w-4 h-4" />
+                            Verified
+                          </span>
+                        )}
                       </div>
+                      {isVerified && (
+                        <p className="mt-1 text-[11px] text-emerald-700">
+                          {hasVerifiedContact ? 'Contact info found' : 'High confidence match'}
+                        </p>
+                      )}
                       <p className="text-sm text-slate-600 mt-1">{prospect.summary || 'Opportunity summary pending.'}</p>
                       <div className="flex flex-wrap gap-3 text-xs text-slate-500 mt-3">
                         {prospect.industry && (
@@ -495,7 +534,7 @@ const LeadFinderModal: React.FC<LeadFinderModalProps> = ({ onClose, onImport }) 
                     </div>
                     <div className="text-right">
                       <p className="text-xs uppercase text-slate-700 font-semibold">Fit Confidence</p>
-                      <p className="text-lg font-bold text-slate-900">{confidence || 62}%</p>
+                      <p className="text-lg font-bold text-slate-900">{confidence || 0}%</p>
                       <button
                         onClick={() => toggleSelected(prospect.id)}
                         className={`mt-2 px-3 py-1.5 rounded-full text-xs font-semibold border ${

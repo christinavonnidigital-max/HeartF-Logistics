@@ -1,0 +1,45 @@
+{
+  "version": "5",
+  "remote": {
+    "https://edge.netlify.com/": "fd941d61d88673d5f28aab283fb86fcc50f08a3bc80ee5470498fcfa88c65cfb",
+    "https://edge.netlify.com/bootstrap/config.ts": "6a2ce0e544e15e8f8883a5c18da5948e37fd0f2619f68cb31f3af53c51817025",
+    "https://edge.netlify.com/bootstrap/context.ts": "e97240232121e2f369f6546ce961490f34d961ea1ea54be3ff09633e3f08373f",
+    "https://edge.netlify.com/bootstrap/cookie.ts": "8b0baae708989ca183c6f3b4ab3d029e6abcbc2e43f93edeb0ff447b3bbc3a05",
+    "https://edge.netlify.com/bootstrap/edge_function.ts": "b8253e86aa83c67341f5cfedeba5049d77fbf84dcab7eceff7566b7728ae9b39",
+    "https://edge.netlify.com/bootstrap/globals/types.ts": "eaa6148ded3121d8dee62dd91c86e7fe76601df0f3ca8d7962243a30f4c8935f"
+  },
+  "workspace": {
+    "packageJson": {
+      "dependencies": [
+        "npm:@google/genai@^1.29.1",
+        "npm:@netlify/neon@0.1",
+        "npm:@playwright/test@^1.43.0",
+        "npm:@react-leaflet/core@2.1.0",
+        "npm:@tailwindcss/forms@~0.5.10",
+        "npm:@tailwindcss/typography@~0.5.19",
+        "npm:@tailwindcss/vite@^4.1.18",
+        "npm:@types/cookie@0.6",
+        "npm:@types/node@^22.14.0",
+        "npm:@vitejs/plugin-react@5",
+        "npm:autoprefixer@^10.4.22",
+        "npm:axe-core@^4.6.3",
+        "npm:bcryptjs@^3.0.3",
+        "npm:cookie@^1.1.1",
+        "npm:leaflet@1.9.4",
+        "npm:lucide-react@0.278",
+        "npm:papaparse@5.4.1",
+        "npm:pg@^8.16.3",
+        "npm:react-dom@^18.3.1",
+        "npm:react-leaflet@4.2.1",
+        "npm:react@^18.3.1",
+        "npm:read-excel-file@^6.0.1",
+        "npm:recharts@2.12.7",
+        "npm:tailwindcss@^4.1.18",
+        "npm:typescript@~5.8.2",
+        "npm:vite-tsconfig-paths@^5.1.4",
+        "npm:vite@^6.2.0",
+        "npm:write-excel-file@^2.3.10"
+      ]
+    }
+  }
+}
