@@ -1,0 +1,8 @@
+[dev]
+  # Vite dev server is configured to run on 4002 (see vite.config.ts).
+  targetPort = 4002
+  # Netlify dev proxy/funcs listen on 8888 by default.
+  port = 8888
+  framework = "vite"
+  command = "npm run dev"
+
