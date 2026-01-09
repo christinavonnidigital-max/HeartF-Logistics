@@ -3,7 +3,7 @@ import { json, clearCookieHeader, getCookies } from "./_lib/http";
 import { q } from "./_lib/db";
 import { sha256Hex } from "./_lib/crypto";
 
-const COOKIE_NAME = process.env.AUTH_COOKIE_NAME || "hf_session";
+const COOKIE_NAME = process.env.AUTH_COOKIE_NAME || "";
 
 export const handler: Handler = async (event) => {
   if (event.httpMethod !== "POST") return json(405, { error: "Method not allowed" });

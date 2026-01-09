@@ -3,7 +3,7 @@ import { q } from "./db";
 import { getCookies } from "./http";
 import { sha256Hex } from "./crypto";
 
-const COOKIE_NAME = process.env.AUTH_COOKIE_NAME || "hf_session";
+const COOKIE_NAME = process.env.AUTH_COOKIE_NAME || "";
 
 export type Authed = {
   userId: string;

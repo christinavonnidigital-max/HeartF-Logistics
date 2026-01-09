@@ -3,7 +3,7 @@ import { q } from "./_lib/db";
 import { json, readJson, setCookieHeader } from "./_lib/http";
 import { randomToken, sha256Hex, verifyPassword } from "./_lib/crypto";
 
-const COOKIE_NAME = process.env.AUTH_COOKIE_NAME || "hf_session";
+const COOKIE_NAME = process.env.AUTH_COOKIE_NAME || "";
 const TTL_DAYS = parseInt(process.env.SESSION_TTL_DAYS || "14", 10);
 
 type Body = { email: string; password: string };
