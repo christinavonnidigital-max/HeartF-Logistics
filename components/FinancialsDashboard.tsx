@@ -76,7 +76,7 @@ const FinancialsDashboard: React.FC<FinancialsDashboardProps> = ({ settings }) =
 
     useEffect(() => {
         if (user?.role === 'customer') {
-            const customerId = Number(user.id);
+            const customerId = Number(user.userId);
             setFilteredInvoices(!isNaN(customerId) ? invoices.filter(i => i.customer_id === customerId) : []);
             setFilteredExpenses([]);
         } else {
@@ -162,7 +162,7 @@ const FinancialsDashboard: React.FC<FinancialsDashboardProps> = ({ settings }) =
                     currency: row.currency || settings.currency,
                     status: row.status || 'draft',
                     payment_terms: row.payment_terms ? Number(row.payment_terms) : undefined,
-                    created_by: user?.id ? Number(user.id) : 0,
+                    created_by: user?.userId ? Number(user.userId) : 0,
                 };
                 addInvoice(invoice);
                 success += 1;

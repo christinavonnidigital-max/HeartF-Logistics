@@ -1,9 +1,5 @@
 import React, { useMemo, useState } from "react";
 
-type AcceptInviteResponse =
-  | { ok: true; userId: string }
-  | { ok?: false; error: string };
-
 const parseQuery = () => {
   if (typeof window === "undefined") return new URLSearchParams();
   return new URLSearchParams(window.location.search);
@@ -21,7 +17,6 @@ const AcceptInvitePage: React.FC = () => {
   const [confirm, setConfirm] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   const isValid =
     token.length >= 10 &&
@@ -31,10 +26,18 @@ const AcceptInvitePage: React.FC = () => {
     password.length >= 8 &&
     password === confirm;
 
+  const safeJson = async (res: Response) => {
+    const text = await res.text();
+    try {
+      return JSON.parse(text);
+    } catch {
+      return {};
+    }
+  };
+
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    setSuccessMsg(null);
 
     if (!isValid) {
       setError("Please complete all fields. Passwords must match and be at least 8 characters.");
@@ -56,19 +59,23 @@ const AcceptInvitePage: React.FC = () => {
         }),
       });
 
-      const data = (await res.json()) as AcceptInviteResponse;
+      const data = await safeJson(res);
 
-      if (!res.ok || ("error" in data && data.error)) {
-        setError("error" in data ? data.error : "Invite acceptance failed.");
+      if (!res.ok || data?.error) {
+        setError(data?.error || "Invite acceptance failed.");
         return;
       }
 
-      setSuccessMsg("Invite accepted. You can now log in.");
-      setTimeout(() => {
-        if (typeof window !== "undefined") {
-          window.location.href = "/login";
-        }
-      }, 800);
+      const login = await fetch("/.netlify/functions/auth-login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (typeof window !== "undefined") {
+        window.location.href = login.ok ? "/" : "/login";
+      }
     } catch (err: any) {
       setError(err?.message || "Network error.");
     } finally {
@@ -152,12 +159,6 @@ const AcceptInvitePage: React.FC = () => {
           {error && (
             <div className="text-sm text-rose-700 bg-rose-50 border border-rose-100 rounded-lg p-3">
               {error}
-            </div>
-          )}
-
-          {successMsg && (
-            <div className="text-sm text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-lg p-3">
-              {successMsg}
             </div>
           )}
 

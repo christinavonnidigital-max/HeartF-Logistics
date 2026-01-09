@@ -34,6 +34,9 @@ type LeadProspect = {
     email?: string;
     phone?: string;
   };
+  verified?: boolean;
+  sourcesCount?: number;
+  resultKey?: string;
 };
 
 const MAX_RESULTS = Math.max(1, Math.min(10, Number(process.env.LEAD_FINDER_MAX_RESULTS || "10")));
@@ -233,6 +236,19 @@ function normalizeAndGuard(items: SearchItem[], leads: any[]): LeadProspect[] {
       } as LeadProspect;
     })
     .filter(Boolean) as LeadProspect[];
+}
+
+function resultKeyFromLead(lead: { website?: string; sourceUrl?: string; companyName?: string }): string {
+  const domain = domainFromUrl(lead.website) || domainFromUrl(lead.sourceUrl);
+  if (domain) return `domain:${domain}`;
+  const name = (lead.companyName || "").toLowerCase().replace(/\s+/g, " ").trim();
+  return name ? `name:${name}` : "";
+}
+
+function domainFromUrl(input?: string): string | null {
+  const u = safeUrl(input);
+  if (!u) return null;
+  return u.hostname.replace(/^www\./i, "").toLowerCase();
 }
 
 /* ----------------------------
@@ -465,13 +481,14 @@ async function verifyLead(result: LeadProspect): Promise<LeadProspect> {
 
   if (!v || !v.verified) {
     // slight penalty if verification fails
-    return { ...result, confidence: Math.max(0, (result.confidence ?? 50) - 5) };
+    return { ...result, verified: false, confidence: Math.max(0, (result.confidence ?? 50) - 5) };
   }
 
   const nextConfidence = Math.max(0, Math.min(100, (result.confidence ?? 50) + (v.confidenceDelta ?? 10)));
 
   return {
     ...result,
+    verified: true,
     website: v.website || result.website || baseUrl.origin,
     location: v.location || result.location,
     summary: v.summary || result.summary,
@@ -495,12 +512,90 @@ export const handler: Handler = async (event) => {
     // permission gate
     requireRole(a, ["admin", "ops_manager", "dispatcher"]);
 
+    const DAY_LIMIT = Number(process.env.LEAD_FINDER_DAILY_LIMIT || "50");
+    const { rows: limitRows } = await q<{ c: number }>(
+      `select count(*)::int as c
+       from lead_finder_searches
+       where org_id = $1 and created_at > now() - interval '24 hours'`,
+      [a.orgId]
+    );
+    if ((limitRows[0]?.c ?? 0) >= DAY_LIMIT) {
+      return json(429, { error: "Daily Lead Finder limit reached. Try again tomorrow." });
+    }
+
     const criteria = readJson<LeadProspectingCriteria>(event);
     const query = (criteria.query || "").trim();
     if (!query) return json(400, { error: "Missing query" });
 
     const mode = (process.env.LEAD_FINDER_MODE || "grounded").toLowerCase();
     const searchQuery = buildQuery(criteria);
+
+    const cacheKey = JSON.stringify({
+      q: searchQuery,
+      geo: criteria.geography || "",
+      ind: criteria.industryFocus || "",
+      intent: criteria.intentFocus || "",
+    });
+
+    const cached = await q<{ search_id: string }>(
+      `select id as search_id
+       from lead_finder_searches
+       where org_id = $1 and query = $2 and criteria->>'cacheKey' = $3
+       and created_at > now() - interval '6 hours'
+       order by created_at desc
+       limit 1`,
+      [a.orgId, searchQuery, cacheKey]
+    );
+
+    if (cached.rowCount === 1) {
+      const searchId = cached.rows[0].search_id;
+      const r = await q(
+        `select id, company_name, website, location, summary, confidence, contact, source_url
+         from lead_finder_results
+         where search_id = $1
+         order by confidence desc
+         limit 50`,
+        [searchId]
+      );
+
+      return json(200, {
+        ok: true,
+        searchId,
+        results: r.rows.map((x: any, idx: number) => {
+          const contact =
+            x.contact && typeof x.contact === "string"
+              ? (() => {
+                  try {
+                    return JSON.parse(x.contact);
+                  } catch {
+                    return {};
+                  }
+                })()
+              : x.contact;
+          const hasContact = Boolean(contact?.email || contact?.phone);
+          const resultKey = resultKeyFromLead({
+            website: x.website,
+            sourceUrl: x.source_url,
+            companyName: x.company_name,
+          });
+
+          return {
+            id: x.id || `cached_${idx}`,
+            companyName: x.company_name,
+            website: x.website,
+            location: x.location,
+            summary: x.summary,
+            confidence: Math.round(Math.max(0, Math.min(100, x.confidence ?? 50))),
+            contact,
+            sourceUrl: x.source_url,
+            verified: Boolean(hasContact),
+            sourcesCount: Number(x.source_url ? 1 : 0),
+            resultKey: resultKey || `cached_${idx}`,
+          };
+        }),
+        cached: true,
+      });
+    }
 
     // Optional: log search
     let searchId: string | null = null;
@@ -509,7 +604,7 @@ export const handler: Handler = async (event) => {
         `insert into lead_finder_searches(org_id, user_id, query, criteria)
          values ($1,$2,$3,$4)
          returning id`,
-        [a.orgId, a.userId, searchQuery, JSON.stringify(criteria)]
+        [a.orgId, a.userId, searchQuery, JSON.stringify({ ...criteria, cacheKey })]
       );
       searchId = ins.rows[0]?.id || null;
     } catch {
@@ -571,6 +666,20 @@ export const handler: Handler = async (event) => {
       const byId = new Map(verified.map((v) => [v.id, v]));
       results = results.map((r) => byId.get(r.id) || r);
     }
+
+    results = results.map((r) => {
+      const confidence = Math.round(Math.max(0, Math.min(100, r.confidence ?? 50)));
+      const hasContact = Boolean(r.contact?.email?.trim()) || Boolean(r.contact?.phone?.trim());
+      const resultKey = resultKeyFromLead(r);
+
+      return {
+        ...r,
+        confidence,
+        verified: Boolean(r.verified || hasContact),
+        sourcesCount: Number(r.sourcesCount ?? (r.sourceUrl ? 1 : 0)),
+        resultKey: resultKey || r.id,
+      };
+    });
 
     // Optional: store results
     if (searchId) {

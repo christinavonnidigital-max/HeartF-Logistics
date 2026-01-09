@@ -2,18 +2,10 @@
 import React, { useState } from "react";
 import { useAuth } from "../auth/AuthContext";
 
-const DEMO_ACCOUNTS = [
-  { email: "dispatcher@heartfledge.local", password: "fleet123", role: "Dispatcher" },
-  { email: "ops@heartfledge.local", password: "routes123", role: "Ops Manager" },
-  { email: "finance@heartfledge.local", password: "money123", role: "Finance Desk" },
-  { email: "admin@heartfledge.local", password: "admin123", role: "Admin" },
-  { email: "customer@heartfledge.local", password: "client123", role: "Customer" },
-];
-
 const LoginPage: React.FC = () => {
   const { login, loading } = useAuth();
-  const [email, setEmail] = useState("dispatcher@heartfledge.local");
-  const [password, setPassword] = useState("fleet123");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -29,12 +21,6 @@ const LoginPage: React.FC = () => {
     }
 
     setSubmitting(false);
-  };
-
-  const handleDemoClick = (demoEmail: string, demoPass: string) => {
-    setEmail(demoEmail);
-    setPassword(demoPass);
-    setError(null);
   };
 
   if (loading) {
@@ -127,7 +113,7 @@ const LoginPage: React.FC = () => {
                 <input
                   type="email"
                   className="w-full rounded-xl border-2 border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-orange-500 focus:bg-white focus:ring-4 focus:ring-orange-500/10 transition-all"
-                  placeholder="you@heartfledge.local"
+                  placeholder="you@company.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   autoComplete="email"
@@ -177,47 +163,6 @@ const LoginPage: React.FC = () => {
                 )}
               </button>
             </form>
-
-            <div className="mt-8">
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-slate-200" />
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="bg-white px-4 text-xs font-medium text-slate-500 uppercase tracking-wider">Quick Access</span>
-                </div>
-              </div>
-
-              <div className="mt-6 space-y-2.5">
-                {DEMO_ACCOUNTS.map((acc) => (
-                  <button
-                    key={acc.email}
-                    type="button"
-                    onClick={() => handleDemoClick(acc.email, acc.password)}
-                    className="flex w-full items-center justify-between rounded-xl border-2 border-slate-100 bg-linear-to-r from-slate-50 to-white px-4 py-3.5 text-left transition-all hover:border-orange-300 hover:from-orange-50 hover:to-orange-50/50 hover:shadow-md group"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-slate-100 group-hover:bg-orange-100 flex items-center justify-center transition-colors">
-                        <svg className="w-5 h-5 text-slate-400 group-hover:text-orange-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                          <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                        </svg>
-                      </div>
-                      <div>
-                        <p className="text-sm font-semibold text-slate-800 group-hover:text-orange-900">{acc.role}</p>
-                        <p className="text-xs text-slate-500 group-hover:text-orange-600">{acc.email}</p>
-                      </div>
-                    </div>
-                    <span className="text-xs font-mono font-medium text-slate-700 group-hover:text-orange-600 bg-white px-3 py-1.5 rounded-lg border border-slate-200 group-hover:border-orange-300 transition-colors">
-                      {acc.password}
-                    </span>
-                  </button>
-                ))}
-              </div>
-
-              <p className="mt-6 text-center text-xs text-slate-600">
-                Demo accounts for testing purposes only
-              </p>
-            </div>
           </div>
         </div>
       </main>

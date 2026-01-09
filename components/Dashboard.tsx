@@ -285,12 +285,14 @@ const RevenueByCategoryChart = ({ invoices, currency, title }: { invoices: Invoi
 
 const DashboardHeader: React.FC<{ user: any }> = ({ user }) => {
     const date = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    const displayName = user ? [user.firstName, user.lastName].filter(Boolean).join(' ') || user.email : '';
+    const firstName = displayName ? displayName.split(' ')[0] : 'User';
     return (
         <div className="relative rounded-2xl bg-linear-to-r from-indigo-900 to-slate-900 p-6 shadow-lg overflow-hidden text-white mb-6">
             <div className="absolute top-0 right-0 -mt-12 -mr-12 w-64 h-64 bg-orange-500 rounded-full opacity-10 blur-3xl"></div>
             <div className="relative z-10">
                 <p className="text-indigo-200 text-xs font-medium uppercase tracking-wider mb-1">{date}</p>
-                <h1 className="text-2xl font-bold">Good afternoon, {user?.name.split(' ')[0] || 'User'}</h1>
+                <h1 className="text-2xl font-bold">Good afternoon, {firstName}</h1>
                 <p className="text-slate-300 text-sm mt-1 max-w-md">Here's what's happening with your logistics operations today.</p>
             </div>
         </div>

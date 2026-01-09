@@ -80,7 +80,7 @@ const AddBookingModal: React.FC<AddBookingModalProps> = ({ onClose, onAddBooking
 
   useEffect(() => {
     if (user?.role === "customer") {
-      setFormData((prev) => ({ ...prev, customer_id: String(user.id) }));
+      setFormData((prev) => ({ ...prev, customer_id: String(user.userId) }));
     }
   }, [user]);
 

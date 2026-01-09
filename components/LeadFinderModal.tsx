@@ -38,12 +38,15 @@ type LeadProspect = {
   intentSignal?: string;
   confidence?: number;
   sourceUrl?: string;
+  resultKey?: string;
   contact?: {
     name?: string;
     title?: string;
     email?: string;
     phone?: string;
   };
+  verified?: boolean;
+  sourcesCount?: number;
 };
 
 async function findPotentialLeads(criteria: LeadProspectingCriteria): Promise<LeadProspect[]> {
@@ -139,6 +142,17 @@ const parseLocation = (location?: string) => {
   return { city, country };
 };
 
+type LeadTier = "verified" | "high" | "candidate";
+
+const getLeadTier = (p: LeadProspect): LeadTier => {
+  const confidence = Math.round(p.confidence ?? 0);
+  const hasContact = Boolean(p.contact?.email || p.contact?.phone);
+
+  if (p.verified || hasContact) return "verified";
+  if (confidence >= 80) return "high";
+  return "candidate";
+};
+
 const prospectToLeadPayload = (
   prospect: LeadProspect,
 ): Omit<Lead, 'id' | 'created_at' | 'updated_at' | 'lead_score'> => {
@@ -187,6 +201,8 @@ const LeadFinderModal: React.FC<LeadFinderModalProps> = ({ onClose, onImport }) 
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const toastTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [hasSearched, setHasSearched] = useState(false);
+  const [showOnlyVerified, setShowOnlyVerified] = useState(false);
+  const [showHighPlus, setShowHighPlus] = useState(true);
 
   const showToast = (message: string) => {
     setToastMessage(message);
@@ -279,15 +295,15 @@ const LeadFinderModal: React.FC<LeadFinderModalProps> = ({ onClose, onImport }) 
   };
 
   const selectedCount = selectedIds.size;
-  const isVerifiedLead = (p: LeadProspect) => {
-    const conf = Math.round(p.confidence ?? 0);
-    const hasContact = Boolean(p.contact?.email || p.contact?.phone);
-    return conf >= 80 || hasContact;
+  const tierRank: Record<LeadTier, number> = {
+    verified: 3,
+    high: 2,
+    candidate: 1,
   };
   const sortedProspects = [...prospects].sort((a, b) => {
-    const va = isVerifiedLead(a) ? 1 : 0;
-    const vb = isVerifiedLead(b) ? 1 : 0;
-    if (va !== vb) return vb - va;
+    const ta = getLeadTier(a);
+    const tb = getLeadTier(b);
+    if (ta !== tb) return tierRank[tb] - tierRank[ta];
     const ca = Math.round(a.confidence ?? 0);
     const cb = Math.round(b.confidence ?? 0);
     if (ca !== cb) return cb - ca;
@@ -295,6 +311,12 @@ const LeadFinderModal: React.FC<LeadFinderModalProps> = ({ onClose, onImport }) 
     const wb = b.website ? 1 : 0;
     if (wa !== wb) return wb - wa;
     return 0;
+  });
+  const visibleProspects = sortedProspects.filter((p) => {
+    const tier = getLeadTier(p);
+    if (showOnlyVerified) return tier === "verified";
+    if (showHighPlus) return tier === "verified" || tier === "high";
+    return true;
   });
 
   return (
@@ -475,13 +497,44 @@ const LeadFinderModal: React.FC<LeadFinderModalProps> = ({ onClose, onImport }) 
               </div>
             )}
 
-            {sortedProspects.map((prospect) => {
+            {sortedProspects.length > 0 && (
+              <div className="flex flex-wrap gap-2 items-center justify-between">
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowOnlyVerified((v) => !v)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-semibold border ${
+                      showOnlyVerified
+                        ? "bg-emerald-600 text-white border-emerald-600"
+                        : "bg-white border-slate-200 text-slate-700"
+                    }`}
+                  >
+                    Verified only
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowHighPlus((v) => !v)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-semibold border ${
+                      showHighPlus
+                        ? "bg-amber-600 text-white border-amber-600"
+                        : "bg-white border-slate-200 text-slate-700"
+                    }`}
+                  >
+                    High match+
+                  </button>
+                </div>
+                <div className="text-xs text-slate-500">
+                  Showing {visibleProspects.length} of {sortedProspects.length}
+                </div>
+              </div>
+            )}
+
+            {visibleProspects.map((prospect) => {
               const selected = selectedIds.has(prospect.id);
               const imported = importedIds.has(prospect.id);
               const confidence = Math.round(prospect.confidence ?? 0);
               const contact = prospect.contact;
-              const hasVerifiedContact = Boolean(contact?.email || contact?.phone);
-              const isVerified = confidence >= 80 || hasVerifiedContact;
+              const tier = getLeadTier(prospect);
               return (
                 <article
                   key={prospect.id}
@@ -498,18 +551,30 @@ const LeadFinderModal: React.FC<LeadFinderModalProps> = ({ onClose, onImport }) 
                             <CheckCircleIcon className="w-4 h-4" /> Added
                           </span>
                         )}
-                        {isVerified && !imported && (
+                        {!imported && (tier === "verified" ? (
                           <span className="inline-flex items-center gap-1 text-emerald-700 text-xs font-semibold bg-emerald-50 border border-emerald-100 px-2 py-1 rounded-full">
                             <CheckCircleIcon className="w-4 h-4" />
                             Verified
                           </span>
-                        )}
+                        ) : tier === "high" ? (
+                          <span className="inline-flex items-center gap-1 text-amber-700 text-xs font-semibold bg-amber-50 border border-amber-100 px-2 py-1 rounded-full">
+                            High match
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 text-slate-600 text-xs font-semibold bg-slate-50 border border-slate-200 px-2 py-1 rounded-full">
+                            Candidate
+                          </span>
+                        ))}
                       </div>
-                      {isVerified && (
+                      {tier === "verified" ? (
                         <p className="mt-1 text-[11px] text-emerald-700">
-                          {hasVerifiedContact ? 'Contact info found' : 'High confidence match'}
+                          Verified from company website
                         </p>
-                      )}
+                      ) : tier === "high" ? (
+                        <p className="mt-1 text-[11px] text-amber-700">
+                          Strong match, no verified contact yet
+                        </p>
+                      ) : null}
                       <p className="text-sm text-slate-600 mt-1">{prospect.summary || 'Opportunity summary pending.'}</p>
                       <div className="flex flex-wrap gap-3 text-xs text-slate-500 mt-3">
                         {prospect.industry && (
@@ -602,6 +667,11 @@ const LeadFinderModal: React.FC<LeadFinderModalProps> = ({ onClose, onImport }) 
                           View cited source ↗
                         </a>
                       )}
+                      {typeof prospect.sourcesCount === "number" && (
+                        <div className="w-full text-[11px] text-slate-500">
+                          Sources: {prospect.sourcesCount}
+                        </div>
+                      )}
                     </div>
                     <button
                       onClick={() => handleImportSingle(prospect)}
@@ -632,6 +702,20 @@ const LeadFinderModal: React.FC<LeadFinderModalProps> = ({ onClose, onImport }) 
             )}
           </div>
           <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                const top = sortedProspects
+                  .filter((p) => getLeadTier(p) === "verified")
+                  .slice(0, 10)
+                  .map((p) => p.id);
+
+                setSelectedIds(new Set(top));
+              }}
+              className="px-4 py-2 rounded-full border border-slate-200 text-slate-700 hover:bg-slate-50"
+            >
+              Select top verified
+            </button>
             <button
               onClick={onClose}
               className="px-4 py-2 rounded-full border border-slate-200 text-slate-700 hover:bg-slate-50"

@@ -301,7 +301,11 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     const logAuditEvent = (entry: Omit<AuditEvent, 'id' | 'at'>) => {
-        const actor = entry.actor || (user ? { id: user.id, name: (user as any).name, role: (user as any).role } : undefined);
+        const actor = entry.actor || (user ? {
+            id: user.userId,
+            name: [user.firstName, user.lastName].filter(Boolean).join(" ") || user.email,
+            role: user.role,
+        } : undefined);
         addAudit({ ...entry, actor });
     };
 
@@ -315,7 +319,11 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
             at: createdAt,
             from: null,
             to: booking.status,
-            by: user ? { id: user.id, name: (user as any).name, role: (user as any).role } : undefined,
+            by: user ? {
+                id: user.userId,
+                name: [user.firstName, user.lastName].filter(Boolean).join(" ") || user.email,
+                role: user.role,
+            } : undefined,
         };
 
         const full: Booking = {
@@ -330,7 +338,11 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         emitChange('bookings:add', full);
 
         addAudit({
-            actor: user ? { id: user.id, name: (user as any).name, role: (user as any).role } : undefined,
+            actor: user ? {
+                id: user.userId,
+                name: [user.firstName, user.lastName].filter(Boolean).join(" ") || user.email,
+                role: user.role,
+            } : undefined,
             action: 'booking.status.change',
             entity: { type: 'booking', id, ref: full.booking_number },
             meta: { booking_number: full.booking_number },
@@ -349,7 +361,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const next: Booking = { ...existing, ...updated, updated_at: updatedAt };
 
             if (didStatusChange) {
-                const actor = user ? { id: user.id, role: (user as any).role } : undefined;
+                const actor = user ? { id: user.userId, role: user.role } : undefined;
 
                 const { status_history } = appendStatusHistory(existing, updated, actor as any);
                 next.status_history = status_history;
@@ -487,7 +499,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         km_at_service: next.current_km,
                         service_date: serviceDate,
                         status: MaintenanceStatus.SCHEDULED,
-                        created_by: user?.id ? Number(user.id) : 0,
+                        created_by: user?.userId ? Number(user.userId) : 0,
                         created_at: createdAt,
                         updated_at: createdAt,
                     };

@@ -103,6 +103,7 @@ const navSections: NavSection[] = [
 
 const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView, isOpen, setIsOpen }) => {
   const { user } = useAuth();
+  const displayName = user ? [user.firstName, user.lastName].filter(Boolean).join(" ") || user.email : "";
 
   const isAllowed = (view: View) => {
     if (!user) return false;
@@ -156,7 +157,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView, isOpen, se
           <div className="px-4 py-3 md:hidden">
             {user ? (
               <div className="rounded-xl border border-white/10 bg-white/5 p-3">
-                <p className="text-sm font-semibold">{user.name}</p>
+                <p className="text-sm font-semibold">{displayName}</p>
                 <p className="text-xs text-slate-200/70 capitalize">{user.role.replace("_", " ")}</p>
               </div>
             ) : (

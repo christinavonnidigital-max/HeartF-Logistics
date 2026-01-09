@@ -73,6 +73,8 @@ const SettingsToggle: React.FC<{
 
 const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onChangeSettings }) => {
   const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
+  const currentUserId = user?.userId;
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<string | number | null>(null);
   const [isAuditOpen, setIsAuditOpen] = useState(false);
@@ -94,7 +96,15 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onChangeSettings 
     setUserError(null);
     try {
       const res = await fetch("/.netlify/functions/users", { credentials: "include" });
-      if (!res.ok) throw new Error(`Request failed: ${res.status}`);
+      if (!res.ok) {
+        const msg =
+          res.status === 401
+            ? "You are not logged in."
+            : res.status === 403
+              ? "You do not have access to view users."
+              : `Request failed: ${res.status}`;
+        throw new Error(msg);
+      }
       const data = await safeJson(res);
       if (!data?.ok) throw new Error(data?.error || "Failed to load users");
       setUsers(data.users || []);
@@ -140,6 +150,40 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onChangeSettings 
       await fetchUsers();
     } catch (err: any) {
       setUserError(err?.message || "Failed to send invite");
+    }
+  };
+
+  const updateUserRole = async (id: string, role: User["role"]) => {
+    try {
+      setUserError(null);
+      const res = await fetch("/.netlify/functions/users", {
+        method: "PATCH",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, role }),
+      });
+      const data = await safeJson(res);
+      if (!res.ok || !data?.ok) throw new Error(data?.error || "Failed to update role");
+      await fetchUsers();
+    } catch (err: any) {
+      setUserError(err?.message || "Failed to update role");
+    }
+  };
+
+  const setUserActive = async (id: string, is_active: boolean) => {
+    try {
+      setUserError(null);
+      const res = await fetch("/.netlify/functions/users", {
+        method: "PATCH",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, is_active }),
+      });
+      const data = await safeJson(res);
+      if (!res.ok || !data?.ok) throw new Error(data?.error || "Failed to update user status");
+      await fetchUsers();
+    } catch (err: any) {
+      setUserError(err?.message || "Failed to update user status");
     }
   };
 
@@ -276,18 +320,17 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onChangeSettings 
             title="User management"
             subtitle="Manage access for your team."
             actions={
-              <button 
-                onClick={() => setIsInviteModalOpen(true)}
-                className="flex items-center gap-1 bg-orange-50 text-orange-700 px-2 py-1 rounded-lg text-xs font-semibold hover:bg-orange-100 transition"
-              >
-                <UserPlusIcon className="w-4 h-4" />
-                Invite User
-              </button>
+              isAdmin ? (
+                <button 
+                  onClick={() => setIsInviteModalOpen(true)}
+                  className="flex items-center gap-1 bg-orange-50 text-orange-700 px-2 py-1 rounded-lg text-xs font-semibold hover:bg-orange-100 transition"
+                >
+                  <UserPlusIcon className="w-4 h-4" />
+                  Invite User
+                </button>
+              ) : null
             }
           />
-          {userError ? (
-            <div className="mt-3 text-sm text-red-600">{userError}</div>
-          ) : null}
           <div className="mt-4 flex-1 overflow-y-auto max-h-80 -mx-2 px-2">
             {loadingUsers ? (
               <div className="space-y-2">
@@ -295,31 +338,66 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onChangeSettings 
                   <div key={idx} className="h-14 rounded-xl bg-slate-100 animate-pulse" />
                 ))}
               </div>
+            ) : userError ? (
+              <div className="text-sm text-red-600">{userError}</div>
             ) : users.length === 0 ? (
-              <div className="text-sm text-slate-500">No users found.</div>
+              <div className="text-sm text-slate-500">No users yet. Invite your first team member.</div>
             ) : (
               <div className="space-y-2">
-                {users.map(user => (
-                  <ShellCard key={user.id} className="p-3 flex items-center justify-between group hover:border-orange-200 hover:shadow-sm transition-all">
+                {users.map((row) => (
+                  <ShellCard key={row.id} className="p-3 flex items-center justify-between group hover:border-orange-200 hover:shadow-sm transition-all">
                     <div className="flex items-center gap-3">
                       <div className="h-8 w-8 rounded-full bg-white border border-slate-200 flex items-center justify-center text-xs font-bold text-slate-700">
-                        {user.first_name[0]}{user.last_name[0]}
+                        {row.first_name[0]}{row.last_name[0]}
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-slate-900">{user.first_name} {user.last_name}</p>
-                        <p className="text-[11px] text-slate-500">{user.email}</p>
+                        <p className="text-sm font-medium text-slate-900">{row.first_name} {row.last_name}</p>
+                        <p className="text-[11px] text-slate-500">{row.email}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <StatusPill label={user.role.replace('_', ' ')} tone={getRoleTone(user.role)} />
-                      <button 
-                        onClick={() => setUserToDelete(user.id)}
-                        className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-md opacity-0 group-hover:opacity-100 transition-opacity"
-                        title="Remove User"
-                        aria-label={`Remove ${user.first_name} ${user.last_name}`}
-                      >
-                        <TrashIcon className="w-4 h-4" />
-                      </button>
+                      {!row.is_active && (
+                        <StatusPill label="disabled" tone="danger" />
+                      )}
+                      {isAdmin ? (
+                        <select
+                          value={row.role}
+                          onChange={(e) => updateUserRole(String(row.id), e.target.value as User["role"])}
+                          className="text-xs rounded-md border-slate-200 bg-white focus:ring-orange-500 focus:border-orange-500"
+                        >
+                          <option value="admin">admin</option>
+                          <option value="ops_manager">ops manager</option>
+                          <option value="dispatcher">dispatcher</option>
+                          <option value="finance">finance</option>
+                          <option value="customer">customer</option>
+                          <option value="driver">driver</option>
+                        </select>
+                      ) : (
+                        <StatusPill label={row.role.replace('_', ' ')} tone={getRoleTone(row.role)} />
+                      )}
+                      {isAdmin && String(row.id) !== currentUserId && (
+                        <button
+                          onClick={() => setUserActive(String(row.id), !row.is_active)}
+                          className={`px-2 py-1 rounded-md text-xs font-semibold border transition ${
+                            row.is_active
+                              ? "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"
+                              : "bg-emerald-50 border-emerald-100 text-emerald-700 hover:bg-emerald-100"
+                          }`}
+                          title={row.is_active ? "Disable user" : "Enable user"}
+                        >
+                          {row.is_active ? "Disable" : "Enable"}
+                        </button>
+                      )}
+                      {isAdmin && String(row.id) !== user?.userId && (
+                        <button 
+                          onClick={() => setUserToDelete(row.id)}
+                          className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-md opacity-0 group-hover:opacity-100 transition-opacity"
+                          title="Remove User"
+                          aria-label={`Remove ${row.first_name} ${row.last_name}`}
+                        >
+                          <TrashIcon className="w-4 h-4" />
+                        </button>
+                      )}
                     </div>
                   </ShellCard>
                 ))}
@@ -328,15 +406,10 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onChangeSettings 
           </div>
         </ShellCard>
 
-        <ShellCard className="px-5 py-4">
+      <ShellCard className="px-5 py-4">
           <SectionHeader
             title="Security"
             subtitle="Protect your account and organization."
-            actions={(
-              can('audit.view', user?.role) ? (
-                <button onClick={() => setIsAuditOpen(true)} className="text-xs px-2 py-1 rounded-lg bg-slate-50 hover:bg-slate-100">View Audit Log</button>
-              ) : null
-            )}
           />
            <div className="mt-4 space-y-3">
              <div className="flex items-center justify-between">
@@ -377,6 +450,26 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onChangeSettings 
              </div>
            </div>
         </ShellCard>
+
+        {can('audit.view', user?.role) && (
+          <ShellCard className="px-5 py-4">
+            <SectionHeader
+              title="Audit log"
+              subtitle="Track invites, role changes, disables, deletes, and imports."
+              actions={(
+                <button
+                  onClick={() => setIsAuditOpen(true)}
+                  className="px-3 py-2 rounded-lg bg-slate-900 text-white text-xs font-semibold hover:bg-slate-800 transition"
+                >
+                  View audit log
+                </button>
+              )}
+            />
+            <p className="mt-3 text-xs text-slate-500">
+              Last 50 actions across your organization.
+            </p>
+          </ShellCard>
+        )}
 
       </div>
 

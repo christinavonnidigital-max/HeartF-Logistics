@@ -4,12 +4,19 @@ import { SearchIcon, UploadIcon } from "./icons";
 
 type LeadFinderResult = {
   id: string;
-  company_name: string;
+  companyName: string;
   website?: string;
   location?: string;
-  description?: string;
-  confidence: number;
-  sources?: any;
+  summary?: string;
+  confidence?: number;
+  sourceUrl?: string;
+  verified?: boolean;
+  contact?: {
+    email?: string;
+    phone?: string;
+  };
+  sourcesCount?: number;
+  resultKey?: string;
 };
 
 type SearchBody = {
@@ -25,6 +32,16 @@ const companySizeOptions = [
   { value: "sme", label: "SME" },
   { value: "enterprise", label: "Enterprise" },
 ];
+
+const getTier = (r: LeadFinderResult) => {
+  const conf = Number(r.confidence || 0);
+  const hasContact = Boolean(r.contact?.email || r.contact?.phone);
+  const verified = Boolean(r.verified);
+
+  if (verified || hasContact) return "verified";
+  if (conf >= 80) return "high";
+  return "candidate";
+};
 
 const LeadFinderPage: React.FC = () => {
   const [form, setForm] = useState<SearchBody>({
@@ -61,11 +78,26 @@ const LeadFinderPage: React.FC = () => {
     setSelected(new Set());
 
     try {
+      const query = [form.industry, form.keywords].filter(Boolean).join(" ").trim();
+      if (!query) {
+        setError("Add an industry or keyword to search.");
+        setLoading(false);
+        return;
+      }
+
+      const criteria = {
+        query,
+        geography: form.location || "",
+        industryFocus: form.industry || "",
+        intentFocus: form.keywords || "",
+        minHeadcount: form.companySize && form.companySize !== "any" ? form.companySize : "",
+      };
+
       const res = await fetch("/.netlify/functions/lead-finder-search", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify(criteria),
       });
       const data = await safeJson(res);
       if (!res.ok || !data?.ok) throw new Error(data?.error || "Search failed");
@@ -217,14 +249,17 @@ const LeadFinderPage: React.FC = () => {
               />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <p className="font-semibold text-slate-900 truncate">{r.company_name || "Untitled company"}</p>
-                  <StatusPill
-                    label={`Confidence ${r.confidence || 50}%`}
-                    tone={r.confidence >= 75 ? "success" : r.confidence >= 50 ? "info" : "warn"}
-                  />
+                  <p className="font-semibold text-slate-900 truncate">{r.companyName || "Untitled company"}</p>
+                  {(() => {
+                    const tier = getTier(r);
+                    if (tier === "verified") return <StatusPill label="Verified" tone="success" />;
+                    if (tier === "high") return <StatusPill label="High match" tone="warn" />;
+                    const conf = Number(r.confidence || 50);
+                    return <StatusPill label={`Candidate ${conf}%`} tone="info" />;
+                  })()}
                 </div>
-                <p className="text-xs text-slate-600 mt-1 truncate">{r.website || r.location || "No site"}</p>
-                <p className="text-sm text-slate-700 mt-1 whitespace-pre-wrap">{r.description || "No description"}</p>
+                <p className="text-xs text-slate-600 mt-1 truncate">{r.website || r.sourceUrl || r.location || "No site"}</p>
+                <p className="text-sm text-slate-700 mt-1 whitespace-pre-wrap">{r.summary || "No description"}</p>
               </div>
             </div>
           ))}

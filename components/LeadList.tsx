@@ -4,6 +4,7 @@ import { Lead } from '../types';
 import { PlusIcon, UploadIcon, TrashIcon, SearchIcon, SparklesIcon } from './icons';
 import { ShellCard, SectionHeader, StatusPill } from './UiKit';
 import ConfirmModal from './ConfirmModal';
+import { useAuth } from '../auth/AuthContext';
 
 interface LeadListProps {
   leads: Lead[];
@@ -15,8 +16,10 @@ interface LeadListProps {
 }
 
 const LeadList: React.FC<LeadListProps> = ({ leads, onSelectLead, onAddLeadClick, onImportClick, onFindClick, onDeleteLead }) => {
+  const { user } = useAuth();
   const [leadToDelete, setLeadToDelete] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const canFind = user?.role === "admin" || user?.role === "ops_manager" || user?.role === "dispatcher";
   
   const sortedLeads = useMemo(() => {
       return [...leads].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
@@ -49,14 +52,16 @@ const LeadList: React.FC<LeadListProps> = ({ leads, onSelectLead, onAddLeadClick
           subtitle="Pipeline of people and companies you are speaking to"
           actions={
             <>
-              <button
-                onClick={onFindClick}
-                className="flex items-center gap-2 rounded-lg bg-orange-600 px-4 py-2.5 text-xs font-semibold text-white shadow-sm hover:bg-orange-700 transition"
-                title="Find leads with AI"
-              >
-                <SparklesIcon className="w-4 h-4" />
-                <span>Find Leads</span>
-              </button>
+              {canFind && (
+                <button
+                  onClick={onFindClick}
+                  className="flex items-center gap-2 rounded-lg bg-orange-600 px-4 py-2.5 text-xs font-semibold text-white shadow-sm hover:bg-orange-700 transition"
+                  title="Find leads with AI"
+                >
+                  <SparklesIcon className="w-4 h-4" />
+                  <span>Find Leads</span>
+                </button>
+              )}
               <button
                 onClick={onImportClick}
                 className="flex items-center gap-2 rounded-lg bg-white px-4 py-2.5 text-xs font-medium text-slate-700 shadow-sm ring-1 ring-slate-200 hover:bg-slate-50 transition"

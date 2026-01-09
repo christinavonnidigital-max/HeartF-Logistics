@@ -214,7 +214,7 @@ const AuthedApp: React.FC = () => {
   // Secure Data Filtering for Dashboard
   const getDashboardData = () => {
     if (user.role === 'customer') {
-      const customerId = Number(user.id);
+      const customerId = Number(user.userId);
       return {
         vehicles: [], // Customers don't see fleet details
         leads: [], // Customers don't see sales leads

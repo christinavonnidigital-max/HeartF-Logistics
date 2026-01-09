@@ -59,6 +59,7 @@ const Layout: React.FC<LayoutProps> = ({
 }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { user, logout } = useAuth();
+  const displayName = user ? [user.firstName, user.lastName].filter(Boolean).join(" ") || user.email : "";
 
   let contextType: "fleet" | "crm" | "financials" | "routes" = "fleet";
 
@@ -121,13 +122,13 @@ const Layout: React.FC<LayoutProps> = ({
               {user && (
                 <>
                   <div className="hidden text-right text-xs sm:block">
-                    <p className="font-semibold text-foreground">{user.name}</p>
+                    <p className="font-semibold text-foreground">{displayName}</p>
                     <p className="text-[11px] capitalize text-foreground-muted">
                       {user.role.replace("_", " ")}
                     </p>
                   </div>
                   <div className="flex h-8 w-8 items-center justify-center rounded-full bg-orange-700 text-xs font-semibold text-white shadow-sm ring-2 ring-white">
-                    {user.name
+                    {displayName
                       .split(" ")
                       .map((n) => n[0])
                       .join("")
