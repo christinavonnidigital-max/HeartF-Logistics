@@ -5,6 +5,7 @@ import React, {
   useEffect,
   useState,
 } from "react";
+import { authClient } from "../src/lib/neonAuth";
 
 export type UserRole =
   | "dispatcher"
@@ -33,11 +34,21 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-async function fetchMe(): Promise<User | null> {
-  const res = await fetch("/.netlify/functions/auth-me", {
+async function exchangeSession(): Promise<User | null> {
+  const session = await authClient.getSession();
+  const token = session.data?.session?.token || null;
+  if (!token) return null;
+
+  const res = await fetch("/.netlify/functions/auth-exchange", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
     credentials: "include",
   });
+
   const data = await res.json().catch(() => ({}));
+  if (!res.ok) return null;
   return data?.user || null;
 }
 
@@ -46,41 +57,51 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const session = authClient.useSession();
 
   const refresh = useCallback(async () => {
-    const me = await fetchMe();
+    const me = await exchangeSession();
     setUser(me);
   }, []);
 
   useEffect(() => {
+    if (session.isPending) return;
+    let active = true;
+
     (async () => {
       try {
-        await refresh();
+        if (!session.data) {
+          if (active) setUser(null);
+          return;
+        }
+        const me = await exchangeSession();
+        if (active) setUser(me);
       } finally {
-        setLoading(false);
+        if (active) setLoading(false);
       }
     })();
-  }, [refresh]);
+
+    return () => {
+      active = false;
+    };
+  }, [session.isPending, session.data]);
 
   const login = useCallback(
     async (email: string, password: string) => {
-      const res = await fetch("/.netlify/functions/auth-login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ email, password }),
-      });
-
-      if (!res.ok) return "invalid";
-
-      await refresh();
-      return "ok";
+      try {
+        await authClient.signIn.email({ email, password });
+        await refresh();
+        return "ok";
+      } catch {
+        return "invalid";
+      }
     },
     [refresh]
   );
 
   const logout = useCallback(async () => {
     try {
+      await authClient.signOut();
       await fetch("/.netlify/functions/auth-logout", {
         method: "POST",
         credentials: "include",

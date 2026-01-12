@@ -9,6 +9,9 @@ type LeadProspectingCriteria = {
   industryFocus?: string;
   intentFocus?: string;
   minHeadcount?: string;
+
+  // NEW: lets UI bypass cache
+  forceRefresh?: boolean;
 };
 
 type SearchItem = {
@@ -34,22 +37,38 @@ type LeadProspect = {
     email?: string;
     phone?: string;
   };
-  verified?: boolean;
-  sourcesCount?: number;
-  resultKey?: string;
+
+  // NEW: UI stability
+  verified: boolean;
+  sourcesCount: number;
 };
 
 const MAX_RESULTS = Math.max(1, Math.min(10, Number(process.env.LEAD_FINDER_MAX_RESULTS || "10")));
 const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
 
-const VERIFY_PAGES = (process.env.LEAD_FINDER_VERIFY_PAGES || "").toLowerCase() === "true";
-const VERIFY_MAX = Math.max(0, Math.min(10, Number(process.env.LEAD_FINDER_VERIFY_MAX || "4")));
-const FETCH_TIMEOUT_MS = Math.max(1500, Math.min(15000, Number(process.env.LEAD_FINDER_FETCH_TIMEOUT_MS || "6000")));
-const FETCH_MAX_BYTES = Math.max(50_000, Math.min(500_000, Number(process.env.LEAD_FINDER_FETCH_MAX_BYTES || "200000")));
+// cache window
+const CACHE_HOURS = Math.max(1, Math.min(48, Number(process.env.LEAD_FINDER_CACHE_HOURS || "6")));
 
 function buildQuery(c: LeadProspectingCriteria) {
-  const parts = [c.query?.trim(), c.industryFocus?.trim(), c.intentFocus?.trim(), c.geography?.trim()].filter(Boolean);
+  const parts = [
+    c.query?.trim(),
+    c.industryFocus?.trim(),
+    c.intentFocus?.trim(),
+    c.geography?.trim(),
+  ].filter(Boolean);
+
   return `${parts.join(" ")} (company OR ltd OR limited OR pvt OR services)`;
+}
+
+function makeCacheKey(searchQuery: string, criteria: LeadProspectingCriteria) {
+  // stable key independent of insert order
+  return JSON.stringify({
+    q: searchQuery,
+    geo: criteria.geography || "",
+    ind: criteria.industryFocus || "",
+    intent: criteria.intentFocus || "",
+    size: criteria.minHeadcount || "",
+  });
 }
 
 async function googleCseSearch(qry: string): Promise<SearchItem[]> {
@@ -147,13 +166,15 @@ Return a JSON array of leads matching the schema.
 `.trim();
 }
 
-async function geminiExtractLeads(criteria: LeadProspectingCriteria, items: SearchItem[]): Promise<Omit<LeadProspect, "id">[]> {
+async function geminiExtractLeads(criteria: LeadProspectingCriteria, items: SearchItem[]): Promise<any[]> {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) throw new Error("GEMINI_NOT_CONFIGURED");
 
   const prompt = buildExtractionPrompt(criteria, items);
 
-  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(GEMINI_MODEL)}:generateContent`;
+  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(
+    GEMINI_MODEL
+  )}:generateContent`;
 
   const body = {
     contents: [{ role: "user", parts: [{ text: prompt }] }],
@@ -179,17 +200,15 @@ async function geminiExtractLeads(criteria: LeadProspectingCriteria, items: Sear
   const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
   if (!text) return [];
 
-  let parsed: any;
   try {
-    parsed = JSON.parse(text);
+    const parsed = JSON.parse(text);
+    return Array.isArray(parsed) ? parsed : [];
   } catch {
     const match = text.match(/\[[\s\S]*\]/);
     if (!match) return [];
-    parsed = JSON.parse(match[0]);
+    const parsed = JSON.parse(match[0]);
+    return Array.isArray(parsed) ? parsed : [];
   }
-
-  if (!Array.isArray(parsed)) return [];
-  return parsed;
 }
 
 function normalizeAndGuard(items: SearchItem[], leads: any[]): LeadProspect[] {
@@ -221,11 +240,14 @@ function normalizeAndGuard(items: SearchItem[], leads: any[]): LeadProspect[] {
             }
           : undefined;
 
+      const conf = Math.max(0, Math.min(100, Math.round(confidence)));
+      const hasContact = Boolean(contact?.email || contact?.phone);
+
       return {
         id: `lf_${now}_${idx + 1}`,
         companyName,
         sourceUrl,
-        confidence: Math.max(0, Math.min(100, Math.round(confidence))),
+        confidence: conf,
         website,
         location,
         companySize,
@@ -233,295 +255,58 @@ function normalizeAndGuard(items: SearchItem[], leads: any[]): LeadProspect[] {
         summary,
         intentSignal,
         contact,
+        verified: hasContact,      // only true if contact exists (verification can upgrade later)
+        sourcesCount: 1,           // each lead has at least 1 sourceUrl from CSE
       } as LeadProspect;
     })
     .filter(Boolean) as LeadProspect[];
 }
 
-function resultKeyFromLead(lead: { website?: string; sourceUrl?: string; companyName?: string }): string {
-  const domain = domainFromUrl(lead.website) || domainFromUrl(lead.sourceUrl);
-  if (domain) return `domain:${domain}`;
-  const name = (lead.companyName || "").toLowerCase().replace(/\s+/g, " ").trim();
-  return name ? `name:${name}` : "";
+function reasonHintsForEmpty(criteria: LeadProspectingCriteria) {
+  const hints: string[] = [];
+  if (criteria.minHeadcount) hints.push("Try removing company size.");
+  if (criteria.intentFocus) hints.push("Try removing intent focus or using fewer keywords.");
+  if (criteria.geography) hints.push("Try a broader location (country instead of city).");
+  hints.push("Try adding 'Pvt Ltd' or 'services' to the query.");
+  return hints;
 }
 
-function domainFromUrl(input?: string): string | null {
-  const u = safeUrl(input);
-  if (!u) return null;
-  return u.hostname.replace(/^www\./i, "").toLowerCase();
-}
+async function loadCachedResults(orgId: string, searchId: string) {
+  const r = await q<any>(
+    `select id, company_name, website, location, summary, confidence, contact, source_url
+     from lead_finder_results
+     where org_id = $1 and search_id = $2
+     order by confidence desc
+     limit 100`,
+    [orgId, searchId]
+  );
 
-/* ----------------------------
-   Verification helpers
----------------------------- */
-
-function safeUrl(input?: string): URL | null {
-  if (!input) return null;
-  try {
-    const u = new URL(input);
-    if (u.protocol !== "http:" && u.protocol !== "https:") return null;
-    return u;
-  } catch {
-    return null;
-  }
-}
-
-function guessWebsiteFromSource(sourceUrl?: string): string | undefined {
-  const u = safeUrl(sourceUrl);
-  if (!u) return undefined;
-  return `${u.protocol}//${u.hostname}`;
-}
-
-function findContactUrl(base: URL): string[] {
-  // Try common contact paths. Keep it small.
-  const candidates = ["/contact", "/contact-us", "/about", "/company", "/support"];
-  return candidates.map((p) => `${base.origin}${p}`);
-}
-
-async function fetchText(url: string): Promise<string | null> {
-  const u = safeUrl(url);
-  if (!u) return null;
-
-  const ac = new AbortController();
-  const to = setTimeout(() => ac.abort(), FETCH_TIMEOUT_MS);
-
-  try {
-    const res = await fetch(u.toString(), {
-      method: "GET",
-      redirect: "follow",
-      signal: ac.signal,
-      headers: {
-        "User-Agent": "HeartfledgeLeadFinder/1.0",
-        Accept: "text/html,application/xhtml+xml",
-      },
-    });
-
-    if (!res.ok) return null;
-
-    const ct = (res.headers.get("content-type") || "").toLowerCase();
-    if (!ct.includes("text/html") && !ct.includes("application/xhtml+xml")) return null;
-
-    const reader = res.body?.getReader();
-    if (!reader) {
-      const text = await res.text().catch(() => "");
-      return htmlToText(text).slice(0, 50_000);
-    }
-
-    let received = 0;
-    const chunks: Uint8Array[] = [];
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      if (!value) continue;
-
-      received += value.byteLength;
-      if (received > FETCH_MAX_BYTES) break;
-      chunks.push(value);
-    }
-
-    const buf = Buffer.concat(chunks.map((c) => Buffer.from(c)));
-    const html = buf.toString("utf-8");
-    return htmlToText(html).slice(0, 50_000);
-  } catch {
-    return null;
-  } finally {
-    clearTimeout(to);
-  }
-}
-
-function htmlToText(html: string): string {
-  let s = html;
-
-  // Remove scripts/styles
-  s = s.replace(/<script[\s\S]*?<\/script>/gi, " ");
-  s = s.replace(/<style[\s\S]*?<\/style>/gi, " ");
-  s = s.replace(/<!--[\s\S]*?-->/g, " ");
-
-  // Convert breaks/paragraphs to new lines
-  s = s.replace(/<(br|br\/)\s*>/gi, "\n");
-  s = s.replace(/<\/(p|div|section|article|li|h\d)>/gi, "\n");
-
-  // Strip tags
-  s = s.replace(/<[^>]+>/g, " ");
-
-  // Decode a few common entities
-  s = s.replace(/&nbsp;/g, " ");
-  s = s.replace(/&amp;/g, "&");
-  s = s.replace(/&lt;/g, "<");
-  s = s.replace(/&gt;/g, ">");
-  s = s.replace(/&#39;/g, "'");
-  s = s.replace(/&quot;/g, '"');
-
-  // Normalize whitespace
-  s = s.replace(/[ \t]+/g, " ");
-  s = s.replace(/\n{3,}/g, "\n\n");
-  return s.trim();
-}
-
-function verifySchema() {
-  return {
-    type: "object",
-    properties: {
-      verified: { type: "boolean" },
-      website: { type: "string" },
-      location: { type: "string" },
-      summary: { type: "string" },
-      contact: {
-        type: "object",
-        properties: {
-          email: { type: "string" },
-          phone: { type: "string" },
-        },
-        additionalProperties: false,
-      },
-      confidenceDelta: { type: "integer", minimum: -30, maximum: 30 },
-    },
-    required: ["verified", "confidenceDelta"],
-    additionalProperties: false,
-  };
-}
-
-async function geminiVerifyFromPageText(args: {
-  companyName: string;
-  website: string;
-  pageText: string;
-}): Promise<{
-  verified: boolean;
-  website?: string;
-  location?: string;
-  summary?: string;
-  contact?: { email?: string; phone?: string };
-  confidenceDelta: number;
-}> {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) throw new Error("GEMINI_NOT_CONFIGURED");
-
-  const prompt = `
-You are verifying a business lead ONLY from the provided website text.
-Rules:
-- Do NOT invent any information.
-- Only extract an email or phone if it appears in the text.
-- If the text does not mention something, omit it.
-- verified=true only if the text clearly describes a business matching the company name and looks like an official page.
-
-Company name: ${args.companyName}
-Website: ${args.website}
-
-Website text (evidence):
-${args.pageText}
-
-Return JSON matching the schema.
-`.trim();
-
-  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(GEMINI_MODEL)}:generateContent`;
-
-  const body = {
-    contents: [{ role: "user", parts: [{ text: prompt }] }],
-    generationConfig: {
-      responseMimeType: "application/json",
-      responseSchema: verifySchema(),
-      temperature: 0.1,
-    },
-  };
-
-  const res = await fetch(endpoint, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
-    body: JSON.stringify(body),
+  const mapped: LeadProspect[] = r.rows.map((x: any, idx: number) => {
+    const contact = x.contact && typeof x.contact === "object" ? x.contact : {};
+    const hasContact = Boolean(contact?.email || contact?.phone);
+    return {
+      id: String(x.id || `cached_${idx}`),
+      companyName: String(x.company_name || ""),
+      website: x.website || undefined,
+      location: x.location || undefined,
+      summary: x.summary || undefined,
+      confidence: Math.round(Number(x.confidence ?? 50)),
+      contact,
+      sourceUrl: x.source_url || undefined,
+      verified: hasContact,
+      sourcesCount: x.source_url ? 1 : 0,
+    };
   });
 
-  if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    throw new Error(`GEMINI_FAILED:${res.status}:${text.slice(0, 250)}`);
-  }
-
-  const data = await res.json();
-  const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (!text) return { verified: false, confidenceDelta: 0 };
-
-  let parsed: any;
-  try {
-    parsed = JSON.parse(text);
-  } catch {
-    const match = text.match(/{[\s\S]*}/);
-    if (!match) return { verified: false, confidenceDelta: 0 };
-    parsed = JSON.parse(match[0]);
-  }
-
-  return parsed;
+  return mapped;
 }
-
-async function verifyLead(result: LeadProspect): Promise<LeadProspect> {
-  const website = result.website || guessWebsiteFromSource(result.sourceUrl);
-  const baseUrl = safeUrl(website);
-  if (!baseUrl) return result;
-
-  // Fetch homepage text
-  const homeText = await fetchText(baseUrl.toString());
-  if (!homeText) return result;
-
-  // Fetch a likely contact/about page too (best effort)
-  let extraText = "";
-  for (const candidate of findContactUrl(baseUrl)) {
-    const t = await fetchText(candidate);
-    if (t && t.length > 200) {
-      extraText = t;
-      break;
-    }
-  }
-
-  const combined = [homeText, extraText].filter(Boolean).join("\n\n").slice(0, 50_000);
-
-  // Gemini verification pass
-  const v = await geminiVerifyFromPageText({
-    companyName: result.companyName,
-    website: baseUrl.origin,
-    pageText: combined,
-  });
-
-  if (!v || !v.verified) {
-    // slight penalty if verification fails
-    return { ...result, verified: false, confidence: Math.max(0, (result.confidence ?? 50) - 5) };
-  }
-
-  const nextConfidence = Math.max(0, Math.min(100, (result.confidence ?? 50) + (v.confidenceDelta ?? 10)));
-
-  return {
-    ...result,
-    verified: true,
-    website: v.website || result.website || baseUrl.origin,
-    location: v.location || result.location,
-    summary: v.summary || result.summary,
-    contact: {
-      ...(result.contact || {}),
-      ...(v.contact || {}),
-    },
-    confidence: nextConfidence,
-  };
-}
-
-/* ----------------------------
-   Handler
----------------------------- */
 
 export const handler: Handler = async (event) => {
   try {
     const a = await requireAuth(event);
     if (event.httpMethod !== "POST") return json(405, { error: "Method not allowed" });
 
-    // permission gate
     requireRole(a, ["admin", "ops_manager", "dispatcher"]);
-
-    const DAY_LIMIT = Number(process.env.LEAD_FINDER_DAILY_LIMIT || "50");
-    const { rows: limitRows } = await q<{ c: number }>(
-      `select count(*)::int as c
-       from lead_finder_searches
-       where org_id = $1 and created_at > now() - interval '24 hours'`,
-      [a.orgId]
-    );
-    if ((limitRows[0]?.c ?? 0) >= DAY_LIMIT) {
-      return json(429, { error: "Daily Lead Finder limit reached. Try again tomorrow." });
-    }
 
     const criteria = readJson<LeadProspectingCriteria>(event);
     const query = (criteria.query || "").trim();
@@ -529,75 +314,39 @@ export const handler: Handler = async (event) => {
 
     const mode = (process.env.LEAD_FINDER_MODE || "grounded").toLowerCase();
     const searchQuery = buildQuery(criteria);
+    const cacheKey = makeCacheKey(searchQuery, criteria);
+    const forceRefresh = Boolean(criteria.forceRefresh);
 
-    const cacheKey = JSON.stringify({
-      q: searchQuery,
-      geo: criteria.geography || "",
-      ind: criteria.industryFocus || "",
-      intent: criteria.intentFocus || "",
-    });
+    // 1) Cache lookup: ONLY return cached if it has results
+    if (!forceRefresh) {
+      try {
+        const cached = await q<{ id: string }>(
+          `select id
+           from lead_finder_searches
+           where org_id = $1
+             and query = $2
+             and criteria->>'cacheKey' = $3
+             and created_at > now() - ($4 || ' hours')::interval
+           order by created_at desc
+           limit 1`,
+          [a.orgId, searchQuery, cacheKey, String(CACHE_HOURS)]
+        );
 
-    const cached = await q<{ search_id: string }>(
-      `select id as search_id
-       from lead_finder_searches
-       where org_id = $1 and query = $2 and criteria->>'cacheKey' = $3
-       and created_at > now() - interval '6 hours'
-       order by created_at desc
-       limit 1`,
-      [a.orgId, searchQuery, cacheKey]
-    );
+        if (cached.rowCount === 1) {
+          const cachedId = cached.rows[0].id;
+          const cachedResults = await loadCachedResults(a.orgId, cachedId);
 
-    if (cached.rowCount === 1) {
-      const searchId = cached.rows[0].search_id;
-      const r = await q(
-        `select id, company_name, website, location, summary, confidence, contact, source_url
-         from lead_finder_results
-         where search_id = $1
-         order by confidence desc
-         limit 50`,
-        [searchId]
-      );
-
-      return json(200, {
-        ok: true,
-        searchId,
-        results: r.rows.map((x: any, idx: number) => {
-          const contact =
-            x.contact && typeof x.contact === "string"
-              ? (() => {
-                  try {
-                    return JSON.parse(x.contact);
-                  } catch {
-                    return {};
-                  }
-                })()
-              : x.contact;
-          const hasContact = Boolean(contact?.email || contact?.phone);
-          const resultKey = resultKeyFromLead({
-            website: x.website,
-            sourceUrl: x.source_url,
-            companyName: x.company_name,
-          });
-
-          return {
-            id: x.id || `cached_${idx}`,
-            companyName: x.company_name,
-            website: x.website,
-            location: x.location,
-            summary: x.summary,
-            confidence: Math.round(Math.max(0, Math.min(100, x.confidence ?? 50))),
-            contact,
-            sourceUrl: x.source_url,
-            verified: Boolean(hasContact),
-            sourcesCount: Number(x.source_url ? 1 : 0),
-            resultKey: resultKey || `cached_${idx}`,
-          };
-        }),
-        cached: true,
-      });
+          // IMPORTANT: do not serve cached empty results
+          if (cachedResults.length > 0) {
+            return json(200, { ok: true, searchId: cachedId, results: cachedResults, cached: true });
+          }
+        }
+      } catch {
+        // ignore cache errors, fall through to fresh search
+      }
     }
 
-    // Optional: log search
+    // 2) Insert search record for this run (with cacheKey)
     let searchId: string | null = null;
     try {
       const ins = await q<{ id: string }>(
@@ -608,10 +357,10 @@ export const handler: Handler = async (event) => {
       );
       searchId = ins.rows[0]?.id || null;
     } catch {
-      // optional logging only
+      // optional
     }
 
-    // 1) Grounding: search
+    // 3) Grounding: Google search
     let items: SearchItem[] = [];
     try {
       items = await googleCseSearch(searchQuery);
@@ -623,9 +372,17 @@ export const handler: Handler = async (event) => {
       return json(500, { error: "Search failed" });
     }
 
-    if (!items.length) return json(200, { ok: true, searchId, results: [] });
+    if (!items.length) {
+      return json(200, {
+        ok: true,
+        searchId,
+        results: [],
+        cached: false,
+        reasonHints: reasonHintsForEmpty(criteria),
+      });
+    }
 
-    // 2) Extract leads
+    // 4) Extract leads
     let extracted: any[] = [];
     if (mode === "grounded") {
       try {
@@ -648,40 +405,7 @@ export const handler: Handler = async (event) => {
 
     let results = normalizeAndGuard(items, extracted);
 
-    // 3) Verify pages (optional)
-    if (VERIFY_PAGES && mode === "grounded" && VERIFY_MAX > 0) {
-      const toVerify = results.slice(0, VERIFY_MAX);
-      const verified: LeadProspect[] = [];
-
-      for (const r of toVerify) {
-        try {
-          const vr = await verifyLead(r);
-          verified.push(vr);
-        } catch {
-          verified.push(r);
-        }
-      }
-
-      // Merge verified back into results by id
-      const byId = new Map(verified.map((v) => [v.id, v]));
-      results = results.map((r) => byId.get(r.id) || r);
-    }
-
-    results = results.map((r) => {
-      const confidence = Math.round(Math.max(0, Math.min(100, r.confidence ?? 50)));
-      const hasContact = Boolean(r.contact?.email?.trim()) || Boolean(r.contact?.phone?.trim());
-      const resultKey = resultKeyFromLead(r);
-
-      return {
-        ...r,
-        confidence,
-        verified: Boolean(r.verified || hasContact),
-        sourcesCount: Number(r.sourcesCount ?? (r.sourceUrl ? 1 : 0)),
-        resultKey: resultKey || r.id,
-      };
-    });
-
-    // Optional: store results
+    // 5) Persist results (optional)
     if (searchId) {
       try {
         for (const r of results) {
@@ -703,11 +427,22 @@ export const handler: Handler = async (event) => {
           );
         }
       } catch {
-        // optional persistence
+        // optional
       }
     }
 
-    return json(200, { ok: true, searchId, results });
+    // If empty, return hints so UI is never "blank"
+    if (results.length === 0) {
+      return json(200, {
+        ok: true,
+        searchId,
+        results: [],
+        cached: false,
+        reasonHints: reasonHintsForEmpty(criteria),
+      });
+    }
+
+    return json(200, { ok: true, searchId, results, cached: false });
   } catch (e: any) {
     const msg = String(e?.message || "");
     if (msg === "UNAUTHENTICATED") return json(401, { error: "Unauthenticated" });

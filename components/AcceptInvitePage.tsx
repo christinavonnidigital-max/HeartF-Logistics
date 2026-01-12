@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from "react";
+import { authClient } from "../src/lib/neonAuth";
 
 const parseQuery = () => {
   if (typeof window === "undefined") return new URLSearchParams();
@@ -66,15 +67,23 @@ const AcceptInvitePage: React.FC = () => {
         return;
       }
 
-      const login = await fetch("/.netlify/functions/auth-login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ email, password }),
-      });
+      try {
+        await authClient.signUp.email({
+          email,
+          password,
+          name: `${firstName} ${lastName}`.trim(),
+        });
+      } catch {
+        try {
+          await authClient.signIn.email({ email, password });
+        } catch (signInError: any) {
+          setError(signInError?.message || "Invite accepted, but sign-in failed.");
+          return;
+        }
+      }
 
       if (typeof window !== "undefined") {
-        window.location.href = login.ok ? "/" : "/login";
+        window.location.href = "/";
       }
     } catch (err: any) {
       setError(err?.message || "Network error.");
