@@ -43,18 +43,22 @@ export const SectionHeader: React.FC<{
   title: string;
   subtitle?: string;
   right?: React.ReactNode;
+  actions?: React.ReactNode;
   className?: string;
-}> = ({ title, subtitle, right, className }) => (
-  <div className={cn("flex items-start justify-between gap-4", className)}>
-    <div className="min-w-0">
-      <div className="text-lg font-semibold tracking-tight">{title}</div>
-      {subtitle ? (
-        <div className="text-sm text-muted-foreground">{subtitle}</div>
-      ) : null}
+}> = ({ title, subtitle, right, actions, className }) => {
+  const rightSlot = right ?? actions;
+  return (
+    <div className={cn("flex items-start justify-between gap-4", className)}>
+      <div className="min-w-0">
+        <div className="text-lg font-semibold tracking-tight">{title}</div>
+        {subtitle ? (
+          <div className="text-sm text-muted-foreground">{subtitle}</div>
+        ) : null}
+      </div>
+      {rightSlot ? <div className="shrink-0">{rightSlot}</div> : null}
     </div>
-    {right ? <div className="shrink-0">{right}</div> : null}
-  </div>
-);
+  );
+};
 
 export const PageHeader: React.FC<{
   title: string;

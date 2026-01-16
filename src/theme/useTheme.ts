@@ -5,29 +5,24 @@ const KEY = "hf-theme";
 
 function applyTheme(theme: Theme) {
   const root = document.documentElement;
-  const systemDark = window.matchMedia?.("(prefers-color-scheme: dark)")?.matches ?? false;
-  const isDark = theme === "dark" || (theme === "system" && systemDark);
-  root.classList.toggle("dark", isDark);
+  // Force light mode; never apply the dark class
+  root.classList.remove("dark");
 }
 
 export function useTheme() {
-  const [theme, setTheme] = useState<Theme>(() => {
-    const saved = localStorage.getItem(KEY) as Theme | null;
-    return saved ?? "system";
-  });
+  const [theme, setTheme] = useState<Theme>("light");
 
   useEffect(() => {
-    localStorage.setItem(KEY, theme);
-    applyTheme(theme);
-
-    if (theme !== "system") return;
-
-    const mq = window.matchMedia("(prefers-color-scheme: dark)");
-    const onChange = () => applyTheme("system");
-    mq.addEventListener?.("change", onChange);
-    return () => mq.removeEventListener?.("change", onChange);
+    // Persist light mode so future loads stay light
+    try {
+      localStorage.setItem(KEY, "light");
+    } catch {
+      // ignore storage errors
+    }
+    applyTheme("light");
   }, [theme]);
 
+  // Expose theme state, but we always apply light on effect
   return useMemo(() => ({ theme, setTheme }), [theme]);
 }
 

@@ -58,6 +58,6 @@ test('customer role cannot change booking status (buttons disabled)', async ({ p
   // Check for the booking details modal by heading text
   await expect(page.locator('text=Status timeline')).toBeVisible({ timeout: 5000 });
 
-  const confirmBtn = page.locator('button:has-text("Move to Confirmed")');
+  const confirmBtn = page.locator('button:has-text("Confirmed")');
   await expect(confirmBtn).toBeDisabled();
 });

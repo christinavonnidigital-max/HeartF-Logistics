@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ModalShell, Button, SubtleCard } from '../components/UiKit';
 import FieldMapping, { TargetField } from './FieldMapping';
-import { parseCsvText, validateRows, autoMapHeaders } from './parseCsv';
+import { parseCsvText, validateRows, autoMapHeaders, ValidationIssue } from './parseCsv';
 
 interface ImportModalProps {
   isOpen: boolean;
@@ -10,159 +10,291 @@ interface ImportModalProps {
   description?: string;
   targetFields: TargetField[];
   onImport: (rows: Record<string, any>[], meta: { imported: number; failed: number }) => void;
+
+  // Optional UI slot rendered inside the modal (for extra import options like match mode)
+  extraControls?: React.ReactNode;
 }
 
-const ImportModal: React.FC<ImportModalProps> = ({ isOpen, onClose, targetFields, onImport, title, description }) => {
+type Stage = 'idle' | 'parsed';
+
+const ImportModal: React.FC<ImportModalProps> = ({
+  isOpen,
+  onClose,
+  targetFields,
+  onImport,
+  title,
+  description,
+  extraControls,
+}) => {
+  const [stage, setStage] = useState<Stage>('idle');
   const [fileName, setFileName] = useState<string>('');
   const [headers, setHeaders] = useState<string[]>([]);
   const [rows, setRows] = useState<Record<string, string>[]>([]);
   const [mapping, setMapping] = useState<Record<string, string>>({});
-  const [issues, setIssues] = useState<string[]>([]);
-  const [rowIssues, setRowIssues] = useState<string[]>([]);
+  const [errors, setErrors] = useState<string[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
+
+  const requiredKeys = useMemo(
+    () => targetFields.filter((f) => f.required).map((f) => f.key),
+    [targetFields]
+  );
+
+  const validationIssues: ValidationIssue[] = useMemo(() => {
+    if (!rows.length) return [];
+    return validateRows(rows, requiredKeys, mapping);
+  }, [rows, requiredKeys, mapping]);
+
+  const issueLines = useMemo(() => {
+    if (!validationIssues.length) return [];
+    const max = 12;
+    const lines = validationIssues
+      .slice(0, max)
+      .map((i) => `Row ${i.row}: ${i.field} — ${i.message}`);
+    if (validationIssues.length > max) lines.push(`…and ${validationIssues.length - max} more issue(s).`);
+    return lines;
+  }, [validationIssues]);
+
+  const previewRows = useMemo(() => rows.slice(0, 5), [rows]);
+
+  const reset = () => {
+    setStage('idle');
+    setFileName('');
+    setHeaders([]);
+    setRows([]);
+    setMapping({});
+    setErrors([]);
+    setIsProcessing(false);
+  };
 
   useEffect(() => {
     if (!isOpen) {
-      setFileName('');
-      setHeaders([]);
-      setRows([]);
-      setMapping({});
-      setIssues([]);
-      setRowIssues([]);
+      reset();
+      return;
     }
+    reset();
   }, [isOpen]);
 
-  const requiredKeys = useMemo(() => targetFields.filter((f) => f.required).map((f) => f.key), [targetFields]);
-
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setFileName(file.name);
-    const text = await file.text();
-    const parsed = parseCsvText(text);
-    setHeaders(parsed.headers);
-    setRows(parsed.rows);
-    setIssues(parsed.errors || []);
-    setMapping(autoMapHeaders(parsed.headers, targetFields));
+    const f = e.target.files?.[0];
+    if (!f) return;
+
+    setErrors([]);
+    setIsProcessing(true);
+
+    try {
+      const text = await f.text();
+      const parsed = parseCsvText(text);
+
+      const errs = parsed.errors ?? [];
+      if (errs.length) setErrors(errs);
+
+      setHeaders(parsed.headers);
+      setRows(parsed.rows);
+      setFileName(f.name);
+
+      const auto = autoMapHeaders(parsed.headers, targetFields);
+      setMapping(auto);
+
+      setStage('parsed');
+    } catch {
+      setErrors(['Failed to read or parse the CSV file.']);
+      setStage('idle');
+    } finally {
+      setIsProcessing(false);
+      e.target.value = '';
+    }
   };
 
-  const handleImport = () => {
-    if (!rows.length) {
-      setIssues(['Please upload a CSV file first.']);
-      return;
-    }
-    const missingRequired = requiredKeys.filter((k) => !mapping[k]);
-    if (missingRequired.length) {
-      setIssues([`Map required fields: ${missingRequired.join(', ')}`]);
-      return;
-    }
-    const validation = validateRows(rows, requiredKeys, mapping);
-    if (validation.length) {
-      setRowIssues(validation.slice(0, 5).map((v) => `Row ${v.row}: ${v.field} - ${v.message}`));
-      setIssues(['Please fix required fields in the CSV and try again.']);
-      return;
+  const buildMappedRows = () => {
+    const out: Record<string, any>[] = [];
+
+    for (const r of rows) {
+      const obj: Record<string, any> = {};
+      for (const tf of targetFields) {
+        const columnName = mapping[tf.key];
+        obj[tf.key] = columnName ? (r[columnName] ?? '').trim() : '';
+      }
+      out.push(obj);
     }
 
+    return out;
+  };
+
+  const isRowValid = (rowObj: Record<string, any>) => {
+    for (const key of requiredKeys) {
+      const v = rowObj[key];
+      if (v === null || v === undefined || String(v).trim() === '') return false;
+    }
+    return true;
+  };
+
+  const handleImport = async () => {
     setIsProcessing(true);
     try {
-      const mapped = rows.map((row) => {
-        const obj: Record<string, any> = {};
-        Object.entries(mapping).forEach(([fieldKey, columnName]) => {
-          obj[fieldKey] = columnName ? row[columnName] : '';
-        });
-        return obj;
-      });
-      onImport(mapped, { imported: mapped.length, failed: 0 });
+      const mapped = buildMappedRows();
+
+      const valid: Record<string, any>[] = [];
+      let failed = 0;
+
+      for (const m of mapped) {
+        if (isRowValid(m)) valid.push(m);
+        else failed += 1;
+      }
+
+      onImport(valid, { imported: valid.length, failed });
       onClose();
     } finally {
       setIsProcessing(false);
     }
   };
 
-  if (!isOpen) return null;
+  const footer = (
+    <div className="flex w-full items-center justify-between gap-3">
+      <div className="text-xs text-muted-foreground">
+        {rows.length ? `${rows.length} row(s) loaded` : 'Awaiting CSV upload'}
+        {fileName ? ` • ${fileName}` : ''}
+      </div>
+
+      <div className="flex items-center gap-2">
+        <Button variant="ghost" onClick={onClose} disabled={isProcessing}>
+          Cancel
+        </Button>
+        <Button
+          variant="primary"
+          onClick={handleImport}
+          disabled={isProcessing || !rows.length || validationIssues.length > 0}
+        >
+          {isProcessing ? 'Importing...' : 'Import'}
+        </Button>
+      </div>
+    </div>
+  );
 
   return (
     <ModalShell
       isOpen={isOpen}
       onClose={onClose}
-      title={title || 'Import data'}
-      description={description || 'Upload a CSV, map the columns, and apply the import.'}
+      title={title ?? 'Import CSV'}
+      description={description}
+      footer={footer}
       maxWidthClass="max-w-4xl"
-      footer={
-        <div className="flex items-center justify-between w-full">
-          <div className="text-xs text-foreground-muted">
-            {rows.length ? `${rows.length} row(s) ready` : 'Awaiting CSV upload'}
-          </div>
-          <div className="flex gap-2">
-            <Button variant="ghost" onClick={onClose} disabled={isProcessing}>Cancel</Button>
-            <Button variant="primary" onClick={handleImport} disabled={isProcessing || !rows.length}>
-              {isProcessing ? 'Importing...' : 'Import'}
-            </Button>
-          </div>
-        </div>
-      }
     >
       <div className="space-y-4">
         <div className="flex items-center gap-3">
-          <label className="flex items-center gap-3 rounded-xl border border-dashed border-border px-4 py-3 bg-card cursor-pointer hover:border-orange-300">
-            <input type="file" accept=".csv,text/csv" className="hidden" onChange={handleFileChange} />
-            <div>
-              <p className="text-sm font-semibold text-foreground">Upload CSV</p>
-              <p className="text-xs text-foreground-muted">UTF-8 CSV with a header row.</p>
+          <label className="flex w-full items-center justify-between gap-3 rounded-xl border border-border bg-card px-4 py-3 cursor-pointer hover:border-orange-300">
+            <div className="min-w-0">
+              <div className="font-medium text-foreground">Upload CSV</div>
+              <div className="text-xs text-muted-foreground truncate">
+                {fileName ? fileName : 'Choose a .csv file to import'}
+              </div>
             </div>
+
+            <div className="shrink-0">
+              <Button variant="secondary" onClick={() => {}} disabled={isProcessing}>
+                Browse
+              </Button>
+            </div>
+
+            <input type="file" accept=".csv,text/csv" className="hidden" onChange={handleFileChange} />
           </label>
-          {fileName && <div className="text-sm text-foreground-muted truncate">{fileName}</div>}
+
+          {stage !== 'idle' ? (
+            <Button variant="ghost" onClick={reset} disabled={isProcessing}>
+              Reset
+            </Button>
+          ) : null}
         </div>
 
-        {issues.length > 0 && (
-          <SubtleCard className="p-3 border border-rose-100 bg-rose-50">
-            <p className="text-sm font-semibold text-rose-700">Issues</p>
-            <ul className="mt-1 text-xs text-rose-600 space-y-1">
-              {issues.map((i, idx) => <li key={idx}>- {i}</li>)}
-            </ul>
-          </SubtleCard>
-        )}
-
-        {headers.length > 0 && (
-          <SubtleCard className="p-4 space-y-4">
-            <h4 className="text-sm font-semibold text-foreground">Map columns</h4>
-            <FieldMapping headers={headers} targetFields={targetFields} mapping={mapping} onChange={setMapping} />
-          </SubtleCard>
-        )}
-
-        {rows.length > 0 && (
-          <SubtleCard className="p-4 space-y-3">
-            <h4 className="text-sm font-semibold text-foreground">Preview</h4>
-            <div className="overflow-x-auto border border-border rounded-lg">
-              <table className="min-w-full text-xs">
-                <thead className="bg-muted text-foreground">
-                  <tr>
-                    {Object.keys(mapping).map((key) => (
-                      <th key={key} className="px-2 py-1 text-left capitalize">{key}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {rows.slice(0, 5).map((row, idx) => (
-                    <tr key={idx} className="border-t border-border">
-                      {Object.entries(mapping).map(([fieldKey, col]) => (
-                        <td key={fieldKey} className="px-2 py-1 text-foreground-muted">{row[col]}</td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              {rows.length > 5 && (
-                <div className="text-[11px] text-foreground-muted px-2 py-1">Showing first 5 rows of {rows.length}</div>
-              )}
+        {errors.length > 0 ? (
+          <SubtleCard>
+            <div className="text-sm font-medium text-rose-700">CSV Issues</div>
+            <div className="mt-2 space-y-1 text-xs text-rose-700">
+              {errors.map((e, idx) => (
+                <div key={idx}>• {e}</div>
+              ))}
             </div>
-            {rowIssues.length > 0 && (
-              <div className="text-xs text-rose-600 space-y-1">
-                {rowIssues.map((i, idx) => <div key={idx}>- {i}</div>)}
-              </div>
-            )}
           </SubtleCard>
-        )}
+        ) : null}
+
+        {stage === 'parsed' ? (
+          <div className="space-y-4">
+            {extraControls ? <SubtleCard>{extraControls}</SubtleCard> : null}
+
+            <SubtleCard>
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <div className="text-sm font-medium text-foreground">Map fields</div>
+                  <div className="text-xs text-muted-foreground">
+                    Map your CSV columns to the fields used by this import.
+                  </div>
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  Headers detected: <span className="font-medium text-foreground">{headers.length}</span>
+                </div>
+              </div>
+
+              <div className="mt-3">
+                <FieldMapping
+                  headers={headers}
+                  targetFields={targetFields}
+                  mapping={mapping}
+                  onChange={setMapping}
+                />
+              </div>
+
+              {issueLines.length > 0 ? (
+                <div className="mt-4 rounded-xl border border-rose-200 bg-rose-50 p-3">
+                  <div className="text-sm font-medium text-rose-800">Fix these before importing</div>
+                  <div className="mt-2 space-y-1 text-xs text-rose-700">
+                    {issueLines.map((line, idx) => (
+                      <div key={idx}>• {line}</div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-3">
+                  <div className="text-sm font-medium text-emerald-800">Looks good</div>
+                  <div className="mt-1 text-xs text-emerald-700">
+                    All required fields are mapped and present in the data.
+                  </div>
+                </div>
+              )}
+            </SubtleCard>
+
+            {previewRows.length ? (
+              <SubtleCard>
+                <div className="text-sm font-medium text-foreground">Preview (first {previewRows.length} row(s))</div>
+                <div className="mt-2 overflow-auto rounded-lg border border-border bg-card">
+                  <table className="min-w-full text-xs">
+                    <thead className="bg-muted">
+                      <tr>
+                        {headers.slice(0, 10).map((h) => (
+                          <th key={h} className="px-3 py-2 text-left font-medium text-muted-foreground">
+                            {h}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {previewRows.map((r, idx) => (
+                        <tr key={idx} className="border-t border-border">
+                          {headers.slice(0, 10).map((h) => (
+                            <td key={h} className="px-3 py-2 text-foreground">
+                              {(r[h] ?? '').slice(0, 160)}
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                {headers.length > 10 ? (
+                  <div className="mt-2 text-xs text-muted-foreground">Showing the first 10 columns.</div>
+                ) : null}
+              </SubtleCard>
+            ) : null}
+          </div>
+        ) : null}
       </div>
     </ModalShell>
   );

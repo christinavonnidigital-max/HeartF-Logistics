@@ -64,13 +64,13 @@ test('status transitions are tracked and produce audit events', async ({ page })
   await expect(page.locator('text=Status timeline')).toBeVisible({ timeout: 5000 });
 
   // Move to Confirmed
-  const confirmBtn = page.locator('button:has-text("Move to Confirmed")');
+  const confirmBtn = page.locator('button:has-text("Confirmed")');
   await expect(confirmBtn).toBeVisible({ timeout: 5000 });
   await expect(confirmBtn).toBeEnabled();
 
   // Inspect button state and attempt a direct DOM click if needed
   const info = await page.evaluate(() => {
-    const btn = Array.from(document.querySelectorAll('button')).find((b) => b.textContent && b.textContent.includes('Move to Confirmed')) as HTMLButtonElement | undefined;
+    const btn = Array.from(document.querySelectorAll('button')).find((b) => b.textContent && b.textContent.includes('Confirmed')) as HTMLButtonElement | undefined;
     if (!btn) return { exists: false };
     const rect = btn.getBoundingClientRect();
     return { exists: true, disabled: btn.disabled, x: rect.x, y: rect.y, w: rect.width, h: rect.height };
@@ -83,7 +83,7 @@ test('status transitions are tracked and produce audit events', async ({ page })
     } catch (err) {
       // Fallback to DOM click
       await page.evaluate(() => {
-        const btn = Array.from(document.querySelectorAll('button')).find((b) => b.textContent && b.textContent.includes('Move to Confirmed')) as HTMLButtonElement | undefined;
+        const btn = Array.from(document.querySelectorAll('button')).find((b) => b.textContent && b.textContent.includes('Confirmed')) as HTMLButtonElement | undefined;
         if (btn) btn.click();
       });
     }
@@ -178,7 +178,7 @@ test('status transitions are tracked and produce audit events', async ({ page })
   expect(audit.meta && audit.meta.to).toBe('confirmed');
 
   // Move to Dispatched (from confirmed) — only if the transition is available and enabled
-  const dispatchBtn = page.locator('button:has-text("Move to Dispatched")');
+  const dispatchBtn = page.locator('button:has-text("Dispatched")');
   if ((await dispatchBtn.count()) && (await dispatchBtn.isEnabled())) {
     await dispatchBtn.click();
 
@@ -203,7 +203,7 @@ test('status transitions are tracked and produce audit events', async ({ page })
   }
 
   // Move to In Transit (if available) and then Delivered — optional and guarded
-  const transitBtn = page.locator('button:has-text("Move to In Transit")');
+  const transitBtn = page.locator('button:has-text("In Transit")');
   if ((await transitBtn.count()) && (await transitBtn.isEnabled())) {
     await transitBtn.click();
 
@@ -223,7 +223,7 @@ test('status transitions are tracked and produce audit events', async ({ page })
       console.warn('In Transit transition did not produce expected audit entry; skipping.');
     }
 
-    const deliveredBtn = page.locator('button:has-text("Move to Delivered")');
+    const deliveredBtn = page.locator('button:has-text("Delivered")');
     if ((await deliveredBtn.count()) && (await deliveredBtn.isEnabled())) {
       await deliveredBtn.click();
       try {

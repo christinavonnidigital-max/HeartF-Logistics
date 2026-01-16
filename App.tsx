@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import Layout from './components/Layout';
 import FleetDashboard from './components/FleetDashboard';
 import CrmDashboard from './components/CrmDashboard';
@@ -19,6 +19,7 @@ import LoginPage from './components/LoginPage';
 import { AuthProvider, useAuth, UserRole } from './auth/AuthContext';
 import { DataProvider, useData } from './contexts/DataContext';
 import AcceptInvitePage from './components/AcceptInvitePage';
+import InviteUsersPage from './components/InviteUsersPage';
 import LeadFinderPage from './components/LeadFinderPage';
 
 // Static mocks still needed for some secondary data like routes/waypoints/activities which we aren't putting in global state yet
@@ -67,6 +68,8 @@ function loadSettings(): AppSettings {
   }
 }
 
+const FullScreenLoader: React.FC<{ message?: string }> = () => null;
+
 const AuthedApp: React.FC = () => {
   const { user, loading } = useAuth();
   const {
@@ -108,13 +111,15 @@ const AuthedApp: React.FC = () => {
     settings: ['admin', 'ops_manager', 'finance'],
   };
 
-  // Integrate axe-core in development to catch accessibility regressions early
-  // This runs only in dev and avoids bundling in production
-  if ((import.meta as any).env?.DEV && typeof window !== 'undefined') {
+  useEffect(() => {
+    if (!(import.meta as any).env?.DEV || typeof window === 'undefined') return;
+
+    let cancelled = false;
+
     (async () => {
       try {
         const axe = await import('axe-core');
-        // Run a single pass and log violations to console in development
+        if (cancelled) return;
         // eslint-disable-next-line no-console
         axe.run(document, {}, (err: any, results: any) => {
           if (err) {
@@ -126,12 +131,11 @@ const AuthedApp: React.FC = () => {
             // eslint-disable-next-line no-console
             console.groupCollapsed('Axe accessibility violations (development)');
             // eslint-disable-next-line no-console
-            console.table(results.violations.map((v: any) => ({ id: v.id, impact: v.impact, nodes: v.nodes.length, help: v.help }))); 
+            console.table(results.violations.map((v: any) => ({ id: v.id, impact: v.impact, nodes: v.nodes.length, help: v.help })));
             results.violations.forEach((v: any) => {
               // eslint-disable-next-line no-console
               console.log(v);
             });
-            // Expose violations to window for E2E test capture
             try {
               (window as any).__axeViolations__ = results.violations;
             } catch (e) {
@@ -149,7 +153,11 @@ const AuthedApp: React.FC = () => {
         console.warn('axe-core failed to run:', err);
       }
     })();
-  }
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Redirect to dashboard if user logs in or permissions change/fail
   useEffect(() => {
@@ -162,7 +170,7 @@ const AuthedApp: React.FC = () => {
   }, [user, activeView]);
 
   if (loading) {
-      return null; 
+    return <FullScreenLoader message="Loading Heartfledge workspace..." />; 
   }
 
   if (!user) {
@@ -276,11 +284,13 @@ const AuthedApp: React.FC = () => {
 const App: React.FC = () => (
   <AuthProvider>
     <DataProvider>
-        {typeof window !== 'undefined' && window.location.pathname.startsWith('/accept-invite') ? (
-          <AcceptInvitePage />
-        ) : (
-          <AuthedApp />
-        )}
+      {typeof window !== 'undefined' && window.location.pathname.startsWith('/accept-invite') ? (
+        <AcceptInvitePage />
+      ) : typeof window !== 'undefined' && window.location.pathname.startsWith('/invite-users') ? (
+        <InviteUsersPage />
+      ) : (
+        <AuthedApp />
+      )}
     </DataProvider>
   </AuthProvider>
 );

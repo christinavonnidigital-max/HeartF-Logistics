@@ -87,7 +87,11 @@ test.describe('Modal placement & body scroll lock', () => {
     try {
       await page.click('button:has-text("New Invoice")');
     } catch {
-      await page.click('button:has-text("Add Invoice")');
+      try {
+        await page.click('button:has-text("Add Invoice")');
+      } catch {
+        await page.click('button:has-text("Add invoice")');
+      }
     }
 
     const dlg = page.locator('role=dialog');

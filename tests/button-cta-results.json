@@ -1,7 +1,7 @@
 {
   "results": {
     "meta": {
-      "timestamp": "2026-01-03T19:07:48.276Z"
+      "timestamp": "2026-01-13T02:15:46.981Z"
     },
     "views": [
       {
@@ -45,17 +45,16 @@
           },
           {
             "label": "New booking",
-            "found": true,
-            "outcome": "opened-dialog",
+            "found": false,
+            "outcome": "not-found",
             "error": null,
-            "dialogHtml": "<div class=\"absolute inset-0 bg-black/40 backdrop-blur-sm\"></div><div class=\"relative w-full max-w-3xl w-full max-w-3xl max-h-[85vh] overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-xl flex flex-col\"><div class=\"flex items-start justify-between gap-4 border-b border-border p-6\"><div class=\"flex min-w-0 items-start gap-4\"><div class=\"mt-0.5 grid h-10 w-10 place-items-center rounded-xl border border-border bg-muted\"><svg class=\"w-5 h-5\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" role=\"img\"><title>Fleet</title><path d=\"M3 16V8a2 2 0 0 1 2-2h9v10H3z\"></path><path d=\"M14 10h3.2a2 2 0 0 1 1.6.8l2.2 3V16a2 2 0 0 1-2 2h-1\"></path><path d=\"M14 16h3\"></path><path d=\"M7 18a2 2 0 1 0 0.01 0\"></path><path d=\"M18 18a2 2 0 1 0 0.01 0\"></path></svg></div><div class=\"min-w-0\"><h2 id=\"modal-title-:r1:\" class=\"text-lg font-semibold tracking-tight\">Create booking</h2><div id=\"modal-desc-:r1:\" class=\"mt-1 text-sm text-muted-foreground\">Capture the route, cargo, and pricing. Required fields are marked with *.</div></div></div><button class=\"inline-flex items-center justify-center gap-2 rounded-xl font-semibold transition active:translate-y-[1px] disabled:opacity-60 disabled:pointer-events-none h-9 px-3 text-sm bg-transparent hover:bg-muted text-foreground\" aria-label=\"Close\">✕</button></div><div class=\"flex-1 px-6 py-5 overflow-y-auto min-h-0 custom-scrollbar\"><form id=\"add-booking-form\" class=\"min-h-0\"><div class=\"min-h-0\"><div class=\"grid grid-cols-1 md:grid-cols-2 gap-6\"><div class=\"space-y-6\"><div><div class=\"flex items-start justify-between gap-4\"><div class=\"min-w-0\"><div class=\"text-lg font-semibold tracking-tight\">Customer</div></div></div><div class=\"mt-3\"><div class=\"relative\"><div class=\"absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none\"><svg class=\"h-5 w-5 text-foreground-muted\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" role=\"img\"><title>User</title><circle cx=\"12\" cy=\"12\" r=\"9\"></circle><path d=\"M12 10a3 3 0 1 0 0.01 0\"></path><path d=\"M6 18c1.5-2.5 6-2.5 12 0\"></path></svg></div><select class=\"h-10 w-full rounded-xl border border-border bg-card px-3 text-sm text-foreground shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500/50 block w-full rounded-lg border border-border bg-card pl-10 py-2.5 text-sm font-medium text-foreground shadow-sm transition-shadow \" name=\"customer_id\"><option value=\"\">Select Customer...</option><option value=\"101\">Retail Giant Zimbabwe</option><option value=\"102\">Mining Corp</option><option value=\"103\">Fresh Farms Ltd</option></select></div></div></div><div><div class=\"flex items-start justify-between gap-4\"><div class=\"min-w-0\"><div class=\"text-lg font-semibold tracking-tight\">Pickup</div></div></div><div class=\"mt-3 space-y-3 p-4 bg-card rounded-xl border border-border\"><div class=\"relative\"><div class=\"absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none\"><svg class=\"h-4 w-4 text-foreground-muted\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" role=\"img\"><title>Map pin</title><path d=\"M12 2C8 2 6 5.5 6 8.5c0 4 6 11.5 6 11.5s6-7.5 6-11.5C18 5.5 16 2 12 2z\"></path><circle cx=\"12\" cy=\"8.5\" r=\"1.5\"></circle></svg></div><input class=\"h-10 w-full rounded-xl border border-border bg-card px-3 text-sm text-foreground shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500/50 pl-9\" type=\"text\" name=\"pickup_city\" placeholder=\"City*\" value=\"Harare\"></div><input class=\"h-10 w-full rounded-xl border border-border bg-card px-3 text-sm text-foreground shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500/50\" type=\"text\" name=\"pickup_address\" placeholder=\"Address\" value=\"Willowvale Ind. Estate, Bay 4\"><label class=\"block text-xs font-medium text-muted-foreground mb-1\">Pickup date</label><input class=\"h-10 w-full rounded-xl border border-border bg-card px-3 text-sm text-foreground shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500/50\" type=\"date\" name=\"pickup_date\" value=\"2026-01-03\"></div></div><div><div class=\"flex items-start justify-between gap-4\"><div class=\"min-w-0\"><div class=\"text-lg font-semibold tracking-tight\">Delivery</div></div></div><div class=\"mt-3 space-y-3 p-4 bg-card rounded-xl border border-border\"><div class=\"relative\"><div class=\"absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none\"><svg class=\"h-4 w-4 text-foreground-muted\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" role=\"img\"><title>Map pin</title><path d=\"M12 2C8 2 6 5.5 6 8.5c0 4 6 11.5 6 11.5s6-7.5 6-11.5C18 5.5 16 2 12 2z\"></path><circle cx=\"12\" cy=\"8.5\" r=\"1.5\"></circle></svg></div><input class=\"h-10 w-full rounded-xl border border-border bg-card px-3 text-sm text-foreground shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500/50 pl-9\" type=\"text\" name=\"delivery_city\" placeholder=\"City*\" value=\"Bulawayo\"></div><input class=\"h-10 w-full rounded-xl border border-border bg-card px-3 text-sm text-foreground shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500/50\" type=\"text\" name=\"delivery_address\" placeholder=\"Address\" value=\"Belmont Depot, Unit 12\"><label class=\"block text-xs font-medium text-muted-foreground mb-1\">Delivery date</label><input class=\"h-10 w-full rounded-xl border border-border bg-card px-3 text-sm text-foreground shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500/50\" type=\"date\" name=\"delivery_date\" value=\"2026-01-05\"></div></div></div><div class=\"space-y-6\"><div><div class=\"flex items-start justify-between gap-4\"><div class=\"min-w-0\"><div class=\"text-lg font-semibold tracking-tight\">Cargo details</div></div></div><div class=\"mt-3 space-y-3 p-4 bg-card rounded-xl border border-border\"><select class=\"h-10 w-full rounded-xl border border-border bg-card px-3 text-sm text-foreground shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500/50 pl-3\" name=\"cargo_type\"><option value=\"general\">General</option><option value=\"perishable\">Perishable</option><option value=\"hazardous\">Hazardous</option><option value=\"fragile\">Fragile</option><option value=\"heavy\">Heavy</option></select><input class=\"h-10 w-full rounded-xl border border-border bg-card px-3 text-sm text-foreground shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500/50\" type=\"text\" name=\"cargo_description\" placeholder=\"Description (e.g. 20 Pallets)\" value=\"Consumer Electronics\"><div class=\"relative\"><input class=\"h-10 w-full rounded-xl border border-border bg-card px-3 text-sm text-foreground shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500/50 pr-12\" type=\"number\" name=\"weight_tonnes\" placeholder=\"Weight\" value=\"15\"><div class=\"absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none\"><span class=\"text-foreground-muted sm:text-sm\">tonnes</span></div></div></div></div><div><div class=\"flex items-start justify-between gap-4\"><div class=\"min-w-0\"><div class=\"text-lg font-semibold tracking-tight\">Financials</div></div></div><div class=\"mt-3 space-y-3 p-4 bg-card rounded-xl border border-border\"><div class=\"relative rounded-md shadow-sm\"><div class=\"absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none\"><svg class=\"h-5 w-5 text-foreground-muted\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" role=\"img\"><title>Currency</title><path d=\"M12 5v14\"></path><path d=\"M9 7h6a2 2 0 0 1-2 2\"></path><path d=\"M15 17h-6a2 2 0 0 0 2-2\"></path></svg></div><input class=\"h-10 w-full rounded-xl border border-border bg-card px-3 text-sm text-foreground shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500/50 pl-10\" type=\"number\" name=\"base_price\" placeholder=\"0.00\" value=\"1200\"></div><select class=\"h-10 w-full rounded-xl border border-border bg-card px-3 text-sm text-foreground shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500/50\" name=\"currency\"><option value=\"USD\">USD</option><option value=\"ZWL\">ZWL</option><option value=\"ZIG\">ZIG</option></select></div></div><div><div class=\"flex items-start justify-between gap-4\"><div class=\"min-w-0\"><div class=\"text-lg font-semibold tracking-tight\">Notes</div></div></div><div class=\"mt-3 p-2 bg-card rounded-xl border border-border\"><textarea class=\"min-h-[100px] w-full rounded-xl border border-border bg-card px-3 py-2 text-sm text-foreground shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500/50\" name=\"notes\" placeholder=\"Add any special instructions or notes\"></textarea></div></div></div></div></div></form></div><div class=\"px-6 py-4 border-t border-[var(--border)]\"><div class=\"flex items-center justify-between gap-3\"><div class=\"text-xs text-foreground/60\"><span>Tip: You can edit assignment and status after creation.</span></div><div class=\"flex gap-2\"><button class=\"inline-flex items-center justify-center gap-2 rounded-xl font-semibold transition active:translate-y-[1px] disabled:opacity-60 disabled:pointer-events-none h-10 px-4 text-sm bg-card border border-border hover:bg-muted text-foreground\" type=\"button\">Cancel</button><button class=\"inline-flex items-center justify-center gap-2 rounded-xl font-semibold transition active:translate-y-[1px] disabled:opacity-60 disabled:pointer-events-none h-10 px-4 text-sm bg-brand-700 text-white hover:bg-brand-800\" type=\"submit\" form=\"add-booking-form\">Create booking</button></div></div></div></div>",
-            "dialogCount": 1
+            "dialogHtml": null
           },
           {
             "label": "New Booking",
-            "found": true,
-            "outcome": "error",
-            "error": "locator.click: Timeout 3000ms exceeded.\nCall log:\n  \u001b[2m- waiting for locator('button:has-text(\"New Booking\")').first()\u001b[22m\n\u001b[2m  -   locator resolved to <button class=\"flex items-center justify-center gap-2 px…>…</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m  -   waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m  -   element is visible, enabled and stable\u001b[22m\n\u001b[2m  -   scrolling into view if needed\u001b[22m\n\u001b[2m  -   done scrolling\u001b[22m\n\u001b[2m  -   <div class=\"absolute inset-0 bg-black/40 backdrop-blu…></div> from <div role=\"dialog\" aria-modal=\"true\" aria-labelledby=…>…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m  - retrying click action, attempt #1\u001b[22m\n\u001b[2m  -   waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m  -   element is visible, enabled and stable\u001b[22m\n\u001b[2m  -   scrolling into view if needed\u001b[22m\n\u001b[2m  -   done scrolling\u001b[22m\n\u001b[2m  -   <div class=\"absolute inset-0 bg-black/40 backdrop-blu…></div> from <div role=\"dialog\" aria-modal=\"true\" aria-labelledby=…>…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m  - retrying click action, attempt #2\u001b[22m\n\u001b[2m  -   waiting 20ms\u001b[22m\n\u001b[2m  -   waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m  -   element is visible, enabled and stable\u001b[22m\n\u001b[2m  -   scrolling into view if needed\u001b[22m\n\u001b[2m  -   done scrolling\u001b[22m\n\u001b[2m  -   <div class=\"absolute inset-0 bg-black/40 backdrop-blu…></div> from <div role=\"dialog\" aria-modal=\"true\" aria-labelledby=…>…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m  - retrying click action, attempt #3\u001b[22m\n\u001b[2m  -   waiting 100ms\u001b[22m\n\u001b[2m  -   waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m  -   element is visible, enabled and stable\u001b[22m\n\u001b[2m  -   scrolling into view if needed\u001b[22m\n\u001b[2m  -   done scrolling\u001b[22m\n\u001b[2m  -   <div class=\"absolute inset-0 bg-black/40 backdrop-blu…></div> from <div role=\"dialog\" aria-modal=\"true\" aria-labelledby=…>…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m  - retrying click action, attempt #4\u001b[22m\n\u001b[2m  -   waiting 100ms\u001b[22m\n\u001b[2m  -   waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m  -   element is visible, enabled and stable\u001b[22m\n\u001b[2m  -   scrolling into view if needed\u001b[22m\n\u001b[2m  -   done scrolling\u001b[22m\n\u001b[2m  -   <div class=\"absolute inset-0 bg-black/40 backdrop-blu…></div> from <div role=\"dialog\" aria-modal=\"true\" aria-labelledby=…>…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m  - retrying click action, attempt #5\u001b[22m\n\u001b[2m  -   waiting 500ms\u001b[22m\n\u001b[2m  -   waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m  -   element is visible, enabled and stable\u001b[22m\n\u001b[2m  -   scrolling into view if needed\u001b[22m\n\u001b[2m  -   done scrolling\u001b[22m\n\u001b[2m  -   <div class=\"absolute inset-0 bg-black/40 backdrop-blu…></div> from <div role=\"dialog\" aria-modal=\"true\" aria-labelledby=…>…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m  - retrying click action, attempt #6\u001b[22m\n\u001b[2m  -   waiting 500ms\u001b[22m\n\u001b[2m  -   waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m  -   element is visible, enabled and stable\u001b[22m\n\u001b[2m  -   scrolling into view if needed\u001b[22m\n\u001b[2m  -   done scrolling\u001b[22m\n\u001b[2m  -   <div class=\"absolute inset-0 bg-black/40 backdrop-blu…></div> from <div role=\"dialog\" aria-modal=\"true\" aria-labelledby=…>…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m  - retrying click action, attempt #7\u001b[22m\n\u001b[2m  -   waiting 500ms\u001b[22m\n\u001b[2m  -   waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m  -   element is visible, enabled and stable\u001b[22m\n\u001b[2m  -   scrolling into view if needed\u001b[22m\n\u001b[2m  -   done scrolling\u001b[22m\n\u001b[2m  -   <div class=\"absolute inset-0 bg-black/40 backdrop-blu…></div> from <div role=\"dialog\" aria-modal=\"true\" aria-labelledby=…>…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m  - retrying click action, attempt #8\u001b[22m\n\u001b[2m  -   waiting 500ms\u001b[22m\n\u001b[2m  -   waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m  -   element is visible, enabled and stable\u001b[22m\n\u001b[2m  -   scrolling into view if needed\u001b[22m\n\u001b[2m  -   done scrolling\u001b[22m\n\u001b[2m  -   <div class=\"absolute inset-0 bg-black/40 backdrop-blu…></div> from <div role=\"dialog\" aria-modal=\"true\" aria-labelledby=…>…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m  - retrying click action, attempt #9\u001b[22m\n\u001b[2m  -   waiting 500ms\u001b[22m\n",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
             "dialogHtml": null
           },
           {
@@ -88,16 +87,16 @@
           },
           {
             "label": "Close",
-            "found": true,
-            "outcome": "error",
-            "error": "locator.click: Timeout 3000ms exceeded.\nCall log:\n  \u001b[2m- waiting for locator('button:has-text(\"Close\")').first()\u001b[22m\n\u001b[2m  -   locator resolved to <button aria-label=\"Close navigation\" class=\"md:hidden r…>…</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m  -   waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m  -   element is not visible\u001b[22m\n\u001b[2m  - retrying click action, attempt #1\u001b[22m\n\u001b[2m  -   waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m  -   element is not visible\u001b[22m\n\u001b[2m  - retrying click action, attempt #2\u001b[22m\n\u001b[2m  -   waiting 20ms\u001b[22m\n\u001b[2m  -   waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m  -   element is not visible\u001b[22m\n\u001b[2m  - retrying click action, attempt #3\u001b[22m\n\u001b[2m  -   waiting 100ms\u001b[22m\n\u001b[2m  -   waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m  -   element is not visible\u001b[22m\n\u001b[2m  - retrying click action, attempt #4\u001b[22m\n\u001b[2m  -   waiting 100ms\u001b[22m\n\u001b[2m  -   waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m  -   element is not visible\u001b[22m\n\u001b[2m  - retrying click action, attempt #5\u001b[22m\n\u001b[2m  -   waiting 500ms\u001b[22m\n\u001b[2m  -   waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m  -   element is not visible\u001b[22m\n\u001b[2m  - retrying click action, attempt #6\u001b[22m\n\u001b[2m  -   waiting 500ms\u001b[22m\n\u001b[2m  -   waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m  -   element is not visible\u001b[22m\n\u001b[2m  - retrying click action, attempt #7\u001b[22m\n\u001b[2m  -   waiting 500ms\u001b[22m\n\u001b[2m  -   waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m  -   element is not visible\u001b[22m\n\u001b[2m  - retrying click action, attempt #8\u001b[22m\n\u001b[2m  -   waiting 500ms\u001b[22m\n\u001b[2m  -   waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m  -   element is not visible\u001b[22m\n\u001b[2m  - retrying click action, attempt #9\u001b[22m\n\u001b[2m  -   waiting 500ms\u001b[22m\n",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
             "dialogHtml": null
           }
         ]
       },
       {
         "name": "Bookings",
-        "navigated": true,
+        "navigated": false,
         "ctas": [
           {
             "label": "Invite user",
@@ -136,21 +135,783 @@
           },
           {
             "label": "New booking",
-            "found": true,
-            "outcome": "opened-dialog",
+            "found": false,
+            "outcome": "not-found",
             "error": null,
-            "dialogHtml": "<div class=\"absolute inset-0 bg-black/40 backdrop-blur-sm\"></div><div class=\"relative w-full max-w-3xl w-full max-w-3xl max-h-[85vh] overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-xl flex flex-col\"><div class=\"flex items-start justify-between gap-4 border-b border-border p-6\"><div class=\"flex min-w-0 items-start gap-4\"><div class=\"mt-0.5 grid h-10 w-10 place-items-center rounded-xl border border-border bg-muted\"><svg class=\"w-5 h-5\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" role=\"img\"><title>Fleet</title><path d=\"M3 16V8a2 2 0 0 1 2-2h9v10H3z\"></path><path d=\"M14 10h3.2a2 2 0 0 1 1.6.8l2.2 3V16a2 2 0 0 1-2 2h-1\"></path><path d=\"M14 16h3\"></path><path d=\"M7 18a2 2 0 1 0 0.01 0\"></path><path d=\"M18 18a2 2 0 1 0 0.01 0\"></path></svg></div><div class=\"min-w-0\"><h2 id=\"modal-title-:r3:\" class=\"text-lg font-semibold tracking-tight\">Create booking</h2><div id=\"modal-desc-:r3:\" class=\"mt-1 text-sm text-muted-foreground\">Capture the route, cargo, and pricing. Required fields are marked with *.</div></div></div><button class=\"inline-flex items-center justify-center gap-2 rounded-xl font-semibold transition active:translate-y-[1px] disabled:opacity-60 disabled:pointer-events-none h-9 px-3 text-sm bg-transparent hover:bg-muted text-foreground\" aria-label=\"Close\">✕</button></div><div class=\"flex-1 px-6 py-5 overflow-y-auto min-h-0 custom-scrollbar\"><form id=\"add-booking-form\" class=\"min-h-0\"><div class=\"min-h-0\"><div class=\"grid grid-cols-1 md:grid-cols-2 gap-6\"><div class=\"space-y-6\"><div><div class=\"flex items-start justify-between gap-4\"><div class=\"min-w-0\"><div class=\"text-lg font-semibold tracking-tight\">Customer</div></div></div><div class=\"mt-3\"><div class=\"relative\"><div class=\"absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none\"><svg class=\"h-5 w-5 text-foreground-muted\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" role=\"img\"><title>User</title><circle cx=\"12\" cy=\"12\" r=\"9\"></circle><path d=\"M12 10a3 3 0 1 0 0.01 0\"></path><path d=\"M6 18c1.5-2.5 6-2.5 12 0\"></path></svg></div><select class=\"h-10 w-full rounded-xl border border-border bg-card px-3 text-sm text-foreground shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500/50 block w-full rounded-lg border border-border bg-card pl-10 py-2.5 text-sm font-medium text-foreground shadow-sm transition-shadow \" name=\"customer_id\"><option value=\"\">Select Customer...</option><option value=\"101\">Retail Giant Zimbabwe</option><option value=\"102\">Mining Corp</option><option value=\"103\">Fresh Farms Ltd</option></select></div></div></div><div><div class=\"flex items-start justify-between gap-4\"><div class=\"min-w-0\"><div class=\"text-lg font-semibold tracking-tight\">Pickup</div></div></div><div class=\"mt-3 space-y-3 p-4 bg-card rounded-xl border border-border\"><div class=\"relative\"><div class=\"absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none\"><svg class=\"h-4 w-4 text-foreground-muted\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" role=\"img\"><title>Map pin</title><path d=\"M12 2C8 2 6 5.5 6 8.5c0 4 6 11.5 6 11.5s6-7.5 6-11.5C18 5.5 16 2 12 2z\"></path><circle cx=\"12\" cy=\"8.5\" r=\"1.5\"></circle></svg></div><input class=\"h-10 w-full rounded-xl border border-border bg-card px-3 text-sm text-foreground shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500/50 pl-9\" type=\"text\" name=\"pickup_city\" placeholder=\"City*\" value=\"Harare\"></div><input class=\"h-10 w-full rounded-xl border border-border bg-card px-3 text-sm text-foreground shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500/50\" type=\"text\" name=\"pickup_address\" placeholder=\"Address\" value=\"Willowvale Ind. Estate, Bay 4\"><label class=\"block text-xs font-medium text-muted-foreground mb-1\">Pickup date</label><input class=\"h-10 w-full rounded-xl border border-border bg-card px-3 text-sm text-foreground shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500/50\" type=\"date\" name=\"pickup_date\" value=\"2026-01-03\"></div></div><div><div class=\"flex items-start justify-between gap-4\"><div class=\"min-w-0\"><div class=\"text-lg font-semibold tracking-tight\">Delivery</div></div></div><div class=\"mt-3 space-y-3 p-4 bg-card rounded-xl border border-border\"><div class=\"relative\"><div class=\"absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none\"><svg class=\"h-4 w-4 text-foreground-muted\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" role=\"img\"><title>Map pin</title><path d=\"M12 2C8 2 6 5.5 6 8.5c0 4 6 11.5 6 11.5s6-7.5 6-11.5C18 5.5 16 2 12 2z\"></path><circle cx=\"12\" cy=\"8.5\" r=\"1.5\"></circle></svg></div><input class=\"h-10 w-full rounded-xl border border-border bg-card px-3 text-sm text-foreground shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500/50 pl-9\" type=\"text\" name=\"delivery_city\" placeholder=\"City*\" value=\"Bulawayo\"></div><input class=\"h-10 w-full rounded-xl border border-border bg-card px-3 text-sm text-foreground shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500/50\" type=\"text\" name=\"delivery_address\" placeholder=\"Address\" value=\"Belmont Depot, Unit 12\"><label class=\"block text-xs font-medium text-muted-foreground mb-1\">Delivery date</label><input class=\"h-10 w-full rounded-xl border border-border bg-card px-3 text-sm text-foreground shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500/50\" type=\"date\" name=\"delivery_date\" value=\"2026-01-05\"></div></div></div><div class=\"space-y-6\"><div><div class=\"flex items-start justify-between gap-4\"><div class=\"min-w-0\"><div class=\"text-lg font-semibold tracking-tight\">Cargo details</div></div></div><div class=\"mt-3 space-y-3 p-4 bg-card rounded-xl border border-border\"><select class=\"h-10 w-full rounded-xl border border-border bg-card px-3 text-sm text-foreground shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500/50 pl-3\" name=\"cargo_type\"><option value=\"general\">General</option><option value=\"perishable\">Perishable</option><option value=\"hazardous\">Hazardous</option><option value=\"fragile\">Fragile</option><option value=\"heavy\">Heavy</option></select><input class=\"h-10 w-full rounded-xl border border-border bg-card px-3 text-sm text-foreground shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500/50\" type=\"text\" name=\"cargo_description\" placeholder=\"Description (e.g. 20 Pallets)\" value=\"Consumer Electronics\"><div class=\"relative\"><input class=\"h-10 w-full rounded-xl border border-border bg-card px-3 text-sm text-foreground shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500/50 pr-12\" type=\"number\" name=\"weight_tonnes\" placeholder=\"Weight\" value=\"15\"><div class=\"absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none\"><span class=\"text-foreground-muted sm:text-sm\">tonnes</span></div></div></div></div><div><div class=\"flex items-start justify-between gap-4\"><div class=\"min-w-0\"><div class=\"text-lg font-semibold tracking-tight\">Financials</div></div></div><div class=\"mt-3 space-y-3 p-4 bg-card rounded-xl border border-border\"><div class=\"relative rounded-md shadow-sm\"><div class=\"absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none\"><svg class=\"h-5 w-5 text-foreground-muted\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" role=\"img\"><title>Currency</title><path d=\"M12 5v14\"></path><path d=\"M9 7h6a2 2 0 0 1-2 2\"></path><path d=\"M15 17h-6a2 2 0 0 0 2-2\"></path></svg></div><input class=\"h-10 w-full rounded-xl border border-border bg-card px-3 text-sm text-foreground shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500/50 pl-10\" type=\"number\" name=\"base_price\" placeholder=\"0.00\" value=\"1200\"></div><select class=\"h-10 w-full rounded-xl border border-border bg-card px-3 text-sm text-foreground shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500/50\" name=\"currency\"><option value=\"USD\">USD</option><option value=\"ZWL\">ZWL</option><option value=\"ZIG\">ZIG</option></select></div></div><div><div class=\"flex items-start justify-between gap-4\"><div class=\"min-w-0\"><div class=\"text-lg font-semibold tracking-tight\">Notes</div></div></div><div class=\"mt-3 p-2 bg-card rounded-xl border border-border\"><textarea class=\"min-h-[100px] w-full rounded-xl border border-border bg-card px-3 py-2 text-sm text-foreground shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500/50\" name=\"notes\" placeholder=\"Add any special instructions or notes\"></textarea></div></div></div></div></div></form></div><div class=\"px-6 py-4 border-t border-[var(--border)]\"><div class=\"flex items-center justify-between gap-3\"><div class=\"text-xs text-foreground/60\"><span>Tip: You can edit assignment and status after creation.</span></div><div class=\"flex gap-2\"><button class=\"inline-flex items-center justify-center gap-2 rounded-xl font-semibold transition active:translate-y-[1px] disabled:opacity-60 disabled:pointer-events-none h-10 px-4 text-sm bg-card border border-border hover:bg-muted text-foreground\" type=\"button\">Cancel</button><button class=\"inline-flex items-center justify-center gap-2 rounded-xl font-semibold transition active:translate-y-[1px] disabled:opacity-60 disabled:pointer-events-none h-10 px-4 text-sm bg-brand-700 text-white hover:bg-brand-800\" type=\"submit\" form=\"add-booking-form\">Create booking</button></div></div></div></div>",
-            "dialogCount": 1
+            "dialogHtml": null
           },
           {
             "label": "New Booking",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "Add Booking",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "Add booking",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "Create",
             "found": true,
-            "outcome": "error",
-            "error": "locator.click: Target page, context or browser has been closed",
+            "outcome": "clicked-no-observable-effect",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "Change",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "Close",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
             "dialogHtml": null
           }
         ],
-        "navigateError": "page.$: Target page, context or browser has been closed"
+        "navigateError": "nav button not found"
+      },
+      {
+        "name": "Fleet",
+        "navigated": false,
+        "ctas": [
+          {
+            "label": "Invite user",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "Invite User",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "Invite",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "View audit log",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "View Audit Log",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "New booking",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "New Booking",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "Add Booking",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "Add booking",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "Create",
+            "found": true,
+            "outcome": "clicked-no-observable-effect",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "Change",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "Close",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          }
+        ],
+        "navigateError": "nav button not found"
+      },
+      {
+        "name": "Drivers",
+        "navigated": false,
+        "ctas": [
+          {
+            "label": "Invite user",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "Invite User",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "Invite",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "View audit log",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "View Audit Log",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "New booking",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "New Booking",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "Add Booking",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "Add booking",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "Create",
+            "found": true,
+            "outcome": "clicked-no-observable-effect",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "Change",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "Close",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          }
+        ],
+        "navigateError": "nav button not found"
+      },
+      {
+        "name": "Routes",
+        "navigated": false,
+        "ctas": [
+          {
+            "label": "Invite user",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "Invite User",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "Invite",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "View audit log",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "View Audit Log",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "New booking",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "New Booking",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "Add Booking",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "Add booking",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "Create",
+            "found": true,
+            "outcome": "clicked-no-observable-effect",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "Change",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "Close",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          }
+        ],
+        "navigateError": "nav button not found"
+      },
+      {
+        "name": "Leads",
+        "navigated": false,
+        "ctas": [
+          {
+            "label": "Invite user",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "Invite User",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "Invite",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "View audit log",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "View Audit Log",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "New booking",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "New Booking",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "Add Booking",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "Add booking",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "Create",
+            "found": true,
+            "outcome": "clicked-no-observable-effect",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "Change",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "Close",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          }
+        ],
+        "navigateError": "nav button not found"
+      },
+      {
+        "name": "Customers",
+        "navigated": false,
+        "ctas": [
+          {
+            "label": "Invite user",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "Invite User",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "Invite",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "View audit log",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "View Audit Log",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "New booking",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "New Booking",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "Add Booking",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "Add booking",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "Create",
+            "found": true,
+            "outcome": "clicked-no-observable-effect",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "Change",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "Close",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          }
+        ],
+        "navigateError": "nav button not found"
+      },
+      {
+        "name": "Campaigns",
+        "navigated": false,
+        "ctas": [
+          {
+            "label": "Invite user",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "Invite User",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "Invite",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "View audit log",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "View Audit Log",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "New booking",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "New Booking",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "Add Booking",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "Add booking",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "Create",
+            "found": true,
+            "outcome": "clicked-no-observable-effect",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "Change",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "Close",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          }
+        ],
+        "navigateError": "nav button not found"
+      },
+      {
+        "name": "Sequences",
+        "navigated": false,
+        "ctas": [
+          {
+            "label": "Invite user",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "Invite User",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "Invite",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "View audit log",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "View Audit Log",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "New booking",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "New Booking",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "Add Booking",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "Add booking",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "Create",
+            "found": true,
+            "outcome": "clicked-no-observable-effect",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "Change",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "Close",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          }
+        ],
+        "navigateError": "nav button not found"
+      },
+      {
+        "name": "Analytics",
+        "navigated": false,
+        "ctas": [
+          {
+            "label": "Invite user",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "Invite User",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "Invite",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "View audit log",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "View Audit Log",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "New booking",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "New Booking",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "Add Booking",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "Add booking",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "Create",
+            "found": true,
+            "outcome": "clicked-no-observable-effect",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "Change",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          },
+          {
+            "label": "Close",
+            "found": false,
+            "outcome": "not-found",
+            "error": null,
+            "dialogHtml": null
+          }
+        ],
+        "navigateError": "nav button not found"
       }
     ]
   },
@@ -168,68 +929,12 @@
       "text": "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold"
     },
     {
-      "type": "warning",
-      "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
+      "type": "error",
+      "text": "Warning: %s: Support for defaultProps will be removed from function components in a future major release. Use JavaScript default parameters instead.%s XAxis \n    at XAxis2 (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:27812:22)\n    at svg\n    at Surface (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:5087:25)\n    at div\n    at ChartLayoutContextProvider2 (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:24382:28)\n    at CategoricalChartWrapper (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:29081:7)\n    at div\n    at http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:8309:21\n    at div\n    at RevenueTrendChart (http://localhost:4002/components/Dashboard.tsx:271:30)\n    at section\n    at div\n    at div\n    at div\n    at Dashboard (http://localhost:4002/components/Dashboard.tsx:492:22)\n    at div\n    at main\n    at div\n    at div\n    at Layout (http://localhost:4002/components/Layout.tsx:43:3)\n    at AuthedApp (http://localhost:4002/App.tsx:88:29)\n    at DataProvider (http://localhost:4002/contexts/DataContext.tsx:53:32)\n    at AuthProvider (http://localhost:4002/auth/AuthContext.tsx:147:3)\n    at App\n    at AuthUIProvider (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23410:25)\n    at V2 (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23112:26)\n    at J3 (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23110:20)\n    at NeonAuthUIProvider (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:35059:43)"
     },
     {
-      "type": "warning",
-      "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
-    },
-    {
-      "type": "warning",
-      "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
-    },
-    {
-      "type": "info",
-      "text": "Axe: no accessibility violations detected (dev run)"
-    },
-    {
-      "type": "warning",
-      "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
-    },
-    {
-      "type": "info",
-      "text": "Axe: no accessibility violations detected (dev run)"
-    },
-    {
-      "type": "warning",
-      "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
-    },
-    {
-      "type": "info",
-      "text": "Axe: no accessibility violations detected (dev run)"
-    },
-    {
-      "type": "warning",
-      "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
-    },
-    {
-      "type": "startGroupCollapsed",
-      "text": "Axe accessibility violations (development)"
-    },
-    {
-      "type": "table",
-      "text": "[Object, Object, Object]"
-    },
-    {
-      "type": "log",
-      "text": "{id: color-contrast, impact: serious, tags: Array(10), description: Ensure the contrast between foreground and backgro…meets WCAG 2 AA minimum contrast ratio thresholds, help: Elements must meet minimum color contrast ratio thresholds}"
-    },
-    {
-      "type": "log",
-      "text": "{id: label, impact: critical, tags: Array(12), description: Ensure every form element has a label, help: Form elements must have labels}"
-    },
-    {
-      "type": "log",
-      "text": "{id: select-name, impact: critical, tags: Array(12), description: Ensure select element has an accessible name, help: Select element must have an accessible name}"
-    },
-    {
-      "type": "endGroup",
-      "text": "console.groupEnd"
-    },
-    {
-      "type": "warning",
-      "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
+      "type": "error",
+      "text": "Warning: %s: Support for defaultProps will be removed from function components in a future major release. Use JavaScript default parameters instead.%s YAxis \n    at YAxis2 (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:27873:22)\n    at svg\n    at Surface (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:5087:25)\n    at div\n    at ChartLayoutContextProvider2 (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:24382:28)\n    at CategoricalChartWrapper (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:29081:7)\n    at div\n    at http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:8309:21\n    at div\n    at RevenueTrendChart (http://localhost:4002/components/Dashboard.tsx:271:30)\n    at section\n    at div\n    at div\n    at div\n    at Dashboard (http://localhost:4002/components/Dashboard.tsx:492:22)\n    at div\n    at main\n    at div\n    at div\n    at Layout (http://localhost:4002/components/Layout.tsx:43:3)\n    at AuthedApp (http://localhost:4002/App.tsx:88:29)\n    at DataProvider (http://localhost:4002/contexts/DataContext.tsx:53:32)\n    at AuthProvider (http://localhost:4002/auth/AuthContext.tsx:147:3)\n    at App\n    at AuthUIProvider (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23410:25)\n    at V2 (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23112:26)\n    at J3 (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23110:20)\n    at NeonAuthUIProvider (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:35059:43)"
     },
     {
       "type": "startGroupCollapsed",
@@ -248,24 +953,20 @@
       "text": "console.groupEnd"
     },
     {
-      "type": "warning",
-      "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
+      "type": "error",
+      "text": "Warning: Function components cannot be given refs. Attempts to access this ref will fail. Did you mean to use React.forwardRef()?%s%s \n\nCheck the render method of `Slot.SlotClone`. \n    at Input (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:26916:18)\n    at http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:8288:11\n    at http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:8262:11\n    at FormControl (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:26894:27)\n    at div\n    at FormItem (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:26873:21)\n    at Controller (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:6742:35)\n    at FormField (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:26849:23)\n    at form\n    at FormProvider (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:6464:11)\n    at SignInForm (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:31362:23)\n    at div\n    at div\n    at div\n    at main\n    at div\n    at LoginPage (http://localhost:4002/components/LoginPage.tsx:8:23)\n    at AuthedApp (http://localhost:4002/App.tsx:88:29)\n    at DataProvider (http://localhost:4002/contexts/DataContext.tsx:53:32)\n    at AuthProvider (http://localhost:4002/auth/AuthContext.tsx:147:3)\n    at App\n    at AuthUIProvider (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23410:25)\n    at V2 (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23112:26)\n    at J3 (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23110:20)\n    at NeonAuthUIProvider (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:35059:43)"
     },
     {
-      "type": "startGroupCollapsed",
-      "text": "Axe accessibility violations (development)"
+      "type": "error",
+      "text": "Warning: %s: `ref` is not a prop. Trying to access it will result in `undefined` being returned. If you need to access the same value within the child component, you should pass it as a different prop. (https://reactjs.org/link/special-props)%s Captcha \n    at Captcha (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:30703:20)\n    at form\n    at FormProvider (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:6464:11)\n    at SignInForm (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:31362:23)\n    at div\n    at div\n    at div\n    at main\n    at div\n    at LoginPage (http://localhost:4002/components/LoginPage.tsx:8:23)\n    at AuthedApp (http://localhost:4002/App.tsx:88:29)\n    at DataProvider (http://localhost:4002/contexts/DataContext.tsx:53:32)\n    at AuthProvider (http://localhost:4002/auth/AuthContext.tsx:147:3)\n    at App\n    at AuthUIProvider (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23410:25)\n    at V2 (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23112:26)\n    at J3 (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23110:20)\n    at NeonAuthUIProvider (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:35059:43)"
     },
     {
-      "type": "table",
-      "text": "[Object]"
+      "type": "error",
+      "text": "Warning: Function components cannot be given refs. Attempts to access this ref will fail. Did you mean to use React.forwardRef()?%s%s \n\nCheck the render method of `SignInForm`. \n    at Captcha (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:30703:20)\n    at form\n    at FormProvider (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:6464:11)\n    at SignInForm (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:31362:23)\n    at div\n    at div\n    at div\n    at main\n    at div\n    at LoginPage (http://localhost:4002/components/LoginPage.tsx:8:23)\n    at AuthedApp (http://localhost:4002/App.tsx:88:29)\n    at DataProvider (http://localhost:4002/contexts/DataContext.tsx:53:32)\n    at AuthProvider (http://localhost:4002/auth/AuthContext.tsx:147:3)\n    at App\n    at AuthUIProvider (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23410:25)\n    at V2 (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23112:26)\n    at J3 (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23110:20)\n    at NeonAuthUIProvider (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:35059:43)"
     },
     {
-      "type": "log",
-      "text": "{id: color-contrast, impact: serious, tags: Array(10), description: Ensure the contrast between foreground and backgro…meets WCAG 2 AA minimum contrast ratio thresholds, help: Elements must meet minimum color contrast ratio thresholds}"
-    },
-    {
-      "type": "endGroup",
-      "text": "console.groupEnd"
+      "type": "error",
+      "text": "Warning: Function components cannot be given refs. Attempts to access this ref will fail. Did you mean to use React.forwardRef()?%s%s \n\nCheck the render method of `SignUpForm`. \n    at Captcha (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:30703:20)\n    at form\n    at FormProvider (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:6464:11)\n    at SignUpForm (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:31517:23)\n    at div\n    at div\n    at div\n    at main\n    at div\n    at LoginPage (http://localhost:4002/components/LoginPage.tsx:8:23)\n    at AuthedApp (http://localhost:4002/App.tsx:88:29)\n    at DataProvider (http://localhost:4002/contexts/DataContext.tsx:53:32)\n    at AuthProvider (http://localhost:4002/auth/AuthContext.tsx:147:3)\n    at App\n    at AuthUIProvider (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23410:25)\n    at V2 (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23112:26)\n    at J3 (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23110:20)\n    at NeonAuthUIProvider (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:35059:43)"
     }
   ],
   "pageErrors": [],

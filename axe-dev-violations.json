@@ -1,0 +1,125 @@
+[
+  {
+    "id": "color-contrast",
+    "impact": "serious",
+    "tags": [
+      "cat.color",
+      "wcag2aa",
+      "wcag143",
+      "TTv5",
+      "TT13.c",
+      "EN-301-549",
+      "EN-9.1.4.3",
+      "ACT",
+      "RGAAv4",
+      "RGAA-3.2.1"
+    ],
+    "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+    "help": "Elements must meet minimum color contrast ratio thresholds",
+    "helpUrl": "https://dequeuniversity.com/rules/axe/4.11/color-contrast?application=axeAPI",
+    "nodes": [
+      {
+        "any": [
+          {
+            "id": "color-contrast",
+            "data": {
+              "fgColor": "#727784",
+              "bgColor": "#020618",
+              "contrastRatio": 4.49,
+              "fontSize": "8.3pt (11px)",
+              "fontWeight": "normal",
+              "messageKey": null,
+              "expectedContrastRatio": "4.5:1"
+            },
+            "relatedNodes": [
+              {
+                "html": "<aside class=\"fixed inset-y-0 left-0 z-40 w-64 transform bg-slate-950 text-white shadow-xl transition-transform duration-300 md:translate-x-0 -translate-x-full\">",
+                "target": [
+                  "aside"
+                ]
+              }
+            ],
+            "impact": "serious",
+            "message": "Element has insufficient color contrast of 4.49 (foreground color: #727784, background color: #020618, font size: 8.3pt (11px), font weight: normal). Expected contrast ratio of 4.5:1"
+          }
+        ],
+        "all": [],
+        "none": [],
+        "impact": "serious",
+        "html": "<p class=\"px-2 text-[11px] uppercase tracking-[0.16em] text-slate-200/50\">Overview</p>",
+        "target": [
+          ".space-y-2:nth-child(1) > .tracking-\\[0\\.16em\\].text-slate-200\\/50.text-\\[11px\\]"
+        ],
+        "failureSummary": "Fix any of the following:\n  Element has insufficient color contrast of 4.49 (foreground color: #727784, background color: #020618, font size: 8.3pt (11px), font weight: normal). Expected contrast ratio of 4.5:1"
+      },
+      {
+        "any": [
+          {
+            "id": "color-contrast",
+            "data": {
+              "fgColor": "#727784",
+              "bgColor": "#020618",
+              "contrastRatio": 4.49,
+              "fontSize": "8.3pt (11px)",
+              "fontWeight": "normal",
+              "messageKey": null,
+              "expectedContrastRatio": "4.5:1"
+            },
+            "relatedNodes": [
+              {
+                "html": "<aside class=\"fixed inset-y-0 left-0 z-40 w-64 transform bg-slate-950 text-white shadow-xl transition-transform duration-300 md:translate-x-0 -translate-x-full\">",
+                "target": [
+                  "aside"
+                ]
+              }
+            ],
+            "impact": "serious",
+            "message": "Element has insufficient color contrast of 4.49 (foreground color: #727784, background color: #020618, font size: 8.3pt (11px), font weight: normal). Expected contrast ratio of 4.5:1"
+          }
+        ],
+        "all": [],
+        "none": [],
+        "impact": "serious",
+        "html": "<p class=\"px-2 text-[11px] uppercase tracking-[0.16em] text-slate-200/50\">Operations</p>",
+        "target": [
+          ".space-y-2:nth-child(2) > .tracking-\\[0\\.16em\\].text-slate-200\\/50.text-\\[11px\\]"
+        ],
+        "failureSummary": "Fix any of the following:\n  Element has insufficient color contrast of 4.49 (foreground color: #727784, background color: #020618, font size: 8.3pt (11px), font weight: normal). Expected contrast ratio of 4.5:1"
+      },
+      {
+        "any": [
+          {
+            "id": "color-contrast",
+            "data": {
+              "fgColor": "#727784",
+              "bgColor": "#020618",
+              "contrastRatio": 4.49,
+              "fontSize": "8.3pt (11px)",
+              "fontWeight": "normal",
+              "messageKey": null,
+              "expectedContrastRatio": "4.5:1"
+            },
+            "relatedNodes": [
+              {
+                "html": "<aside class=\"fixed inset-y-0 left-0 z-40 w-64 transform bg-slate-950 text-white shadow-xl transition-transform duration-300 md:translate-x-0 -translate-x-full\">",
+                "target": [
+                  "aside"
+                ]
+              }
+            ],
+            "impact": "serious",
+            "message": "Element has insufficient color contrast of 4.49 (foreground color: #727784, background color: #020618, font size: 8.3pt (11px), font weight: normal). Expected contrast ratio of 4.5:1"
+          }
+        ],
+        "all": [],
+        "none": [],
+        "impact": "serious",
+        "html": "<p class=\"px-2 text-[11px] uppercase tracking-[0.16em] text-slate-200/50\">CRM</p>",
+        "target": [
+          ".space-y-2:nth-child(3) > .tracking-\\[0\\.16em\\].text-slate-200\\/50.text-\\[11px\\]"
+        ],
+        "failureSummary": "Fix any of the following:\n  Element has insufficient color contrast of 4.49 (foreground color: #727784, background color: #020618, font size: 8.3pt (11px), font weight: normal). Expected contrast ratio of 4.5:1"
+      }
+    ]
+  }
+]

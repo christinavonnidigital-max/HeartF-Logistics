@@ -31,16 +31,16 @@
   --app-bg: #f6f7fb;
 
   /* Brand ramp */
-  --color-brand-50:  oklch(0.98 0.02 255);
-  --color-brand-100: oklch(0.95 0.04 255);
-  --color-brand-200: oklch(0.9  0.07 255);
-  --color-brand-300: oklch(0.84 0.11 255);
-  --color-brand-400: oklch(0.76 0.14 255);
-  --color-brand-500: oklch(0.67 0.17 255);
-  --color-brand-600: oklch(0.62 0.18 255);
-  --color-brand-700: oklch(0.55 0.18 255);
-  --color-brand-800: oklch(0.45 0.16 255);
-  --color-brand-900: oklch(0.34 0.12 255);
+  --color-brand-50:  #fff4e6;
+  --color-brand-100: #ffe1c2;
+  --color-brand-200: #ffce9e;
+  --color-brand-300: #feb97a;
+  --color-brand-400: #fda659;
+  --color-brand-500: #f5993b; /* primary orange */
+  --color-brand-600: #e4872f;
+  --color-brand-700: #cb7425;
+  --color-brand-800: #b0621d;
+  --color-brand-900: #8b4b14;
 
   /* Status */
   --color-success-600: oklch(0.62 0.16 150);
@@ -48,20 +48,25 @@
   --color-danger-600:  oklch(0.58 0.22 25);
 }
 
-/* Dark token overrides */
+/* Dark token overrides neutralized (keep light palette even if .dark is ever applied) */
 .dark {
-  --color-background: oklch(0.14 0.02 250);
-  --color-card: oklch(0.18 0.02 250);
-  --color-muted: oklch(0.22 0.02 250);
-  --color-border: oklch(0.3 0.02 250);
-  --color-foreground: oklch(0.96 0.01 250);
-  --color-foreground-muted: oklch(0.72 0.02 250);
-
-  --color-brand-600: oklch(0.72 0.14 255);
-  --color-brand-700: oklch(0.66 0.14 255);
-
-  /* App background for dark mode */
-  --app-bg: #0b1220;
+  --color-background: oklch(0.985 0 0);
+  --color-card: oklch(1 0 0);
+  --color-muted: oklch(0.97 0.01 250);
+  --color-border: oklch(0.9 0.01 250);
+  --color-foreground: oklch(0.18 0.02 250);
+  --color-foreground-muted: oklch(0.45 0.02 250);
+  --color-brand-50:  #fff4e6;
+  --color-brand-100: #ffe1c2;
+  --color-brand-200: #ffce9e;
+  --color-brand-300: #feb97a;
+  --color-brand-400: #fda659;
+  --color-brand-500: #f5993b;
+  --color-brand-600: #e4872f;
+  --color-brand-700: #cb7425;
+  --color-brand-800: #b0621d;
+  --color-brand-900: #8b4b14;
+  --app-bg: #f6f7fb;
 }
 
 /* Base */
@@ -121,4 +126,36 @@ body {
     scrollbar-width: thin;
     scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
   }
+}
+
+/* ---- Dark mode form controls fix ---- */
+/* Prevent "white inputs with light text" */
+.dark input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+.dark textarea,
+.dark select {
+  background-color: var(--color-card) !important;
+  color: var(--color-foreground) !important;
+  border-color: var(--color-border) !important;
+}
+
+/* Placeholder contrast in dark mode */
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: var(--color-foreground-muted) !important;
+  opacity: 1;
+}
+
+/* Dropdown options */
+.dark select option {
+  background-color: var(--color-card);
+  color: var(--color-foreground);
+}
+
+/* Chrome autofill in dark mode */
+.dark input:-webkit-autofill,
+.dark textarea:-webkit-autofill,
+.dark select:-webkit-autofill {
+  -webkit-text-fill-color: var(--color-foreground) !important;
+  transition: background-color 9999s ease-in-out 0s;
+  box-shadow: 0 0 0px 1000px var(--color-card) inset !important;
 }

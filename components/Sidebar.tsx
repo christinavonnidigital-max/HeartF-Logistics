@@ -120,13 +120,13 @@ const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView, isOpen, se
     <>
       {isOpen && (
         <div
-          className="fixed inset-0 z-30 bg-slate-900/50 backdrop-blur-sm md:hidden"
+          className="fixed inset-0 z-30 bg-black/30 backdrop-blur-sm md:hidden"
           onClick={() => setIsOpen(false)}
         />
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-40 w-64 transform bg-slate-950 text-white shadow-xl transition-transform duration-300 md:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-40 w-64 transform bg-[#1e2b57] text-white border-r border-white/10 shadow-xl transition-transform duration-300 md:translate-x-0 ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -135,17 +135,17 @@ const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView, isOpen, se
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-4 border-b border-white/10">
             <div className="flex items-center gap-3">
-              <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-orange-400 to-amber-500 flex items-center justify-center text-sm font-semibold shadow-lg shadow-orange-500/25">
+              <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-[#f5993b] to-amber-500 flex items-center justify-center text-sm font-semibold shadow-lg shadow-orange-500/25 text-white">
                 HF
               </div>
               <div className="leading-tight">
-                <p className="text-[11px] uppercase tracking-[0.18em] text-slate-200/70">Heartfledge</p>
-                <p className="text-sm font-semibold">Logistics</p>
+                <p className="text-[11px] uppercase tracking-[0.18em] text-white/60">Heartfledge</p>
+                <p className="text-sm font-semibold text-white">Logistics</p>
               </div>
             </div>
 
             <button
-              className="md:hidden rounded-lg border border-white/10 p-2 text-white/80 hover:bg-white/10"
+              className="md:hidden rounded-lg border border-white/15 p-2 text-white hover:bg-white/10"
               onClick={() => setIsOpen(false)}
               aria-label="Close navigation"
             >
@@ -156,12 +156,12 @@ const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView, isOpen, se
           {/* User card on mobile */}
           <div className="px-4 py-3 md:hidden">
             {user ? (
-              <div className="rounded-xl border border-white/10 bg-white/5 p-3">
-                <p className="text-sm font-semibold">{displayName}</p>
-                <p className="text-xs text-slate-200/70 capitalize">{user.role.replace("_", " ")}</p>
+              <div className="rounded-xl border border-white/15 bg-white/5 p-3">
+                <p className="text-sm font-semibold text-white">{displayName}</p>
+                <p className="text-xs text-white/70 capitalize">{user.role.replace("_", " ")}</p>
               </div>
             ) : (
-              <div className="flex items-center gap-2 text-sm text-slate-200/80">
+              <div className="flex items-center gap-2 text-sm text-white/70">
                 <MenuIcon className="h-4 w-4" /> Not signed in
               </div>
             )}
@@ -176,7 +176,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView, isOpen, se
 
                 return (
                   <div key={section.title} className="space-y-2">
-                    <p className="px-2 text-[11px] uppercase tracking-[0.16em] text-slate-200/50">{section.title}</p>
+                    <p className="px-2 text-[11px] uppercase tracking-[0.16em] text-white/60">{section.title}</p>
 
                     <div className="space-y-1">
                       {visibleItems.map((item) => {
@@ -189,19 +189,19 @@ const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView, isOpen, se
                             onClick={() => handleSelect(item.view)}
                             className={`group flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium transition ${
                               isActive
-                                ? "bg-white text-slate-900 shadow-md shadow-orange-500/10"
-                                : "text-slate-200 hover:bg-white/10"
+                                ? "bg-white text-[#1e2b57] shadow-sm"
+                                : "text-white/85 hover:bg-white/10"
                             }`}
                           >
                             <Icon
                               className={`h-5 w-5 shrink-0 ${
-                                isActive ? "text-orange-600" : "text-orange-200"
+                                isActive ? "text-[#f5993b]" : "text-white/60"
                               }`}
                             />
                             <span className="flex-1 truncate">{item.label}</span>
 
                             {item.badge && (
-                              <span className="rounded-full bg-orange-500/10 px-2 py-0.5 text-[11px] font-semibold text-orange-200">
+                              <span className="rounded-full bg-white/10 px-2 py-0.5 text-[11px] font-semibold text-white">
                                 {item.badge}
                               </span>
                             )}

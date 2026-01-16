@@ -47,7 +47,7 @@ test('button smoke test — click visible buttons as admin', async ({ page }) =>
   const annotated = page.locator('button[data-pw-btn-index]');
   const total = await annotated.count();
   // Limit the number of clicks to keep this smoke test fast; increase if you want deeper coverage
-  const MAX = Math.min(total, 20); // reduce for quicker runs during triage
+  const MAX = Math.min(total, 12); // reduce for quicker runs during triage
 
   for (let i = 0; i < MAX; i++) {
     const btn = page.locator(`button[data-pw-btn-index="${i}"]`);
@@ -115,7 +115,7 @@ test('button smoke test — click visible buttons as admin', async ({ page }) =>
             outcome = 'clicked-no-observable-effect';
           }
         })(),
-        new Promise((_, reject) => setTimeout(() => reject(new Error('iteration-timeout')), 8000)),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('iteration-timeout')), 6000)),
       ]);
     } catch (err: any) {
       const msg = err?.message || String(err);

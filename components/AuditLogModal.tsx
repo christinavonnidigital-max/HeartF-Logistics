@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { ModalShell } from './UiKit';
 import { ClockIcon } from './icons';
+import { useData } from '../contexts/DataContext';
 
 type AuditEntry = {
   id: string;
@@ -20,9 +21,11 @@ interface AuditLogModalProps {
 }
 
 const AuditLogModal: React.FC<AuditLogModalProps> = ({ isOpen, onClose }) => {
+  const { auditLog, clearAuditLog } = useData();
   const [entries, setEntries] = useState<AuditEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [useLocalEntries, setUseLocalEntries] = useState(false);
 
   const safeJson = async (res: Response) => {
     const text = await res.text();
@@ -33,9 +36,35 @@ const AuditLogModal: React.FC<AuditLogModalProps> = ({ isOpen, onClose }) => {
     }
   };
 
+  const localEntries = useMemo(() => {
+    return (auditLog || []).map((entry) => ({
+      id: entry.id,
+      action: entry.action,
+      target_type: entry.entity?.type ?? null,
+      target_id: entry.entity?.id ? String(entry.entity.id) : null,
+      meta: entry.meta ?? null,
+      created_at: entry.at,
+      actor_email: null,
+      actor_first_name: entry.actor?.name || '',
+      actor_last_name: '',
+    }));
+  }, [auditLog]);
+
   useEffect(() => {
     if (!isOpen) return;
     let active = true;
+
+    const shouldUseLocal =
+      import.meta.env.DEV && typeof window !== 'undefined' && (window as any).__hfTestLoginActive;
+    if (shouldUseLocal) {
+      setUseLocalEntries(true);
+      setError(null);
+      setEntries(localEntries);
+      setLoading(false);
+      return () => {
+        active = false;
+      };
+    }
 
     const fetchAudit = async () => {
       setLoading(true);
@@ -50,8 +79,14 @@ const AuditLogModal: React.FC<AuditLogModalProps> = ({ isOpen, onClose }) => {
         setEntries(data.entries || []);
       } catch (err: any) {
         if (!active) return;
-        setError(err?.message || 'Failed to load audit log');
-        setEntries([]);
+        if (import.meta.env.DEV) {
+          setUseLocalEntries(true);
+          setError(null);
+          setEntries(localEntries);
+        } else {
+          setError(err?.message || 'Failed to load audit log');
+          setEntries([]);
+        }
       } finally {
         if (active) setLoading(false);
       }
@@ -62,7 +97,12 @@ const AuditLogModal: React.FC<AuditLogModalProps> = ({ isOpen, onClose }) => {
     return () => {
       active = false;
     };
-  }, [isOpen]);
+  }, [isOpen, localEntries]);
+
+  useEffect(() => {
+    if (!isOpen || !useLocalEntries) return;
+    setEntries(localEntries);
+  }, [isOpen, localEntries, useLocalEntries]);
 
   const formatActor = (entry: AuditEntry) => {
     const name = `${entry.actor_first_name || ''} ${entry.actor_last_name || ''}`.trim();
@@ -81,6 +121,12 @@ const AuditLogModal: React.FC<AuditLogModalProps> = ({ isOpen, onClose }) => {
     return d.toLocaleString();
   };
 
+  const handleClear = () => {
+    clearAuditLog?.();
+    setEntries([]);
+    setUseLocalEntries(true);
+  };
+
   return (
     <ModalShell
       isOpen={isOpen}
@@ -91,6 +137,14 @@ const AuditLogModal: React.FC<AuditLogModalProps> = ({ isOpen, onClose }) => {
       maxWidthClass="max-w-2xl"
       footer={(
         <div className="flex items-center gap-2">
+          {clearAuditLog && (
+            <button
+              className="text-sm text-slate-600 px-3 py-2 rounded-md bg-card border border-border"
+              onClick={handleClear}
+            >
+              Clear Log
+            </button>
+          )}
           <button className="text-sm text-slate-600 px-3 py-2 rounded-md bg-card border border-border" onClick={onClose}>
             Close
           </button>

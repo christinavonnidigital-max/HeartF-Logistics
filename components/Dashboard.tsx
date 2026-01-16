@@ -86,54 +86,54 @@ const RevenueCard: React.FC<RevenueCardProps> = ({
   const formattedTotal = new Intl.NumberFormat('en-US', { style: 'currency', currency: currency }).format(totalInvoiced || 0);
 
   return (
-    <div className="relative flex flex-col justify-between rounded-2xl bg-slate-900 p-6 shadow-xl overflow-hidden min-w-0">
-        {/* Abstract Background Shapes */}
-        <div className="absolute top-0 right-0 -mt-10 -mr-10 w-64 h-64 bg-linear-to-br from-indigo-500 to-purple-600 rounded-full opacity-20 blur-3xl"></div>
-        <div className="absolute bottom-0 left-0 -mb-10 -ml-10 w-40 h-40 bg-emerald-500 rounded-full opacity-10 blur-3xl"></div>
+    <div className="relative flex flex-col justify-between rounded-2xl bg-card border border-border p-6 shadow-sm overflow-hidden min-w-0">
+        {/* Subtle Background Shapes */}
+        <div className="absolute top-0 right-0 -mt-10 -mr-10 w-48 h-48 bg-orange-200 rounded-full opacity-30 blur-3xl"></div>
+        <div className="absolute bottom-0 left-0 -mb-10 -ml-10 w-32 h-32 bg-emerald-100 rounded-full opacity-30 blur-3xl"></div>
 
       <div className="flex items-center justify-between gap-3 relative z-10">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 text-white backdrop-blur-sm border border-white/10">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-muted text-foreground border border-border">
             <CurrencyDollarIcon className="h-5 w-5" />
           </div>
           <div>
-            <p className="text-xs font-bold uppercase tracking-wider text-indigo-200">
+            <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
               {isCustomer ? "Account Spend" : "Revenue Snapshot"}
             </p>
-            <p className="text-xs text-slate-700">
+            <p className="text-xs text-muted-foreground">
               {isCustomer ? "Total across all bookings" : "Total invoiced this period"}
             </p>
           </div>
         </div>
         {totalInvoices > 0 && (
-          <span className="inline-flex items-center rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm border border-white/10">
+          <span className="inline-flex items-center rounded-full bg-orange-50 px-3 py-1 text-xs font-medium text-orange-700 border border-orange-100">
             {openInvoices} open
           </span>
         )}
       </div>
 
       <div className="mt-6 relative z-10">
-        <p className="text-3xl font-bold tracking-tight text-white">
+        <p className="text-3xl font-bold tracking-tight text-foreground">
           {formattedTotal}
         </p>
         <div className="flex items-center gap-2 mt-1">
-             <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/20 px-2 py-0.5 text-xs font-medium text-emerald-300">
+             <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
                 <TrendingUpIcon className="w-3 h-3" />
                 +8.2%
             </span>
-            <span className="text-xs text-slate-700">vs last month</span>
+            <span className="text-xs text-muted-foreground">vs last month</span>
         </div>
       </div>
 
       {totalInvoices > 0 && (
         <div className="mt-6 relative z-10">
-          <div className="flex items-center justify-between text-xs text-slate-300 mb-2">
+          <div className="flex items-center justify-between text-xs text-muted-foreground mb-2">
             <span>Collection Rate</span>
-            <span className="font-medium text-white">{paidRatio}%</span>
+            <span className="font-medium text-foreground">{paidRatio}%</span>
           </div>
-          <div className="h-2 w-full overflow-hidden rounded-full bg-slate-800">
+          <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
             <div
-              className="h-full rounded-full bg-linear-to-r from-indigo-500 to-emerald-400"
+              className="h-full rounded-full bg-linear-to-r from-orange-400 to-emerald-400"
               style={{ width: `${paidRatio}%` }}
             />
           </div>
@@ -401,7 +401,7 @@ const Dashboard: React.FC<DashboardProps> = ({ data, settings, userRole }) => {
                   <span className="text-xs text-slate-700">{bookingCounts.total} bookings</span>
                 </div>
                 {[
-                  { label: 'Pending', key: 'pending', color: 'bg-slate-900' },
+                  { label: 'Pending', key: 'pending', color: 'bg-slate-200' },
                   { label: 'Confirmed', key: 'confirmed', color: 'bg-orange-500' },
                   { label: 'In transit', key: 'in_transit', color: 'bg-sky-500' },
                   { label: 'Delivered', key: 'delivered', color: 'bg-emerald-500' },

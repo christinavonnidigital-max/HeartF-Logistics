@@ -2,7 +2,7 @@
   "results": [
     {
       "index": 0,
-      "text": "Close",
+      "text": "Close navigation",
       "aria": "Close navigation",
       "visible": false,
       "enabled": true,
@@ -11,9 +11,9 @@
     },
     {
       "index": 1,
-      "text": "🌙Dark",
-      "aria": "Switch to dark theme",
-      "snippet": "<button class=\"inline-flex items-center justify-center gap-2 rounded-xl font-semibold transition active:translate-y-[1px] disabled:opacity-60 disabled:pointer-events-none h-9 px-3 text-sm bg-transparent hover:bg-muted text-foreground\" aria-label=\"Swi",
+      "text": "Dashboard",
+      "aria": "",
+      "snippet": "<button class=\"group flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium transition bg-white text-slate-900 shadow-md shadow-orange-500/10\" data-pw-btn-index=\"1\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=",
       "visible": true,
       "enabled": true,
       "skipped": false,
@@ -24,45 +24,45 @@
           "text": "[vite] connecting..."
         },
         {
-          "type": "info",
-          "text": "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold"
-        },
-        {
           "type": "debug",
           "text": "[vite] connected."
         },
         {
-          "type": "warning",
-          "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
-        },
-        {
-          "type": "warning",
-          "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
-        },
-        {
-          "type": "warning",
-          "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
-        },
-        {
           "type": "info",
-          "text": "Axe: no accessibility violations detected (dev run)"
+          "text": "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold"
         },
         {
-          "type": "warning",
-          "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
+          "type": "error",
+          "text": "Warning: %s: Support for defaultProps will be removed from function components in a future major release. Use JavaScript default parameters instead.%s XAxis \n    at XAxis2 (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:27812:22)\n    at svg\n    at Surface (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:5087:25)\n    at div\n    at ChartLayoutContextProvider2 (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:24382:28)\n    at CategoricalChartWrapper (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:29081:7)\n    at div\n    at http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:8309:21\n    at div\n    at RevenueTrendChart (http://localhost:4002/components/Dashboard.tsx:271:30)\n    at section\n    at div\n    at div\n    at div\n    at Dashboard (http://localhost:4002/components/Dashboard.tsx:492:22)\n    at div\n    at main\n    at div\n    at div\n    at Layout (http://localhost:4002/components/Layout.tsx:43:3)\n    at AuthedApp (http://localhost:4002/App.tsx:88:29)\n    at DataProvider (http://localhost:4002/contexts/DataContext.tsx:53:32)\n    at AuthProvider (http://localhost:4002/auth/AuthContext.tsx:147:3)\n    at App\n    at AuthUIProvider (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23410:25)\n    at V2 (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23112:26)\n    at J3 (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23110:20)\n    at NeonAuthUIProvider (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:35059:43)"
         },
         {
-          "type": "info",
-          "text": "Axe: no accessibility violations detected (dev run)"
+          "type": "error",
+          "text": "Warning: %s: Support for defaultProps will be removed from function components in a future major release. Use JavaScript default parameters instead.%s YAxis \n    at YAxis2 (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:27873:22)\n    at svg\n    at Surface (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:5087:25)\n    at div\n    at ChartLayoutContextProvider2 (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:24382:28)\n    at CategoricalChartWrapper (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:29081:7)\n    at div\n    at http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:8309:21\n    at div\n    at RevenueTrendChart (http://localhost:4002/components/Dashboard.tsx:271:30)\n    at section\n    at div\n    at div\n    at div\n    at Dashboard (http://localhost:4002/components/Dashboard.tsx:492:22)\n    at div\n    at main\n    at div\n    at div\n    at Layout (http://localhost:4002/components/Layout.tsx:43:3)\n    at AuthedApp (http://localhost:4002/App.tsx:88:29)\n    at DataProvider (http://localhost:4002/contexts/DataContext.tsx:53:32)\n    at AuthProvider (http://localhost:4002/auth/AuthContext.tsx:147:3)\n    at App\n    at AuthUIProvider (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23410:25)\n    at V2 (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23112:26)\n    at J3 (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23110:20)\n    at NeonAuthUIProvider (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:35059:43)"
+        },
+        {
+          "type": "startGroupCollapsed",
+          "text": "Axe accessibility violations (development)"
+        },
+        {
+          "type": "table",
+          "text": "[Object]"
+        },
+        {
+          "type": "log",
+          "text": "{id: color-contrast, impact: serious, tags: Array(10), description: Ensure the contrast between foreground and backgro…meets WCAG 2 AA minimum contrast ratio thresholds, help: Elements must meet minimum color contrast ratio thresholds}"
+        },
+        {
+          "type": "endGroup",
+          "text": "console.groupEnd"
         }
       ],
       "pageErrors": []
     },
     {
       "index": 2,
-      "text": "DashboardDashboard",
+      "text": "Fleet",
       "aria": "",
-      "snippet": "<button class=\"group flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium transition bg-muted/10 text-foreground shadow-md shadow-orange-500/10\" data-pw-btn-index=\"2\"><svg class=\"h-5 w-5 shrink-0 text-orange-600\" viewBox=",
+      "snippet": "<button class=\"group flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium transition text-slate-200 hover:bg-white/10\" data-pw-btn-index=\"2\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 2",
       "visible": true,
       "enabled": true,
       "skipped": false,
@@ -73,73 +73,69 @@
           "text": "[vite] connecting..."
         },
         {
-          "type": "info",
-          "text": "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold"
-        },
-        {
           "type": "debug",
           "text": "[vite] connected."
         },
         {
-          "type": "warning",
-          "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
-        },
-        {
-          "type": "warning",
-          "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
-        },
-        {
-          "type": "warning",
-          "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
-        },
-        {
           "type": "info",
-          "text": "Axe: no accessibility violations detected (dev run)"
+          "text": "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold"
         },
         {
-          "type": "warning",
-          "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
+          "type": "error",
+          "text": "Warning: %s: Support for defaultProps will be removed from function components in a future major release. Use JavaScript default parameters instead.%s XAxis \n    at XAxis2 (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:27812:22)\n    at svg\n    at Surface (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:5087:25)\n    at div\n    at ChartLayoutContextProvider2 (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:24382:28)\n    at CategoricalChartWrapper (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:29081:7)\n    at div\n    at http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:8309:21\n    at div\n    at RevenueTrendChart (http://localhost:4002/components/Dashboard.tsx:271:30)\n    at section\n    at div\n    at div\n    at div\n    at Dashboard (http://localhost:4002/components/Dashboard.tsx:492:22)\n    at div\n    at main\n    at div\n    at div\n    at Layout (http://localhost:4002/components/Layout.tsx:43:3)\n    at AuthedApp (http://localhost:4002/App.tsx:88:29)\n    at DataProvider (http://localhost:4002/contexts/DataContext.tsx:53:32)\n    at AuthProvider (http://localhost:4002/auth/AuthContext.tsx:147:3)\n    at App\n    at AuthUIProvider (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23410:25)\n    at V2 (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23112:26)\n    at J3 (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23110:20)\n    at NeonAuthUIProvider (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:35059:43)"
         },
         {
-          "type": "info",
-          "text": "Axe: no accessibility violations detected (dev run)"
+          "type": "error",
+          "text": "Warning: %s: Support for defaultProps will be removed from function components in a future major release. Use JavaScript default parameters instead.%s YAxis \n    at YAxis2 (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:27873:22)\n    at svg\n    at Surface (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:5087:25)\n    at div\n    at ChartLayoutContextProvider2 (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:24382:28)\n    at CategoricalChartWrapper (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:29081:7)\n    at div\n    at http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:8309:21\n    at div\n    at RevenueTrendChart (http://localhost:4002/components/Dashboard.tsx:271:30)\n    at section\n    at div\n    at div\n    at div\n    at Dashboard (http://localhost:4002/components/Dashboard.tsx:492:22)\n    at div\n    at main\n    at div\n    at div\n    at Layout (http://localhost:4002/components/Layout.tsx:43:3)\n    at AuthedApp (http://localhost:4002/App.tsx:88:29)\n    at DataProvider (http://localhost:4002/contexts/DataContext.tsx:53:32)\n    at AuthProvider (http://localhost:4002/auth/AuthContext.tsx:147:3)\n    at App\n    at AuthUIProvider (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23410:25)\n    at V2 (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23112:26)\n    at J3 (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23110:20)\n    at NeonAuthUIProvider (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:35059:43)"
+        },
+        {
+          "type": "startGroupCollapsed",
+          "text": "Axe accessibility violations (development)"
+        },
+        {
+          "type": "table",
+          "text": "[Object]"
+        },
+        {
+          "type": "log",
+          "text": "{id: color-contrast, impact: serious, tags: Array(10), description: Ensure the contrast between foreground and backgro…meets WCAG 2 AA minimum contrast ratio thresholds, help: Elements must meet minimum color contrast ratio thresholds}"
+        },
+        {
+          "type": "endGroup",
+          "text": "console.groupEnd"
         }
       ],
       "pageErrors": []
     },
     {
       "index": 3,
-      "text": "FleetFleet",
+      "text": "Bookings",
       "aria": "",
-      "snippet": "<button class=\"group flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium transition text-muted-foreground hover:bg-muted/10\" data-pw-btn-index=\"3\"><svg class=\"h-5 w-5 shrink-0 text-orange-200\" viewBox=\"0 0 24 24\" fill=\"n",
+      "snippet": "<button class=\"group flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium transition text-slate-200 hover:bg-white/10\" data-pw-btn-index=\"3\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 2",
       "visible": true,
       "enabled": true,
       "skipped": false,
       "outcome": "clicked-no-observable-effect",
       "latestConsole": [
         {
-          "type": "warning",
-          "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
+          "type": "debug",
+          "text": "[vite] connecting..."
         },
         {
-          "type": "warning",
-          "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
-        },
-        {
-          "type": "info",
-          "text": "Axe: no accessibility violations detected (dev run)"
-        },
-        {
-          "type": "warning",
-          "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
+          "type": "debug",
+          "text": "[vite] connected."
         },
         {
           "type": "info",
-          "text": "Axe: no accessibility violations detected (dev run)"
+          "text": "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold"
         },
         {
-          "type": "warning",
-          "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
+          "type": "error",
+          "text": "Warning: %s: Support for defaultProps will be removed from function components in a future major release. Use JavaScript default parameters instead.%s XAxis \n    at XAxis2 (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:27812:22)\n    at svg\n    at Surface (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:5087:25)\n    at div\n    at ChartLayoutContextProvider2 (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:24382:28)\n    at CategoricalChartWrapper (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:29081:7)\n    at div\n    at http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:8309:21\n    at div\n    at RevenueTrendChart (http://localhost:4002/components/Dashboard.tsx:271:30)\n    at section\n    at div\n    at div\n    at div\n    at Dashboard (http://localhost:4002/components/Dashboard.tsx:492:22)\n    at div\n    at main\n    at div\n    at div\n    at Layout (http://localhost:4002/components/Layout.tsx:43:3)\n    at AuthedApp (http://localhost:4002/App.tsx:88:29)\n    at DataProvider (http://localhost:4002/contexts/DataContext.tsx:53:32)\n    at AuthProvider (http://localhost:4002/auth/AuthContext.tsx:147:3)\n    at App\n    at AuthUIProvider (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23410:25)\n    at V2 (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23112:26)\n    at J3 (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23110:20)\n    at NeonAuthUIProvider (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:35059:43)"
+        },
+        {
+          "type": "error",
+          "text": "Warning: %s: Support for defaultProps will be removed from function components in a future major release. Use JavaScript default parameters instead.%s YAxis \n    at YAxis2 (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:27873:22)\n    at svg\n    at Surface (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:5087:25)\n    at div\n    at ChartLayoutContextProvider2 (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:24382:28)\n    at CategoricalChartWrapper (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:29081:7)\n    at div\n    at http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:8309:21\n    at div\n    at RevenueTrendChart (http://localhost:4002/components/Dashboard.tsx:271:30)\n    at section\n    at div\n    at div\n    at div\n    at Dashboard (http://localhost:4002/components/Dashboard.tsx:492:22)\n    at div\n    at main\n    at div\n    at div\n    at Layout (http://localhost:4002/components/Layout.tsx:43:3)\n    at AuthedApp (http://localhost:4002/App.tsx:88:29)\n    at DataProvider (http://localhost:4002/contexts/DataContext.tsx:53:32)\n    at AuthProvider (http://localhost:4002/auth/AuthContext.tsx:147:3)\n    at App\n    at AuthUIProvider (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23410:25)\n    at V2 (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23112:26)\n    at J3 (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23110:20)\n    at NeonAuthUIProvider (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:35059:43)"
         },
         {
           "type": "startGroupCollapsed",
@@ -162,37 +158,33 @@
     },
     {
       "index": 4,
-      "text": "DocumentsBookings",
+      "text": "Drivers",
       "aria": "",
-      "snippet": "<button class=\"group flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium transition text-muted-foreground hover:bg-muted/10\" data-pw-btn-index=\"4\"><svg class=\"h-5 w-5 shrink-0 text-orange-200\" viewBox=\"0 0 24 24\" fill=\"n",
+      "snippet": "<button class=\"group flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium transition text-slate-200 hover:bg-white/10\" data-pw-btn-index=\"4\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 2",
       "visible": true,
       "enabled": true,
       "skipped": false,
       "outcome": "clicked-no-observable-effect",
       "latestConsole": [
         {
-          "type": "warning",
-          "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
+          "type": "debug",
+          "text": "[vite] connecting..."
         },
         {
-          "type": "startGroupCollapsed",
-          "text": "Axe accessibility violations (development)"
+          "type": "debug",
+          "text": "[vite] connected."
         },
         {
-          "type": "table",
-          "text": "[Object]"
+          "type": "info",
+          "text": "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold"
         },
         {
-          "type": "log",
-          "text": "{id: color-contrast, impact: serious, tags: Array(10), description: Ensure the contrast between foreground and backgro…meets WCAG 2 AA minimum contrast ratio thresholds, help: Elements must meet minimum color contrast ratio thresholds}"
+          "type": "error",
+          "text": "Warning: %s: Support for defaultProps will be removed from function components in a future major release. Use JavaScript default parameters instead.%s XAxis \n    at XAxis2 (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:27812:22)\n    at svg\n    at Surface (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:5087:25)\n    at div\n    at ChartLayoutContextProvider2 (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:24382:28)\n    at CategoricalChartWrapper (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:29081:7)\n    at div\n    at http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:8309:21\n    at div\n    at RevenueTrendChart (http://localhost:4002/components/Dashboard.tsx:271:30)\n    at section\n    at div\n    at div\n    at div\n    at Dashboard (http://localhost:4002/components/Dashboard.tsx:492:22)\n    at div\n    at main\n    at div\n    at div\n    at Layout (http://localhost:4002/components/Layout.tsx:43:3)\n    at AuthedApp (http://localhost:4002/App.tsx:88:29)\n    at DataProvider (http://localhost:4002/contexts/DataContext.tsx:53:32)\n    at AuthProvider (http://localhost:4002/auth/AuthContext.tsx:147:3)\n    at App\n    at AuthUIProvider (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23410:25)\n    at V2 (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23112:26)\n    at J3 (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23110:20)\n    at NeonAuthUIProvider (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:35059:43)"
         },
         {
-          "type": "endGroup",
-          "text": "console.groupEnd"
-        },
-        {
-          "type": "warning",
-          "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
+          "type": "error",
+          "text": "Warning: %s: Support for defaultProps will be removed from function components in a future major release. Use JavaScript default parameters instead.%s YAxis \n    at YAxis2 (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:27873:22)\n    at svg\n    at Surface (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:5087:25)\n    at div\n    at ChartLayoutContextProvider2 (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:24382:28)\n    at CategoricalChartWrapper (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:29081:7)\n    at div\n    at http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:8309:21\n    at div\n    at RevenueTrendChart (http://localhost:4002/components/Dashboard.tsx:271:30)\n    at section\n    at div\n    at div\n    at div\n    at Dashboard (http://localhost:4002/components/Dashboard.tsx:492:22)\n    at div\n    at main\n    at div\n    at div\n    at Layout (http://localhost:4002/components/Layout.tsx:43:3)\n    at AuthedApp (http://localhost:4002/App.tsx:88:29)\n    at DataProvider (http://localhost:4002/contexts/DataContext.tsx:53:32)\n    at AuthProvider (http://localhost:4002/auth/AuthContext.tsx:147:3)\n    at App\n    at AuthUIProvider (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23410:25)\n    at V2 (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23112:26)\n    at J3 (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23110:20)\n    at NeonAuthUIProvider (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:35059:43)"
         },
         {
           "type": "startGroupCollapsed",
@@ -215,14 +207,34 @@
     },
     {
       "index": 5,
-      "text": "DriversDrivers",
+      "text": "Routes",
       "aria": "",
-      "snippet": "<button class=\"group flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium transition text-muted-foreground hover:bg-muted/10\" data-pw-btn-index=\"5\"><svg class=\"h-5 w-5 shrink-0 text-orange-200\" viewBox=\"0 0 24 24\" fill=\"n",
+      "snippet": "<button class=\"group flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium transition text-slate-200 hover:bg-white/10\" data-pw-btn-index=\"5\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 2",
       "visible": true,
       "enabled": true,
       "skipped": false,
       "outcome": "clicked-no-observable-effect",
       "latestConsole": [
+        {
+          "type": "debug",
+          "text": "[vite] connecting..."
+        },
+        {
+          "type": "debug",
+          "text": "[vite] connected."
+        },
+        {
+          "type": "info",
+          "text": "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold"
+        },
+        {
+          "type": "error",
+          "text": "Warning: %s: Support for defaultProps will be removed from function components in a future major release. Use JavaScript default parameters instead.%s XAxis \n    at XAxis2 (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:27812:22)\n    at svg\n    at Surface (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:5087:25)\n    at div\n    at ChartLayoutContextProvider2 (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:24382:28)\n    at CategoricalChartWrapper (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:29081:7)\n    at div\n    at http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:8309:21\n    at div\n    at RevenueTrendChart (http://localhost:4002/components/Dashboard.tsx:271:30)\n    at section\n    at div\n    at div\n    at div\n    at Dashboard (http://localhost:4002/components/Dashboard.tsx:492:22)\n    at div\n    at main\n    at div\n    at div\n    at Layout (http://localhost:4002/components/Layout.tsx:43:3)\n    at AuthedApp (http://localhost:4002/App.tsx:88:29)\n    at DataProvider (http://localhost:4002/contexts/DataContext.tsx:53:32)\n    at AuthProvider (http://localhost:4002/auth/AuthContext.tsx:147:3)\n    at App\n    at AuthUIProvider (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23410:25)\n    at V2 (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23112:26)\n    at J3 (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23110:20)\n    at NeonAuthUIProvider (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:35059:43)"
+        },
+        {
+          "type": "error",
+          "text": "Warning: %s: Support for defaultProps will be removed from function components in a future major release. Use JavaScript default parameters instead.%s YAxis \n    at YAxis2 (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:27873:22)\n    at svg\n    at Surface (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:5087:25)\n    at div\n    at ChartLayoutContextProvider2 (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:24382:28)\n    at CategoricalChartWrapper (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:29081:7)\n    at div\n    at http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:8309:21\n    at div\n    at RevenueTrendChart (http://localhost:4002/components/Dashboard.tsx:271:30)\n    at section\n    at div\n    at div\n    at div\n    at Dashboard (http://localhost:4002/components/Dashboard.tsx:492:22)\n    at div\n    at main\n    at div\n    at div\n    at Layout (http://localhost:4002/components/Layout.tsx:43:3)\n    at AuthedApp (http://localhost:4002/App.tsx:88:29)\n    at DataProvider (http://localhost:4002/contexts/DataContext.tsx:53:32)\n    at AuthProvider (http://localhost:4002/auth/AuthContext.tsx:147:3)\n    at App\n    at AuthUIProvider (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23410:25)\n    at V2 (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23112:26)\n    at J3 (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23110:20)\n    at NeonAuthUIProvider (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:35059:43)"
+        },
         {
           "type": "startGroupCollapsed",
           "text": "Axe accessibility violations (development)"
@@ -238,59 +250,39 @@
         {
           "type": "endGroup",
           "text": "console.groupEnd"
-        },
-        {
-          "type": "warning",
-          "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
-        },
-        {
-          "type": "startGroupCollapsed",
-          "text": "Axe accessibility violations (development)"
-        },
-        {
-          "type": "table",
-          "text": "[Object, Object]"
-        },
-        {
-          "type": "log",
-          "text": "{id: color-contrast, impact: serious, tags: Array(10), description: Ensure the contrast between foreground and backgro…meets WCAG 2 AA minimum contrast ratio thresholds, help: Elements must meet minimum color contrast ratio thresholds}"
-        },
-        {
-          "type": "log",
-          "text": "{id: heading-order, impact: moderate, tags: Array(2), description: Ensure the order of headings is semantically correct, help: Heading levels should only increase by one}"
-        },
-        {
-          "type": "endGroup",
-          "text": "console.groupEnd"
         }
       ],
       "pageErrors": []
     },
     {
       "index": 6,
-      "text": "RoutesRoutes",
+      "text": "Leads",
       "aria": "",
-      "snippet": "<button class=\"group flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium transition text-muted-foreground hover:bg-muted/10\" data-pw-btn-index=\"6\"><svg class=\"h-5 w-5 shrink-0 text-orange-200\" viewBox=\"0 0 24 24\" fill=\"n",
+      "snippet": "<button class=\"group flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium transition text-slate-200 hover:bg-white/10\" data-pw-btn-index=\"6\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 2",
       "visible": true,
       "enabled": true,
       "skipped": false,
       "outcome": "clicked-no-observable-effect",
       "latestConsole": [
         {
-          "type": "log",
-          "text": "{id: color-contrast, impact: serious, tags: Array(10), description: Ensure the contrast between foreground and backgro…meets WCAG 2 AA minimum contrast ratio thresholds, help: Elements must meet minimum color contrast ratio thresholds}"
+          "type": "debug",
+          "text": "[vite] connecting..."
         },
         {
-          "type": "log",
-          "text": "{id: heading-order, impact: moderate, tags: Array(2), description: Ensure the order of headings is semantically correct, help: Heading levels should only increase by one}"
+          "type": "debug",
+          "text": "[vite] connected."
         },
         {
-          "type": "endGroup",
-          "text": "console.groupEnd"
+          "type": "info",
+          "text": "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold"
         },
         {
-          "type": "warning",
-          "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
+          "type": "error",
+          "text": "Warning: %s: Support for defaultProps will be removed from function components in a future major release. Use JavaScript default parameters instead.%s XAxis \n    at XAxis2 (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:27812:22)\n    at svg\n    at Surface (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:5087:25)\n    at div\n    at ChartLayoutContextProvider2 (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:24382:28)\n    at CategoricalChartWrapper (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:29081:7)\n    at div\n    at http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:8309:21\n    at div\n    at RevenueTrendChart (http://localhost:4002/components/Dashboard.tsx:271:30)\n    at section\n    at div\n    at div\n    at div\n    at Dashboard (http://localhost:4002/components/Dashboard.tsx:492:22)\n    at div\n    at main\n    at div\n    at div\n    at Layout (http://localhost:4002/components/Layout.tsx:43:3)\n    at AuthedApp (http://localhost:4002/App.tsx:88:29)\n    at DataProvider (http://localhost:4002/contexts/DataContext.tsx:53:32)\n    at AuthProvider (http://localhost:4002/auth/AuthContext.tsx:147:3)\n    at App\n    at AuthUIProvider (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23410:25)\n    at V2 (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23112:26)\n    at J3 (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23110:20)\n    at NeonAuthUIProvider (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:35059:43)"
+        },
+        {
+          "type": "error",
+          "text": "Warning: %s: Support for defaultProps will be removed from function components in a future major release. Use JavaScript default parameters instead.%s YAxis \n    at YAxis2 (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:27873:22)\n    at svg\n    at Surface (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:5087:25)\n    at div\n    at ChartLayoutContextProvider2 (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:24382:28)\n    at CategoricalChartWrapper (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:29081:7)\n    at div\n    at http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:8309:21\n    at div\n    at RevenueTrendChart (http://localhost:4002/components/Dashboard.tsx:271:30)\n    at section\n    at div\n    at div\n    at div\n    at Dashboard (http://localhost:4002/components/Dashboard.tsx:492:22)\n    at div\n    at main\n    at div\n    at div\n    at Layout (http://localhost:4002/components/Layout.tsx:43:3)\n    at AuthedApp (http://localhost:4002/App.tsx:88:29)\n    at DataProvider (http://localhost:4002/contexts/DataContext.tsx:53:32)\n    at AuthProvider (http://localhost:4002/auth/AuthContext.tsx:147:3)\n    at App\n    at AuthUIProvider (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23410:25)\n    at V2 (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23112:26)\n    at J3 (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23110:20)\n    at NeonAuthUIProvider (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:35059:43)"
         },
         {
           "type": "startGroupCollapsed",
@@ -298,19 +290,11 @@
         },
         {
           "type": "table",
-          "text": "[Object, Object, Object]"
-        },
-        {
-          "type": "log",
-          "text": "{id: aria-command-name, impact: serious, tags: Array(10), description: Ensure every ARIA button, link and menuitem has an accessible name, help: ARIA commands must have an accessible name}"
+          "text": "[Object]"
         },
         {
           "type": "log",
           "text": "{id: color-contrast, impact: serious, tags: Array(10), description: Ensure the contrast between foreground and backgro…meets WCAG 2 AA minimum contrast ratio thresholds, help: Elements must meet minimum color contrast ratio thresholds}"
-        },
-        {
-          "type": "log",
-          "text": "{id: heading-order, impact: moderate, tags: Array(2), description: Ensure the order of headings is semantically correct, help: Heading levels should only increase by one}"
         },
         {
           "type": "endGroup",
@@ -321,29 +305,33 @@
     },
     {
       "index": 7,
-      "text": "MarketingLeads",
+      "text": "Lead Finder",
       "aria": "",
-      "snippet": "<button class=\"group flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium transition text-muted-foreground hover:bg-muted/10\" data-pw-btn-index=\"7\"><svg class=\"h-5 w-5 shrink-0 text-orange-200\" viewBox=\"0 0 24 24\" fill=\"n",
+      "snippet": "<button class=\"group flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium transition text-slate-200 hover:bg-white/10\" data-pw-btn-index=\"7\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 2",
       "visible": true,
       "enabled": true,
       "skipped": false,
       "outcome": "clicked-no-observable-effect",
       "latestConsole": [
         {
-          "type": "log",
-          "text": "{id: color-contrast, impact: serious, tags: Array(10), description: Ensure the contrast between foreground and backgro…meets WCAG 2 AA minimum contrast ratio thresholds, help: Elements must meet minimum color contrast ratio thresholds}"
+          "type": "debug",
+          "text": "[vite] connecting..."
         },
         {
-          "type": "log",
-          "text": "{id: heading-order, impact: moderate, tags: Array(2), description: Ensure the order of headings is semantically correct, help: Heading levels should only increase by one}"
+          "type": "debug",
+          "text": "[vite] connected."
         },
         {
-          "type": "endGroup",
-          "text": "console.groupEnd"
+          "type": "info",
+          "text": "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold"
         },
         {
-          "type": "warning",
-          "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
+          "type": "error",
+          "text": "Warning: %s: Support for defaultProps will be removed from function components in a future major release. Use JavaScript default parameters instead.%s XAxis \n    at XAxis2 (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:27812:22)\n    at svg\n    at Surface (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:5087:25)\n    at div\n    at ChartLayoutContextProvider2 (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:24382:28)\n    at CategoricalChartWrapper (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:29081:7)\n    at div\n    at http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:8309:21\n    at div\n    at RevenueTrendChart (http://localhost:4002/components/Dashboard.tsx:271:30)\n    at section\n    at div\n    at div\n    at div\n    at Dashboard (http://localhost:4002/components/Dashboard.tsx:492:22)\n    at div\n    at main\n    at div\n    at div\n    at Layout (http://localhost:4002/components/Layout.tsx:43:3)\n    at AuthedApp (http://localhost:4002/App.tsx:88:29)\n    at DataProvider (http://localhost:4002/contexts/DataContext.tsx:53:32)\n    at AuthProvider (http://localhost:4002/auth/AuthContext.tsx:147:3)\n    at App\n    at AuthUIProvider (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23410:25)\n    at V2 (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23112:26)\n    at J3 (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23110:20)\n    at NeonAuthUIProvider (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:35059:43)"
+        },
+        {
+          "type": "error",
+          "text": "Warning: %s: Support for defaultProps will be removed from function components in a future major release. Use JavaScript default parameters instead.%s YAxis \n    at YAxis2 (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:27873:22)\n    at svg\n    at Surface (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:5087:25)\n    at div\n    at ChartLayoutContextProvider2 (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:24382:28)\n    at CategoricalChartWrapper (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:29081:7)\n    at div\n    at http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:8309:21\n    at div\n    at RevenueTrendChart (http://localhost:4002/components/Dashboard.tsx:271:30)\n    at section\n    at div\n    at div\n    at div\n    at Dashboard (http://localhost:4002/components/Dashboard.tsx:492:22)\n    at div\n    at main\n    at div\n    at div\n    at Layout (http://localhost:4002/components/Layout.tsx:43:3)\n    at AuthedApp (http://localhost:4002/App.tsx:88:29)\n    at DataProvider (http://localhost:4002/contexts/DataContext.tsx:53:32)\n    at AuthProvider (http://localhost:4002/auth/AuthContext.tsx:147:3)\n    at App\n    at AuthUIProvider (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23410:25)\n    at V2 (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23112:26)\n    at J3 (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23110:20)\n    at NeonAuthUIProvider (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:35059:43)"
         },
         {
           "type": "startGroupCollapsed",
@@ -351,19 +339,11 @@
         },
         {
           "type": "table",
-          "text": "[Object, Object, Object]"
+          "text": "[Object]"
         },
         {
           "type": "log",
           "text": "{id: color-contrast, impact: serious, tags: Array(10), description: Ensure the contrast between foreground and backgro…meets WCAG 2 AA minimum contrast ratio thresholds, help: Elements must meet minimum color contrast ratio thresholds}"
-        },
-        {
-          "type": "log",
-          "text": "{id: heading-order, impact: moderate, tags: Array(2), description: Ensure the order of headings is semantically correct, help: Heading levels should only increase by one}"
-        },
-        {
-          "type": "log",
-          "text": "{id: scrollable-region-focusable, impact: serious, tags: Array(11), description: Ensure elements that have scrollable content are accessible by keyboard, help: Scrollable region must have keyboard access}"
         },
         {
           "type": "endGroup",
@@ -374,37 +354,33 @@
     },
     {
       "index": 8,
-      "text": "CustomersCustomers",
+      "text": "Customers",
       "aria": "",
-      "snippet": "<button class=\"group flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium transition text-muted-foreground hover:bg-muted/10\" data-pw-btn-index=\"8\"><svg class=\"h-5 w-5 shrink-0 text-orange-200\" viewBox=\"0 0 24 24\" fill=\"n",
+      "snippet": "<button class=\"group flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium transition text-slate-200 hover:bg-white/10\" data-pw-btn-index=\"8\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 2",
       "visible": true,
       "enabled": true,
       "skipped": false,
       "outcome": "clicked-no-observable-effect",
       "latestConsole": [
         {
-          "type": "table",
-          "text": "[Object, Object, Object]"
+          "type": "debug",
+          "text": "[vite] connecting..."
         },
         {
-          "type": "log",
-          "text": "{id: color-contrast, impact: serious, tags: Array(10), description: Ensure the contrast between foreground and backgro…meets WCAG 2 AA minimum contrast ratio thresholds, help: Elements must meet minimum color contrast ratio thresholds}"
+          "type": "debug",
+          "text": "[vite] connected."
         },
         {
-          "type": "log",
-          "text": "{id: heading-order, impact: moderate, tags: Array(2), description: Ensure the order of headings is semantically correct, help: Heading levels should only increase by one}"
+          "type": "info",
+          "text": "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold"
         },
         {
-          "type": "log",
-          "text": "{id: scrollable-region-focusable, impact: serious, tags: Array(11), description: Ensure elements that have scrollable content are accessible by keyboard, help: Scrollable region must have keyboard access}"
+          "type": "error",
+          "text": "Warning: %s: Support for defaultProps will be removed from function components in a future major release. Use JavaScript default parameters instead.%s XAxis \n    at XAxis2 (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:27812:22)\n    at svg\n    at Surface (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:5087:25)\n    at div\n    at ChartLayoutContextProvider2 (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:24382:28)\n    at CategoricalChartWrapper (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:29081:7)\n    at div\n    at http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:8309:21\n    at div\n    at RevenueTrendChart (http://localhost:4002/components/Dashboard.tsx:271:30)\n    at section\n    at div\n    at div\n    at div\n    at Dashboard (http://localhost:4002/components/Dashboard.tsx:492:22)\n    at div\n    at main\n    at div\n    at div\n    at Layout (http://localhost:4002/components/Layout.tsx:43:3)\n    at AuthedApp (http://localhost:4002/App.tsx:88:29)\n    at DataProvider (http://localhost:4002/contexts/DataContext.tsx:53:32)\n    at AuthProvider (http://localhost:4002/auth/AuthContext.tsx:147:3)\n    at App\n    at AuthUIProvider (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23410:25)\n    at V2 (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23112:26)\n    at J3 (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23110:20)\n    at NeonAuthUIProvider (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:35059:43)"
         },
         {
-          "type": "endGroup",
-          "text": "console.groupEnd"
-        },
-        {
-          "type": "warning",
-          "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
+          "type": "error",
+          "text": "Warning: %s: Support for defaultProps will be removed from function components in a future major release. Use JavaScript default parameters instead.%s YAxis \n    at YAxis2 (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:27873:22)\n    at svg\n    at Surface (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:5087:25)\n    at div\n    at ChartLayoutContextProvider2 (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:24382:28)\n    at CategoricalChartWrapper (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:29081:7)\n    at div\n    at http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:8309:21\n    at div\n    at RevenueTrendChart (http://localhost:4002/components/Dashboard.tsx:271:30)\n    at section\n    at div\n    at div\n    at div\n    at Dashboard (http://localhost:4002/components/Dashboard.tsx:492:22)\n    at div\n    at main\n    at div\n    at div\n    at Layout (http://localhost:4002/components/Layout.tsx:43:3)\n    at AuthedApp (http://localhost:4002/App.tsx:88:29)\n    at DataProvider (http://localhost:4002/contexts/DataContext.tsx:53:32)\n    at AuthProvider (http://localhost:4002/auth/AuthContext.tsx:147:3)\n    at App\n    at AuthUIProvider (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23410:25)\n    at V2 (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23112:26)\n    at J3 (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23110:20)\n    at NeonAuthUIProvider (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:35059:43)"
         },
         {
           "type": "startGroupCollapsed",
@@ -427,37 +403,33 @@
     },
     {
       "index": 9,
-      "text": "CampaignsCampaigns",
+      "text": "Campaigns",
       "aria": "",
-      "snippet": "<button class=\"group flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium transition text-muted-foreground hover:bg-muted/10\" data-pw-btn-index=\"9\"><svg class=\"h-5 w-5 shrink-0 text-orange-200\" viewBox=\"0 0 24 24\" fill=\"n",
+      "snippet": "<button class=\"group flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium transition text-slate-200 hover:bg-white/10\" data-pw-btn-index=\"9\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 2",
       "visible": true,
       "enabled": true,
       "skipped": false,
       "outcome": "clicked-no-observable-effect",
       "latestConsole": [
         {
-          "type": "warning",
-          "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
+          "type": "debug",
+          "text": "[vite] connecting..."
         },
         {
-          "type": "startGroupCollapsed",
-          "text": "Axe accessibility violations (development)"
+          "type": "debug",
+          "text": "[vite] connected."
         },
         {
-          "type": "table",
-          "text": "[Object]"
+          "type": "info",
+          "text": "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold"
         },
         {
-          "type": "log",
-          "text": "{id: color-contrast, impact: serious, tags: Array(10), description: Ensure the contrast between foreground and backgro…meets WCAG 2 AA minimum contrast ratio thresholds, help: Elements must meet minimum color contrast ratio thresholds}"
+          "type": "error",
+          "text": "Warning: %s: Support for defaultProps will be removed from function components in a future major release. Use JavaScript default parameters instead.%s XAxis \n    at XAxis2 (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:27812:22)\n    at svg\n    at Surface (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:5087:25)\n    at div\n    at ChartLayoutContextProvider2 (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:24382:28)\n    at CategoricalChartWrapper (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:29081:7)\n    at div\n    at http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:8309:21\n    at div\n    at RevenueTrendChart (http://localhost:4002/components/Dashboard.tsx:271:30)\n    at section\n    at div\n    at div\n    at div\n    at Dashboard (http://localhost:4002/components/Dashboard.tsx:492:22)\n    at div\n    at main\n    at div\n    at div\n    at Layout (http://localhost:4002/components/Layout.tsx:43:3)\n    at AuthedApp (http://localhost:4002/App.tsx:88:29)\n    at DataProvider (http://localhost:4002/contexts/DataContext.tsx:53:32)\n    at AuthProvider (http://localhost:4002/auth/AuthContext.tsx:147:3)\n    at App\n    at AuthUIProvider (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23410:25)\n    at V2 (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23112:26)\n    at J3 (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23110:20)\n    at NeonAuthUIProvider (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:35059:43)"
         },
         {
-          "type": "endGroup",
-          "text": "console.groupEnd"
-        },
-        {
-          "type": "warning",
-          "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
+          "type": "error",
+          "text": "Warning: %s: Support for defaultProps will be removed from function components in a future major release. Use JavaScript default parameters instead.%s YAxis \n    at YAxis2 (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:27873:22)\n    at svg\n    at Surface (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:5087:25)\n    at div\n    at ChartLayoutContextProvider2 (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:24382:28)\n    at CategoricalChartWrapper (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:29081:7)\n    at div\n    at http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:8309:21\n    at div\n    at RevenueTrendChart (http://localhost:4002/components/Dashboard.tsx:271:30)\n    at section\n    at div\n    at div\n    at div\n    at Dashboard (http://localhost:4002/components/Dashboard.tsx:492:22)\n    at div\n    at main\n    at div\n    at div\n    at Layout (http://localhost:4002/components/Layout.tsx:43:3)\n    at AuthedApp (http://localhost:4002/App.tsx:88:29)\n    at DataProvider (http://localhost:4002/contexts/DataContext.tsx:53:32)\n    at AuthProvider (http://localhost:4002/auth/AuthContext.tsx:147:3)\n    at App\n    at AuthUIProvider (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23410:25)\n    at V2 (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23112:26)\n    at J3 (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23110:20)\n    at NeonAuthUIProvider (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:35059:43)"
         },
         {
           "type": "startGroupCollapsed",
@@ -480,14 +452,34 @@
     },
     {
       "index": 10,
-      "text": "SequencesSequences",
+      "text": "Sequences",
       "aria": "",
-      "snippet": "<button class=\"group flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium transition text-muted-foreground hover:bg-muted/10\" data-pw-btn-index=\"10\"><svg class=\"h-5 w-5 shrink-0 text-orange-200\" viewBox=\"0 0 24 24\" fill=\"",
+      "snippet": "<button class=\"group flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium transition text-slate-200 hover:bg-white/10\" data-pw-btn-index=\"10\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 ",
       "visible": true,
       "enabled": true,
       "skipped": false,
       "outcome": "clicked-no-observable-effect",
       "latestConsole": [
+        {
+          "type": "debug",
+          "text": "[vite] connecting..."
+        },
+        {
+          "type": "debug",
+          "text": "[vite] connected."
+        },
+        {
+          "type": "info",
+          "text": "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold"
+        },
+        {
+          "type": "error",
+          "text": "Warning: %s: Support for defaultProps will be removed from function components in a future major release. Use JavaScript default parameters instead.%s XAxis \n    at XAxis2 (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:27812:22)\n    at svg\n    at Surface (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:5087:25)\n    at div\n    at ChartLayoutContextProvider2 (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:24382:28)\n    at CategoricalChartWrapper (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:29081:7)\n    at div\n    at http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:8309:21\n    at div\n    at RevenueTrendChart (http://localhost:4002/components/Dashboard.tsx:271:30)\n    at section\n    at div\n    at div\n    at div\n    at Dashboard (http://localhost:4002/components/Dashboard.tsx:492:22)\n    at div\n    at main\n    at div\n    at div\n    at Layout (http://localhost:4002/components/Layout.tsx:43:3)\n    at AuthedApp (http://localhost:4002/App.tsx:88:29)\n    at DataProvider (http://localhost:4002/contexts/DataContext.tsx:53:32)\n    at AuthProvider (http://localhost:4002/auth/AuthContext.tsx:147:3)\n    at App\n    at AuthUIProvider (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23410:25)\n    at V2 (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23112:26)\n    at J3 (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23110:20)\n    at NeonAuthUIProvider (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:35059:43)"
+        },
+        {
+          "type": "error",
+          "text": "Warning: %s: Support for defaultProps will be removed from function components in a future major release. Use JavaScript default parameters instead.%s YAxis \n    at YAxis2 (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:27873:22)\n    at svg\n    at Surface (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:5087:25)\n    at div\n    at ChartLayoutContextProvider2 (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:24382:28)\n    at CategoricalChartWrapper (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:29081:7)\n    at div\n    at http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:8309:21\n    at div\n    at RevenueTrendChart (http://localhost:4002/components/Dashboard.tsx:271:30)\n    at section\n    at div\n    at div\n    at div\n    at Dashboard (http://localhost:4002/components/Dashboard.tsx:492:22)\n    at div\n    at main\n    at div\n    at div\n    at Layout (http://localhost:4002/components/Layout.tsx:43:3)\n    at AuthedApp (http://localhost:4002/App.tsx:88:29)\n    at DataProvider (http://localhost:4002/contexts/DataContext.tsx:53:32)\n    at AuthProvider (http://localhost:4002/auth/AuthContext.tsx:147:3)\n    at App\n    at AuthUIProvider (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23410:25)\n    at V2 (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23112:26)\n    at J3 (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23110:20)\n    at NeonAuthUIProvider (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:35059:43)"
+        },
         {
           "type": "startGroupCollapsed",
           "text": "Axe accessibility violations (development)"
@@ -499,30 +491,6 @@
         {
           "type": "log",
           "text": "{id: color-contrast, impact: serious, tags: Array(10), description: Ensure the contrast between foreground and backgro…meets WCAG 2 AA minimum contrast ratio thresholds, help: Elements must meet minimum color contrast ratio thresholds}"
-        },
-        {
-          "type": "endGroup",
-          "text": "console.groupEnd"
-        },
-        {
-          "type": "warning",
-          "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
-        },
-        {
-          "type": "startGroupCollapsed",
-          "text": "Axe accessibility violations (development)"
-        },
-        {
-          "type": "table",
-          "text": "[Object, Object]"
-        },
-        {
-          "type": "log",
-          "text": "{id: color-contrast, impact: serious, tags: Array(10), description: Ensure the contrast between foreground and backgro…meets WCAG 2 AA minimum contrast ratio thresholds, help: Elements must meet minimum color contrast ratio thresholds}"
-        },
-        {
-          "type": "log",
-          "text": "{id: heading-order, impact: moderate, tags: Array(2), description: Ensure the order of headings is semantically correct, help: Heading levels should only increase by one}"
         },
         {
           "type": "endGroup",
@@ -533,90 +501,33 @@
     },
     {
       "index": 11,
-      "text": "AnalyticsAnalytics",
+      "text": "Analytics",
       "aria": "",
-      "snippet": "<button class=\"group flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium transition text-muted-foreground hover:bg-muted/10\" data-pw-btn-index=\"11\"><svg class=\"h-5 w-5 shrink-0 text-orange-200\" viewBox=\"0 0 24 24\" fill=\"",
+      "snippet": "<button class=\"group flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium transition text-slate-200 hover:bg-white/10\" data-pw-btn-index=\"11\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 ",
       "visible": true,
       "enabled": true,
       "skipped": false,
       "outcome": "clicked-no-observable-effect",
       "latestConsole": [
         {
-          "type": "startGroupCollapsed",
-          "text": "Axe accessibility violations (development)"
+          "type": "debug",
+          "text": "[vite] connecting..."
         },
         {
-          "type": "table",
-          "text": "[Object, Object]"
+          "type": "debug",
+          "text": "[vite] connected."
         },
         {
-          "type": "log",
-          "text": "{id: color-contrast, impact: serious, tags: Array(10), description: Ensure the contrast between foreground and backgro…meets WCAG 2 AA minimum contrast ratio thresholds, help: Elements must meet minimum color contrast ratio thresholds}"
-        },
-        {
-          "type": "log",
-          "text": "{id: heading-order, impact: moderate, tags: Array(2), description: Ensure the order of headings is semantically correct, help: Heading levels should only increase by one}"
-        },
-        {
-          "type": "endGroup",
-          "text": "console.groupEnd"
-        },
-        {
-          "type": "warning",
-          "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
-        },
-        {
-          "type": "startGroupCollapsed",
-          "text": "Axe accessibility violations (development)"
-        },
-        {
-          "type": "table",
-          "text": "[Object]"
-        },
-        {
-          "type": "log",
-          "text": "{id: color-contrast, impact: serious, tags: Array(10), description: Ensure the contrast between foreground and backgro…meets WCAG 2 AA minimum contrast ratio thresholds, help: Elements must meet minimum color contrast ratio thresholds}"
-        },
-        {
-          "type": "endGroup",
-          "text": "console.groupEnd"
-        }
-      ],
-      "pageErrors": []
-    },
-    {
-      "index": 12,
-      "text": "MarketingMarketing",
-      "aria": "",
-      "snippet": "<button class=\"group flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium transition text-muted-foreground hover:bg-muted/10\" data-pw-btn-index=\"12\"><svg class=\"h-5 w-5 shrink-0 text-orange-200\" viewBox=\"0 0 24 24\" fill=\"",
-      "visible": true,
-      "enabled": true,
-      "skipped": false,
-      "outcome": "clicked-no-observable-effect",
-      "latestConsole": [
-        {
-          "type": "table",
-          "text": "[Object]"
-        },
-        {
-          "type": "log",
-          "text": "{id: color-contrast, impact: serious, tags: Array(10), description: Ensure the contrast between foreground and backgro…meets WCAG 2 AA minimum contrast ratio thresholds, help: Elements must meet minimum color contrast ratio thresholds}"
-        },
-        {
-          "type": "endGroup",
-          "text": "console.groupEnd"
+          "type": "info",
+          "text": "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold"
         },
         {
           "type": "error",
-          "text": "Warning: %s: Support for defaultProps will be removed from function components in a future major release. Use JavaScript default parameters instead.%s XAxis \n    at XAxis2 (http://localhost:4003/node_modules/.vite/deps/recharts.js?v=90e6742e:28616:22)\n    at svg\n    at Surface (http://localhost:4003/node_modules/.vite/deps/recharts.js?v=90e6742e:5873:25)\n    at div\n    at ChartLayoutContextProvider2 (http://localhost:4003/node_modules/.vite/deps/recharts.js?v=90e6742e:25186:28)\n    at CategoricalChartWrapper (http://localhost:4003/node_modules/.vite/deps/recharts.js?v=90e6742e:29885:7)\n    at div\n    at http://localhost:4003/node_modules/.vite/deps/recharts.js?v=90e6742e:9095:21\n    at div\n    at div\n    at ShellCard (http://localhost:4003/components/UiKit.tsx:5:29)\n    at div\n    at div\n    at MarketingDashboard (http://localhost:4003/components/MarketingDashboard.tsx:24:17)\n    at div\n    at main\n    at div\n    at div\n    at div\n    at Layout (http://localhost:4003/components/Layout.tsx:40:3)\n    at AuthedApp (http://localhost:4003/App.tsx:48:29)\n    at DataProvider (http://localhost:4003/contexts/DataContext.tsx:49:32)\n    at AuthProvider (http://localhost:4003/auth/AuthContext.tsx:58:3)\n    at App"
+          "text": "Warning: %s: Support for defaultProps will be removed from function components in a future major release. Use JavaScript default parameters instead.%s XAxis \n    at XAxis2 (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:27812:22)\n    at svg\n    at Surface (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:5087:25)\n    at div\n    at ChartLayoutContextProvider2 (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:24382:28)\n    at CategoricalChartWrapper (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:29081:7)\n    at div\n    at http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:8309:21\n    at div\n    at RevenueTrendChart (http://localhost:4002/components/Dashboard.tsx:271:30)\n    at section\n    at div\n    at div\n    at div\n    at Dashboard (http://localhost:4002/components/Dashboard.tsx:492:22)\n    at div\n    at main\n    at div\n    at div\n    at Layout (http://localhost:4002/components/Layout.tsx:43:3)\n    at AuthedApp (http://localhost:4002/App.tsx:88:29)\n    at DataProvider (http://localhost:4002/contexts/DataContext.tsx:53:32)\n    at AuthProvider (http://localhost:4002/auth/AuthContext.tsx:147:3)\n    at App\n    at AuthUIProvider (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23410:25)\n    at V2 (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23112:26)\n    at J3 (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23110:20)\n    at NeonAuthUIProvider (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:35059:43)"
         },
         {
           "type": "error",
-          "text": "Warning: %s: Support for defaultProps will be removed from function components in a future major release. Use JavaScript default parameters instead.%s YAxis \n    at YAxis2 (http://localhost:4003/node_modules/.vite/deps/recharts.js?v=90e6742e:28677:22)\n    at svg\n    at Surface (http://localhost:4003/node_modules/.vite/deps/recharts.js?v=90e6742e:5873:25)\n    at div\n    at ChartLayoutContextProvider2 (http://localhost:4003/node_modules/.vite/deps/recharts.js?v=90e6742e:25186:28)\n    at CategoricalChartWrapper (http://localhost:4003/node_modules/.vite/deps/recharts.js?v=90e6742e:29885:7)\n    at div\n    at http://localhost:4003/node_modules/.vite/deps/recharts.js?v=90e6742e:9095:21\n    at div\n    at div\n    at ShellCard (http://localhost:4003/components/UiKit.tsx:5:29)\n    at div\n    at div\n    at MarketingDashboard (http://localhost:4003/components/MarketingDashboard.tsx:24:17)\n    at div\n    at main\n    at div\n    at div\n    at div\n    at Layout (http://localhost:4003/components/Layout.tsx:40:3)\n    at AuthedApp (http://localhost:4003/App.tsx:48:29)\n    at DataProvider (http://localhost:4003/contexts/DataContext.tsx:49:32)\n    at AuthProvider (http://localhost:4003/auth/AuthContext.tsx:58:3)\n    at App"
-        },
-        {
-          "type": "warning",
-          "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
+          "text": "Warning: %s: Support for defaultProps will be removed from function components in a future major release. Use JavaScript default parameters instead.%s YAxis \n    at YAxis2 (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:27873:22)\n    at svg\n    at Surface (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:5087:25)\n    at div\n    at ChartLayoutContextProvider2 (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:24382:28)\n    at CategoricalChartWrapper (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:29081:7)\n    at div\n    at http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:8309:21\n    at div\n    at RevenueTrendChart (http://localhost:4002/components/Dashboard.tsx:271:30)\n    at section\n    at div\n    at div\n    at div\n    at Dashboard (http://localhost:4002/components/Dashboard.tsx:492:22)\n    at div\n    at main\n    at div\n    at div\n    at Layout (http://localhost:4002/components/Layout.tsx:43:3)\n    at AuthedApp (http://localhost:4002/App.tsx:88:29)\n    at DataProvider (http://localhost:4002/contexts/DataContext.tsx:53:32)\n    at AuthProvider (http://localhost:4002/auth/AuthContext.tsx:147:3)\n    at App\n    at AuthUIProvider (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23410:25)\n    at V2 (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23112:26)\n    at J3 (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23110:20)\n    at NeonAuthUIProvider (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:35059:43)"
         },
         {
           "type": "startGroupCollapsed",
@@ -636,201 +547,6 @@
         }
       ],
       "pageErrors": []
-    },
-    {
-      "index": 13,
-      "text": "FinancialsFinancials",
-      "aria": "",
-      "snippet": "<button class=\"group flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium transition text-muted-foreground hover:bg-muted/10\" data-pw-btn-index=\"13\"><svg class=\"h-5 w-5 shrink-0 text-orange-200\" viewBox=\"0 0 24 24\" fill=\"",
-      "visible": true,
-      "enabled": true,
-      "skipped": false,
-      "outcome": "clicked-no-observable-effect",
-      "latestConsole": [
-        {
-          "type": "warning",
-          "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
-        },
-        {
-          "type": "startGroupCollapsed",
-          "text": "Axe accessibility violations (development)"
-        },
-        {
-          "type": "table",
-          "text": "[Object]"
-        },
-        {
-          "type": "log",
-          "text": "{id: color-contrast, impact: serious, tags: Array(10), description: Ensure the contrast between foreground and backgro…meets WCAG 2 AA minimum contrast ratio thresholds, help: Elements must meet minimum color contrast ratio thresholds}"
-        },
-        {
-          "type": "endGroup",
-          "text": "console.groupEnd"
-        },
-        {
-          "type": "warning",
-          "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
-        },
-        {
-          "type": "startGroupCollapsed",
-          "text": "Axe accessibility violations (development)"
-        },
-        {
-          "type": "table",
-          "text": "[Object]"
-        },
-        {
-          "type": "log",
-          "text": "{id: color-contrast, impact: serious, tags: Array(10), description: Ensure the contrast between foreground and backgro…meets WCAG 2 AA minimum contrast ratio thresholds, help: Elements must meet minimum color contrast ratio thresholds}"
-        },
-        {
-          "type": "endGroup",
-          "text": "console.groupEnd"
-        }
-      ],
-      "pageErrors": []
-    },
-    {
-      "index": 14,
-      "text": "ReportsReports",
-      "aria": "",
-      "snippet": "<button class=\"group flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium transition text-muted-foreground hover:bg-muted/10\" data-pw-btn-index=\"14\"><svg class=\"h-5 w-5 shrink-0 text-orange-200\" viewBox=\"0 0 24 24\" fill=\"",
-      "visible": true,
-      "enabled": true,
-      "skipped": false,
-      "outcome": "clicked-no-observable-effect",
-      "latestConsole": [
-        {
-          "type": "warning",
-          "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
-        },
-        {
-          "type": "startGroupCollapsed",
-          "text": "Axe accessibility violations (development)"
-        },
-        {
-          "type": "table",
-          "text": "[Object]"
-        },
-        {
-          "type": "log",
-          "text": "{id: color-contrast, impact: serious, tags: Array(10), description: Ensure the contrast between foreground and backgro…meets WCAG 2 AA minimum contrast ratio thresholds, help: Elements must meet minimum color contrast ratio thresholds}"
-        },
-        {
-          "type": "endGroup",
-          "text": "console.groupEnd"
-        },
-        {
-          "type": "warning",
-          "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
-        },
-        {
-          "type": "startGroupCollapsed",
-          "text": "Axe accessibility violations (development)"
-        },
-        {
-          "type": "table",
-          "text": "[Object]"
-        },
-        {
-          "type": "log",
-          "text": "{id: color-contrast, impact: serious, tags: Array(10), description: Ensure the contrast between foreground and backgro…meets WCAG 2 AA minimum contrast ratio thresholds, help: Elements must meet minimum color contrast ratio thresholds}"
-        },
-        {
-          "type": "endGroup",
-          "text": "console.groupEnd"
-        }
-      ],
-      "pageErrors": []
-    },
-    {
-      "index": 15,
-      "text": "SettingsSettings",
-      "aria": "",
-      "snippet": "<button data-testid=\"sidebar-settings\" class=\"group flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium transition text-muted-foreground hover:bg-muted/10\" data-pw-btn-index=\"15\"><svg class=\"h-5 w-5 shrink-0 text-orange-",
-      "visible": true,
-      "enabled": true,
-      "skipped": false,
-      "outcome": "clicked-no-observable-effect",
-      "latestConsole": [
-        {
-          "type": "warning",
-          "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
-        },
-        {
-          "type": "startGroupCollapsed",
-          "text": "Axe accessibility violations (development)"
-        },
-        {
-          "type": "table",
-          "text": "[Object]"
-        },
-        {
-          "type": "log",
-          "text": "{id: color-contrast, impact: serious, tags: Array(10), description: Ensure the contrast between foreground and backgro…meets WCAG 2 AA minimum contrast ratio thresholds, help: Elements must meet minimum color contrast ratio thresholds}"
-        },
-        {
-          "type": "endGroup",
-          "text": "console.groupEnd"
-        },
-        {
-          "type": "warning",
-          "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
-        },
-        {
-          "type": "startGroupCollapsed",
-          "text": "Axe accessibility violations (development)"
-        },
-        {
-          "type": "table",
-          "text": "[Object]"
-        },
-        {
-          "type": "log",
-          "text": "{id: color-contrast, impact: serious, tags: Array(10), description: Ensure the contrast between foreground and backgro…meets WCAG 2 AA minimum contrast ratio thresholds, help: Elements must meet minimum color contrast ratio thresholds}"
-        },
-        {
-          "type": "endGroup",
-          "text": "console.groupEnd"
-        }
-      ],
-      "pageErrors": []
-    },
-    {
-      "index": 16,
-      "text": "Menu",
-      "aria": "Open navigation",
-      "visible": false,
-      "enabled": true,
-      "skipped": true,
-      "reason": "not-visible-or-enabled"
-    },
-    {
-      "index": 17,
-      "text": "Log out",
-      "aria": "",
-      "visible": true,
-      "enabled": true,
-      "skipped": true,
-      "reason": "skip-pattern"
-    },
-    {
-      "index": 18,
-      "text": "",
-      "aria": "",
-      "visible": false,
-      "enabled": false,
-      "skipped": true,
-      "reason": "not-visible-or-enabled"
-    },
-    {
-      "index": 19,
-      "text": "",
-      "aria": "",
-      "visible": false,
-      "enabled": false,
-      "skipped": true,
-      "reason": "not-visible-or-enabled"
     }
   ],
   "consoleLogs": [
@@ -839,312 +555,20 @@
       "text": "[vite] connecting..."
     },
     {
-      "type": "info",
-      "text": "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold"
-    },
-    {
       "type": "debug",
       "text": "[vite] connected."
     },
     {
-      "type": "warning",
-      "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
-    },
-    {
-      "type": "warning",
-      "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
-    },
-    {
-      "type": "warning",
-      "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
-    },
-    {
       "type": "info",
-      "text": "Axe: no accessibility violations detected (dev run)"
-    },
-    {
-      "type": "warning",
-      "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
-    },
-    {
-      "type": "info",
-      "text": "Axe: no accessibility violations detected (dev run)"
-    },
-    {
-      "type": "warning",
-      "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
-    },
-    {
-      "type": "startGroupCollapsed",
-      "text": "Axe accessibility violations (development)"
-    },
-    {
-      "type": "table",
-      "text": "[Object]"
-    },
-    {
-      "type": "log",
-      "text": "{id: color-contrast, impact: serious, tags: Array(10), description: Ensure the contrast between foreground and backgro…meets WCAG 2 AA minimum contrast ratio thresholds, help: Elements must meet minimum color contrast ratio thresholds}"
-    },
-    {
-      "type": "endGroup",
-      "text": "console.groupEnd"
-    },
-    {
-      "type": "warning",
-      "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
-    },
-    {
-      "type": "startGroupCollapsed",
-      "text": "Axe accessibility violations (development)"
-    },
-    {
-      "type": "table",
-      "text": "[Object]"
-    },
-    {
-      "type": "log",
-      "text": "{id: color-contrast, impact: serious, tags: Array(10), description: Ensure the contrast between foreground and backgro…meets WCAG 2 AA minimum contrast ratio thresholds, help: Elements must meet minimum color contrast ratio thresholds}"
-    },
-    {
-      "type": "endGroup",
-      "text": "console.groupEnd"
-    },
-    {
-      "type": "warning",
-      "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
-    },
-    {
-      "type": "startGroupCollapsed",
-      "text": "Axe accessibility violations (development)"
-    },
-    {
-      "type": "table",
-      "text": "[Object, Object]"
-    },
-    {
-      "type": "log",
-      "text": "{id: color-contrast, impact: serious, tags: Array(10), description: Ensure the contrast between foreground and backgro…meets WCAG 2 AA minimum contrast ratio thresholds, help: Elements must meet minimum color contrast ratio thresholds}"
-    },
-    {
-      "type": "log",
-      "text": "{id: heading-order, impact: moderate, tags: Array(2), description: Ensure the order of headings is semantically correct, help: Heading levels should only increase by one}"
-    },
-    {
-      "type": "endGroup",
-      "text": "console.groupEnd"
-    },
-    {
-      "type": "warning",
-      "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
-    },
-    {
-      "type": "startGroupCollapsed",
-      "text": "Axe accessibility violations (development)"
-    },
-    {
-      "type": "table",
-      "text": "[Object, Object, Object]"
-    },
-    {
-      "type": "log",
-      "text": "{id: aria-command-name, impact: serious, tags: Array(10), description: Ensure every ARIA button, link and menuitem has an accessible name, help: ARIA commands must have an accessible name}"
-    },
-    {
-      "type": "log",
-      "text": "{id: color-contrast, impact: serious, tags: Array(10), description: Ensure the contrast between foreground and backgro…meets WCAG 2 AA minimum contrast ratio thresholds, help: Elements must meet minimum color contrast ratio thresholds}"
-    },
-    {
-      "type": "log",
-      "text": "{id: heading-order, impact: moderate, tags: Array(2), description: Ensure the order of headings is semantically correct, help: Heading levels should only increase by one}"
-    },
-    {
-      "type": "endGroup",
-      "text": "console.groupEnd"
-    },
-    {
-      "type": "warning",
-      "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
-    },
-    {
-      "type": "startGroupCollapsed",
-      "text": "Axe accessibility violations (development)"
-    },
-    {
-      "type": "table",
-      "text": "[Object, Object, Object]"
-    },
-    {
-      "type": "log",
-      "text": "{id: color-contrast, impact: serious, tags: Array(10), description: Ensure the contrast between foreground and backgro…meets WCAG 2 AA minimum contrast ratio thresholds, help: Elements must meet minimum color contrast ratio thresholds}"
-    },
-    {
-      "type": "log",
-      "text": "{id: heading-order, impact: moderate, tags: Array(2), description: Ensure the order of headings is semantically correct, help: Heading levels should only increase by one}"
-    },
-    {
-      "type": "log",
-      "text": "{id: scrollable-region-focusable, impact: serious, tags: Array(11), description: Ensure elements that have scrollable content are accessible by keyboard, help: Scrollable region must have keyboard access}"
-    },
-    {
-      "type": "endGroup",
-      "text": "console.groupEnd"
-    },
-    {
-      "type": "warning",
-      "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
-    },
-    {
-      "type": "startGroupCollapsed",
-      "text": "Axe accessibility violations (development)"
-    },
-    {
-      "type": "table",
-      "text": "[Object]"
-    },
-    {
-      "type": "log",
-      "text": "{id: color-contrast, impact: serious, tags: Array(10), description: Ensure the contrast between foreground and backgro…meets WCAG 2 AA minimum contrast ratio thresholds, help: Elements must meet minimum color contrast ratio thresholds}"
-    },
-    {
-      "type": "endGroup",
-      "text": "console.groupEnd"
-    },
-    {
-      "type": "warning",
-      "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
-    },
-    {
-      "type": "startGroupCollapsed",
-      "text": "Axe accessibility violations (development)"
-    },
-    {
-      "type": "table",
-      "text": "[Object]"
-    },
-    {
-      "type": "log",
-      "text": "{id: color-contrast, impact: serious, tags: Array(10), description: Ensure the contrast between foreground and backgro…meets WCAG 2 AA minimum contrast ratio thresholds, help: Elements must meet minimum color contrast ratio thresholds}"
-    },
-    {
-      "type": "endGroup",
-      "text": "console.groupEnd"
-    },
-    {
-      "type": "warning",
-      "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
-    },
-    {
-      "type": "startGroupCollapsed",
-      "text": "Axe accessibility violations (development)"
-    },
-    {
-      "type": "table",
-      "text": "[Object, Object]"
-    },
-    {
-      "type": "log",
-      "text": "{id: color-contrast, impact: serious, tags: Array(10), description: Ensure the contrast between foreground and backgro…meets WCAG 2 AA minimum contrast ratio thresholds, help: Elements must meet minimum color contrast ratio thresholds}"
-    },
-    {
-      "type": "log",
-      "text": "{id: heading-order, impact: moderate, tags: Array(2), description: Ensure the order of headings is semantically correct, help: Heading levels should only increase by one}"
-    },
-    {
-      "type": "endGroup",
-      "text": "console.groupEnd"
-    },
-    {
-      "type": "warning",
-      "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
-    },
-    {
-      "type": "startGroupCollapsed",
-      "text": "Axe accessibility violations (development)"
-    },
-    {
-      "type": "table",
-      "text": "[Object]"
-    },
-    {
-      "type": "log",
-      "text": "{id: color-contrast, impact: serious, tags: Array(10), description: Ensure the contrast between foreground and backgro…meets WCAG 2 AA minimum contrast ratio thresholds, help: Elements must meet minimum color contrast ratio thresholds}"
-    },
-    {
-      "type": "endGroup",
-      "text": "console.groupEnd"
+      "text": "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold"
     },
     {
       "type": "error",
-      "text": "Warning: %s: Support for defaultProps will be removed from function components in a future major release. Use JavaScript default parameters instead.%s XAxis \n    at XAxis2 (http://localhost:4003/node_modules/.vite/deps/recharts.js?v=90e6742e:28616:22)\n    at svg\n    at Surface (http://localhost:4003/node_modules/.vite/deps/recharts.js?v=90e6742e:5873:25)\n    at div\n    at ChartLayoutContextProvider2 (http://localhost:4003/node_modules/.vite/deps/recharts.js?v=90e6742e:25186:28)\n    at CategoricalChartWrapper (http://localhost:4003/node_modules/.vite/deps/recharts.js?v=90e6742e:29885:7)\n    at div\n    at http://localhost:4003/node_modules/.vite/deps/recharts.js?v=90e6742e:9095:21\n    at div\n    at div\n    at ShellCard (http://localhost:4003/components/UiKit.tsx:5:29)\n    at div\n    at div\n    at MarketingDashboard (http://localhost:4003/components/MarketingDashboard.tsx:24:17)\n    at div\n    at main\n    at div\n    at div\n    at div\n    at Layout (http://localhost:4003/components/Layout.tsx:40:3)\n    at AuthedApp (http://localhost:4003/App.tsx:48:29)\n    at DataProvider (http://localhost:4003/contexts/DataContext.tsx:49:32)\n    at AuthProvider (http://localhost:4003/auth/AuthContext.tsx:58:3)\n    at App"
+      "text": "Warning: %s: Support for defaultProps will be removed from function components in a future major release. Use JavaScript default parameters instead.%s XAxis \n    at XAxis2 (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:27812:22)\n    at svg\n    at Surface (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:5087:25)\n    at div\n    at ChartLayoutContextProvider2 (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:24382:28)\n    at CategoricalChartWrapper (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:29081:7)\n    at div\n    at http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:8309:21\n    at div\n    at RevenueTrendChart (http://localhost:4002/components/Dashboard.tsx:271:30)\n    at section\n    at div\n    at div\n    at div\n    at Dashboard (http://localhost:4002/components/Dashboard.tsx:492:22)\n    at div\n    at main\n    at div\n    at div\n    at Layout (http://localhost:4002/components/Layout.tsx:43:3)\n    at AuthedApp (http://localhost:4002/App.tsx:88:29)\n    at DataProvider (http://localhost:4002/contexts/DataContext.tsx:53:32)\n    at AuthProvider (http://localhost:4002/auth/AuthContext.tsx:147:3)\n    at App\n    at AuthUIProvider (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23410:25)\n    at V2 (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23112:26)\n    at J3 (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23110:20)\n    at NeonAuthUIProvider (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:35059:43)"
     },
     {
       "type": "error",
-      "text": "Warning: %s: Support for defaultProps will be removed from function components in a future major release. Use JavaScript default parameters instead.%s YAxis \n    at YAxis2 (http://localhost:4003/node_modules/.vite/deps/recharts.js?v=90e6742e:28677:22)\n    at svg\n    at Surface (http://localhost:4003/node_modules/.vite/deps/recharts.js?v=90e6742e:5873:25)\n    at div\n    at ChartLayoutContextProvider2 (http://localhost:4003/node_modules/.vite/deps/recharts.js?v=90e6742e:25186:28)\n    at CategoricalChartWrapper (http://localhost:4003/node_modules/.vite/deps/recharts.js?v=90e6742e:29885:7)\n    at div\n    at http://localhost:4003/node_modules/.vite/deps/recharts.js?v=90e6742e:9095:21\n    at div\n    at div\n    at ShellCard (http://localhost:4003/components/UiKit.tsx:5:29)\n    at div\n    at div\n    at MarketingDashboard (http://localhost:4003/components/MarketingDashboard.tsx:24:17)\n    at div\n    at main\n    at div\n    at div\n    at div\n    at Layout (http://localhost:4003/components/Layout.tsx:40:3)\n    at AuthedApp (http://localhost:4003/App.tsx:48:29)\n    at DataProvider (http://localhost:4003/contexts/DataContext.tsx:49:32)\n    at AuthProvider (http://localhost:4003/auth/AuthContext.tsx:58:3)\n    at App"
-    },
-    {
-      "type": "warning",
-      "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
-    },
-    {
-      "type": "startGroupCollapsed",
-      "text": "Axe accessibility violations (development)"
-    },
-    {
-      "type": "table",
-      "text": "[Object]"
-    },
-    {
-      "type": "log",
-      "text": "{id: color-contrast, impact: serious, tags: Array(10), description: Ensure the contrast between foreground and backgro…meets WCAG 2 AA minimum contrast ratio thresholds, help: Elements must meet minimum color contrast ratio thresholds}"
-    },
-    {
-      "type": "endGroup",
-      "text": "console.groupEnd"
-    },
-    {
-      "type": "warning",
-      "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
-    },
-    {
-      "type": "startGroupCollapsed",
-      "text": "Axe accessibility violations (development)"
-    },
-    {
-      "type": "table",
-      "text": "[Object]"
-    },
-    {
-      "type": "log",
-      "text": "{id: color-contrast, impact: serious, tags: Array(10), description: Ensure the contrast between foreground and backgro…meets WCAG 2 AA minimum contrast ratio thresholds, help: Elements must meet minimum color contrast ratio thresholds}"
-    },
-    {
-      "type": "endGroup",
-      "text": "console.groupEnd"
-    },
-    {
-      "type": "warning",
-      "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
-    },
-    {
-      "type": "startGroupCollapsed",
-      "text": "Axe accessibility violations (development)"
-    },
-    {
-      "type": "table",
-      "text": "[Object]"
-    },
-    {
-      "type": "log",
-      "text": "{id: color-contrast, impact: serious, tags: Array(10), description: Ensure the contrast between foreground and backgro…meets WCAG 2 AA minimum contrast ratio thresholds, help: Elements must meet minimum color contrast ratio thresholds}"
-    },
-    {
-      "type": "endGroup",
-      "text": "console.groupEnd"
-    },
-    {
-      "type": "warning",
-      "text": "axe error: Axe is already running. Use `await axe.run()` to wait for the previous run to finish before starting a new run."
+      "text": "Warning: %s: Support for defaultProps will be removed from function components in a future major release. Use JavaScript default parameters instead.%s YAxis \n    at YAxis2 (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:27873:22)\n    at svg\n    at Surface (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:5087:25)\n    at div\n    at ChartLayoutContextProvider2 (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:24382:28)\n    at CategoricalChartWrapper (http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:29081:7)\n    at div\n    at http://localhost:4002/node_modules/.vite/deps/recharts.js?v=f66021d8:8309:21\n    at div\n    at RevenueTrendChart (http://localhost:4002/components/Dashboard.tsx:271:30)\n    at section\n    at div\n    at div\n    at div\n    at Dashboard (http://localhost:4002/components/Dashboard.tsx:492:22)\n    at div\n    at main\n    at div\n    at div\n    at Layout (http://localhost:4002/components/Layout.tsx:43:3)\n    at AuthedApp (http://localhost:4002/App.tsx:88:29)\n    at DataProvider (http://localhost:4002/contexts/DataContext.tsx:53:32)\n    at AuthProvider (http://localhost:4002/auth/AuthContext.tsx:147:3)\n    at App\n    at AuthUIProvider (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23410:25)\n    at V2 (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23112:26)\n    at J3 (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:23110:20)\n    at NeonAuthUIProvider (http://localhost:4002/node_modules/.vite/deps/@neondatabase_auth_react_ui.js?v=f66021d8:35059:43)"
     },
     {
       "type": "startGroupCollapsed",

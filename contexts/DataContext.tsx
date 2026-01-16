@@ -1,5 +1,3 @@
-
-
 import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import type {
     AuditLogEntry,
@@ -33,7 +31,21 @@ import { mockDrivers } from '../data/mockDriversData';
 import { mockCustomers } from '../data/mockCrmData';
 import { DEFAULT_PERMISSIONS, PERMISSIONS_STORAGE_KEY, PermissionsMatrix } from '../src/lib/permissions';
 
-const STORAGE_KEY = 'hf_global_data_v1';
+// Part 1: Persistence keys scoped per user/org to prevent data leakage between logins
+const BASE_STORAGE_KEY = 'hf_global_data_v1';
+
+function getStorageKey(user: { orgId?: string | number; userId?: string | number } | null | undefined) {
+    if (!user) return null;
+    const orgPart = user.orgId ?? 'no-org';
+    const userPart = user.userId ?? 'no-user';
+    return `${BASE_STORAGE_KEY}:${orgPart}:${userPart}`;
+}
+
+function getChannelName(user: { orgId?: string | number } | null | undefined) {
+    if (!user) return null;
+    const orgPart = user.orgId ?? 'no-org';
+    return `hf-data-sync:${orgPart}`;
+}
 
 type DataContextValue = {
     vehicles: Vehicle[];
@@ -128,9 +140,10 @@ function makeAuditForStatusChange(prev: Booking, next: Booking, actor?: { id?: s
     return audit;
 }
 
-function loadState() {
+// Part 2: Safe localStorage load for a specific key
+function loadState(storageKey: string) {
     try {
-        const raw = window.localStorage.getItem(STORAGE_KEY);
+        const raw = window.localStorage.getItem(storageKey);
         if (!raw) return null;
         return JSON.parse(raw);
     } catch {
@@ -141,24 +154,64 @@ function loadState() {
 export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const { user } = useAuth();
 
-    const persisted = useMemo(() => loadState(), []);
+    const storageKey = useMemo(() => getStorageKey(user ? { orgId: user.orgId, userId: user.userId } : null), [user?.orgId, user?.userId]);
+    const channelName = useMemo(() => getChannelName(user ? { orgId: user.orgId } : null), [user?.orgId]);
+
     const instanceId = useMemo(() => safeId(), []);
     const channelRef = useRef<BroadcastChannel | null>(null);
 
-    const [vehicles, setVehicles] = useState<Vehicle[]>(persisted?.vehicles ?? []);
-    const [bookings, setBookings] = useState<Booking[]>(persisted?.bookings ?? []);
-    const [leads, setLeads] = useState<Lead[]>(persisted?.leads ?? []);
-    const [opportunities, setOpportunities] = useState<Opportunity[]>(persisted?.opportunities ?? []);
-    const [invoices, setInvoices] = useState<Invoice[]>(persisted?.invoices ?? []);
-    const [expenses, setExpenses] = useState<Expense[]>(persisted?.expenses ?? []);
-    const [drivers, setDrivers] = useState<Driver[]>(persisted?.drivers ?? mockDrivers ?? []);
-    const [users, setUsers] = useState<User[]>(persisted?.users ?? []);
-    const [customers, setCustomers] = useState<Customer[]>(persisted?.customers ?? mockCustomers ?? []);
-    const [auditLog, setAuditLog] = useState<AuditEvent[]>(persisted?.auditLog ?? []);
-    const [maintenance, setMaintenance] = useState<VehicleMaintenance[]>(persisted?.maintenance ?? mockMaintenance ?? []);
-    const [leadActivities, setLeadActivities] = useState<LeadActivity[]>(persisted?.leadActivities ?? mockLeadActivities ?? []);
-    const [opportunityActivities, setOpportunityActivities] = useState<OpportunityActivity[]>(persisted?.opportunityActivities ?? []);
-    const [deliveryProofs, setDeliveryProofs] = useState<DeliveryProof[]>(persisted?.deliveryProofs ?? []);
+    const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+    const [bookings, setBookings] = useState<Booking[]>([]);
+    const [leads, setLeads] = useState<Lead[]>([]);
+    const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
+    const [invoices, setInvoices] = useState<Invoice[]>([]);
+    const [expenses, setExpenses] = useState<Expense[]>([]);
+    const [drivers, setDrivers] = useState<Driver[]>(mockDrivers ?? []);
+    const [users, setUsers] = useState<User[]>([]);
+    const [customers, setCustomers] = useState<Customer[]>(mockCustomers ?? []);
+    const [auditLog, setAuditLog] = useState<AuditEvent[]>([]);
+    const [maintenance, setMaintenance] = useState<VehicleMaintenance[]>(mockMaintenance ?? []);
+    const [leadActivities, setLeadActivities] = useState<LeadActivity[]>(mockLeadActivities ?? []);
+    const [opportunityActivities, setOpportunityActivities] = useState<OpportunityActivity[]>([]);
+    const [deliveryProofs, setDeliveryProofs] = useState<DeliveryProof[]>([]);
+
+    // Part 3: Load/reset persisted state whenever the authenticated user changes
+    useEffect(() => {
+        if (!storageKey) {
+            // No authenticated user: reset to safe defaults and do not persist
+            setVehicles([]);
+            setBookings([]);
+            setLeads([]);
+            setOpportunities([]);
+            setInvoices([]);
+            setExpenses([]);
+            setDrivers(mockDrivers ?? []);
+            setUsers([]);
+            setCustomers(mockCustomers ?? []);
+            setAuditLog([]);
+            setMaintenance(mockMaintenance ?? []);
+            setLeadActivities(mockLeadActivities ?? []);
+            setOpportunityActivities([]);
+            setDeliveryProofs([]);
+            return;
+        }
+
+        const persisted = loadState(storageKey);
+        setVehicles(persisted?.vehicles ?? []);
+        setBookings(persisted?.bookings ?? []);
+        setLeads(persisted?.leads ?? []);
+        setOpportunities(persisted?.opportunities ?? []);
+        setInvoices(persisted?.invoices ?? []);
+        setExpenses(persisted?.expenses ?? []);
+        setDrivers(persisted?.drivers ?? mockDrivers ?? []);
+        setUsers(persisted?.users ?? []);
+        setCustomers(persisted?.customers ?? mockCustomers ?? []);
+        setAuditLog(persisted?.auditLog ?? []);
+        setMaintenance(persisted?.maintenance ?? mockMaintenance ?? []);
+        setLeadActivities(persisted?.leadActivities ?? mockLeadActivities ?? []);
+        setOpportunityActivities(persisted?.opportunityActivities ?? []);
+        setDeliveryProofs(persisted?.deliveryProofs ?? []);
+    }, [storageKey]);
 
     const emitChange = (type: string, payload: any) => {
         if (!channelRef.current) return;
@@ -166,17 +219,22 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     useEffect(() => {
+        if (!channelName) return;
+
         let channel: BroadcastChannel | null = null;
         try {
-            channel = new BroadcastChannel('hf-data-sync');
+            channel = new BroadcastChannel(channelName || 'hf-data-sync');
         } catch {
             channel = null;
         }
         if (!channel) return;
+
         channelRef.current = channel;
+
         channel.onmessage = (event: MessageEvent) => {
             const { source, type, payload } = (event.data || {}) as { source?: string; type?: string; payload?: any };
             if (!type || source === instanceId) return;
+
             switch (type) {
                 case 'vehicles:add':
                     setVehicles((prev) => (prev.some((v) => v.id === payload.id) ? prev : [payload, ...prev]));
@@ -248,12 +306,15 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     break;
             }
         };
+
         return () => {
             channel.close();
         };
-    }, [instanceId]);
+    }, [instanceId, channelName]);
 
     useEffect(() => {
+        if (!storageKey) return;
+
         const payload = {
             vehicles,
             bookings,
@@ -273,7 +334,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         };
 
         try {
-            window.localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+            if (!storageKey) return;
+            window.localStorage.setItem(storageKey, JSON.stringify(payload));
         } catch {
             // ignore
         }
@@ -292,6 +354,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         leadActivities,
         opportunityActivities,
         deliveryProofs,
+        storageKey,
     ]);
 
     const addAudit = (entry: Omit<AuditEvent, 'id' | 'at'>) => {
@@ -366,11 +429,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 const { status_history } = appendStatusHistory(existing, updated, actor as any);
                 next.status_history = status_history;
 
-                // Add audit entry
                 const auditEntry = makeAuditForStatusChange(existing, updated, actor as any);
                 setAuditLog((prev) => [auditEntry, ...prev].slice(0, 500));
 
-                // set canonical timestamps for lifecycle events
                 if (updated.status === 'confirmed') next.confirmed_at = updatedAt;
                 if (updated.status === 'in_transit' || updated.status === 'dispatched') next.started_at = updatedAt;
                 if (updated.status === 'delivered') next.delivered_at = updatedAt;
@@ -614,6 +675,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         users,
         customers,
         auditLog,
+        maintenance,
+        leadActivities,
+        opportunityActivities,
+        deliveryProofs,
 
         addBooking,
         updateBooking,

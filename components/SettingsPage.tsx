@@ -70,13 +70,13 @@ const SettingsToggle: React.FC<{
   </div>
 );
 
-
 const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onChangeSettings }) => {
   const { user } = useAuth();
   const isAdmin = user?.role === "admin";
   const currentUserId = user?.userId;
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<string | number | null>(null);
+  const [userToDisable, setUserToDisable] = useState<User | null>(null);
   const [isAuditOpen, setIsAuditOpen] = useState(false);
   const [users, setUsers] = useState<User[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
@@ -377,7 +377,13 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onChangeSettings 
                       )}
                       {isAdmin && String(row.id) !== currentUserId && (
                         <button
-                          onClick={() => setUserActive(String(row.id), !row.is_active)}
+                          onClick={() => {
+                            if (row.is_active) {
+                              setUserToDisable(row);
+                            } else {
+                              void setUserActive(String(row.id), true);
+                            }
+                          }}
                           className={`px-2 py-1 rounded-md text-xs font-semibold border transition ${
                             row.is_active
                               ? "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"
@@ -459,7 +465,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onChangeSettings 
               actions={(
                 <button
                   onClick={() => setIsAuditOpen(true)}
-                  className="px-3 py-2 rounded-lg bg-slate-900 text-white text-xs font-semibold hover:bg-slate-800 transition"
+                  className="px-3 py-2 rounded-lg bg-orange-600 text-white text-xs font-semibold hover:bg-orange-700 transition"
                 >
                   View audit log
                 </button>
@@ -489,6 +495,19 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onChangeSettings 
         title="Remove User"
         message="Are you sure you want to remove this user? They will lose access to the platform immediately."
         confirmLabel="Remove"
+      />
+
+      <ConfirmModal
+        isOpen={Boolean(userToDisable)}
+        onClose={() => setUserToDisable(null)}
+        onConfirm={() => {
+          if (!userToDisable) return;
+          void setUserActive(String(userToDisable.id), false);
+          setUserToDisable(null);
+        }}
+        title="Disable user?"
+        message="They will lose access immediately."
+        confirmLabel="Disable"
       />
     </div>
   );
