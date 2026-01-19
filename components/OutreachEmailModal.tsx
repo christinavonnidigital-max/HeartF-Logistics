@@ -4,10 +4,8 @@ import type { LeadFinderResult } from "./ProspectDetailsModal";
 
 type DraftResponse = {
   ok: boolean;
-  email: {
-    subject: string;
-    body: string;
-  };
+  emails: { subject: string; body: string }[];
+  personalization?: { urlAttempted?: string | null; urlUsed?: string | null; snippetsUsed?: boolean };
 };
 
 async function copyToClipboard(text: string) {
@@ -26,11 +24,24 @@ async function copyToClipboard(text: string) {
   document.body.removeChild(ta);
 }
 
+export type SavedDraft = {
+  subject: string;
+  body: string;
+  meta?: {
+    tone: string;
+    goal: string;
+    length: string;
+    personalized: boolean;
+    url?: string | null;
+  };
+};
+
 export const OutreachEmailModal: React.FC<{
   isOpen: boolean;
   prospect: LeadFinderResult | null;
   onClose: () => void;
-}> = ({ isOpen, prospect, onClose }) => {
+  onSaveDraftForImport: (prospectId: string, draft: SavedDraft) => void;
+}> = ({ isOpen, prospect, onClose, onSaveDraftForImport }) => {
   const [tone, setTone] = useState("professional");
   const [goal, setGoal] = useState("intro_call");
   const [length, setLength] = useState("short");
@@ -38,16 +49,19 @@ export const OutreachEmailModal: React.FC<{
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [subject, setSubject] = useState("");
-  const [body, setBody] = useState("");
+  const [variants, setVariants] = useState<{ subject: string; body: string }[]>([]);
+  const [activeIndex, setActiveIndex] = useState(0);
 
-  const canGenerate = useMemo(() => {
-    return Boolean(prospect?.companyName) && !busy;
-  }, [prospect?.companyName, busy]);
+  const [personalizationInfo, setPersonalizationInfo] = useState<{ snippetsUsed?: boolean; urlUsed?: string | null } | null>(null);
 
-  const resetDraft = () => {
-    setSubject("");
-    setBody("");
+  const active = variants[activeIndex] || { subject: "", body: "" };
+
+  const canGenerate = useMemo(() => Boolean(prospect?.companyName) && !busy, [prospect?.companyName, busy]);
+
+  const reset = () => {
+    setVariants([]);
+    setActiveIndex(0);
+    setPersonalizationInfo(null);
   };
 
   const generate = async () => {
@@ -55,7 +69,7 @@ export const OutreachEmailModal: React.FC<{
 
     setBusy(true);
     setError(null);
-    resetDraft();
+    reset();
 
     try {
       const res = await fetch("/.netlify/functions/lead-finder-draft-email", {
@@ -66,6 +80,7 @@ export const OutreachEmailModal: React.FC<{
           tone,
           goal,
           length,
+          variants: 3,
           prospect,
         }),
       });
@@ -82,8 +97,14 @@ export const OutreachEmailModal: React.FC<{
         throw new Error((data as any)?.error || "Failed to draft email");
       }
 
-      setSubject(data.email.subject || "");
-      setBody(data.email.body || "");
+      const list = Array.isArray(data.emails) ? data.emails : [];
+      setVariants(list);
+      setActiveIndex(0);
+
+      setPersonalizationInfo({
+        snippetsUsed: Boolean(data.personalization?.snippetsUsed),
+        urlUsed: data.personalization?.urlUsed ?? null,
+      });
     } catch (e: any) {
       setError(String(e?.message || e));
     } finally {
@@ -91,9 +112,31 @@ export const OutreachEmailModal: React.FC<{
     }
   };
 
+  const regenerate = async () => {
+    await generate();
+  };
+
   const copyAll = async () => {
-    const full = `Subject: ${subject}\n\n${body}`;
+    const full = `Subject: ${active.subject}\n\n${active.body}`;
     await copyToClipboard(full);
+  };
+
+  const attachToImport = () => {
+    if (!prospect?.id) return;
+    if (!active.subject || !active.body) return;
+
+    onSaveDraftForImport(prospect.id, {
+      subject: active.subject,
+      body: active.body,
+      meta: {
+        tone,
+        goal,
+        length,
+        personalized: Boolean(personalizationInfo?.snippetsUsed),
+        url: personalizationInfo?.urlUsed ?? (prospect.website || prospect.sourceUrl || null),
+      },
+    });
+    onClose();
   };
 
   return (
@@ -108,15 +151,19 @@ export const OutreachEmailModal: React.FC<{
           <div className="flex items-center gap-2">
             {error ? <StatusPill tone="warn" label={error} /> : null}
             {busy ? <StatusPill tone="info" label="Generating…" /> : null}
-            {!busy && !error && subject && body ? <StatusPill tone="success" label="Draft ready" /> : null}
+            {!busy && !error && active.subject && active.body ? <StatusPill tone="success" label="Draft ready" /> : null}
+            {personalizationInfo?.snippetsUsed ? <StatusPill tone="info" label="Personalized from source" /> : null}
           </div>
 
           <div className="flex items-center gap-2">
-            <Button variant="secondary" onClick={copyAll} disabled={!subject || !body}>
+            <Button variant="secondary" onClick={copyAll} disabled={!active.subject || !active.body}>
               Copy
             </Button>
-            <Button variant="secondary" onClick={generate} disabled={!canGenerate}>
-              {busy ? "Generating…" : "Generate"}
+            <Button variant="secondary" onClick={regenerate} disabled={!canGenerate}>
+              {busy ? "Generating…" : "Regenerate (3)"}
+            </Button>
+            <Button variant="primary" onClick={attachToImport} disabled={!prospect?.id || !active.subject || !active.body}>
+              Attach to import
             </Button>
             <Button variant="ghost" onClick={onClose}>
               Close
@@ -142,8 +189,8 @@ export const OutreachEmailModal: React.FC<{
               <Label>Goal</Label>
               <Select value={goal} onChange={(e: any) => setGoal(e.target.value)}>
                 <option value="intro_call">Book a 15-min intro call</option>
-                <option value="quote">Request shipment/route details for a quote</option>
-                <option value="partnership">Explore a logistics partnership</option>
+                <option value="quote">Request routes/volumes for a quote</option>
+                <option value="partnership">Explore a partnership</option>
               </Select>
             </div>
 
@@ -157,19 +204,48 @@ export const OutreachEmailModal: React.FC<{
             </div>
           </div>
 
-          <div className="mt-3 text-xs text-muted-foreground">
-            Tip: Click “Generate” again if you want a different approach. This does not send an email — it drafts text only.
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+            <div className="text-xs text-muted-foreground">
+              Generates 3 distinct variants. “Personalized” only uses text snippets extracted from the prospect source URL.
+            </div>
+            <Button variant="secondary" onClick={generate} disabled={!canGenerate}>
+              {busy ? "Generating…" : "Generate"}
+            </Button>
           </div>
+
+          {personalizationInfo?.urlUsed ? (
+            <div className="mt-2 text-xs text-muted-foreground break-all">
+              Source used: {personalizationInfo.urlUsed}
+            </div>
+          ) : null}
         </SubtleCard>
+
+        {variants.length > 0 ? (
+          <div className="flex flex-wrap gap-2">
+            {variants.map((_, idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => setActiveIndex(idx)}
+                className={
+                  "px-3 py-1.5 rounded-full text-xs font-semibold border transition " +
+                  (idx === activeIndex ? "bg-foreground text-background border-foreground" : "bg-card border-border text-foreground hover:bg-muted")
+                }
+              >
+                Variant {idx + 1}
+              </button>
+            ))}
+          </div>
+        ) : null}
 
         <div>
           <Label>Subject</Label>
-          <Input value={subject} onChange={(e: any) => setSubject(e.target.value)} placeholder="Subject line..." />
+          <Input value={active.subject} readOnly placeholder="Generate to see subject..." />
         </div>
 
         <div>
           <Label>Body</Label>
-          <Textarea value={body} onChange={(e: any) => setBody(e.target.value)} rows={12} placeholder="Email body..." />
+          <Textarea value={active.body} readOnly rows={12} placeholder="Generate to see email body..." />
         </div>
       </div>
     </ModalShell>
