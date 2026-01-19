@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState, useEffect } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { ShellCard, Button, SectionHeader, StatusPill, Input, Select } from "./UiKit";
 import {
   SearchIcon,
@@ -12,8 +12,10 @@ import {
   EnvelopeIcon,
   PhoneIcon,
 } from "./icons";
+import { ProspectDetailsModal, type LeadFinderResult } from "./ProspectDetailsModal";
+import { OutreachEmailModal } from "./OutreachEmailModal";
 import { useData } from "../contexts/DataContext";
-import { Lead, LeadSource, LeadStatus, CompanySize, Industry } from "../types";
+import { CompanySize, Industry, Lead, LeadSource, LeadStatus } from "../types";
 
 type LeadProspectingCriteria = {
   query: string;
@@ -24,21 +26,11 @@ type LeadProspectingCriteria = {
   forceRefresh?: boolean;
 };
 
-type LeadProspect = {
-  id: string;
-  companyName: string;
-  website?: string;
-  location?: string;
+type LeadProspect = LeadFinderResult & {
   companySize?: string;
   industry?: string;
-  summary?: string;
   intentSignal?: string;
-  confidence?: number;
-  sourceUrl?: string;
-  verified?: boolean;
   sourcesCount?: number;
-  contact?: { name?: string; title?: string; email?: string; phone?: string; linkedin?: string };
-
   alreadyInCrm?: boolean;
   alreadyReason?: string;
 };
@@ -48,7 +40,6 @@ type SearchResponse = {
   results?: LeadProspect[];
   cached?: boolean;
   reasonHints?: string[];
-  searchId?: string;
 };
 
 const SUGGESTED_QUERIES = [
@@ -73,12 +64,10 @@ const confidencePct = (c?: number) => {
 };
 
 type Tier = "verified" | "high" | "candidate";
-
 const getTier = (r: LeadProspect): Tier => {
   const conf = confidencePct(r.confidence);
   const hasContact = Boolean(r.contact?.email || r.contact?.phone);
-  const verified = Boolean(r.verified);
-  if (verified || hasContact) return "verified";
+  if (r.verified || hasContact) return "verified";
   if (conf >= 80) return "high";
   return "candidate";
 };
@@ -146,7 +135,8 @@ const prospectToLeadPayload = (prospect: LeadProspect): Omit<Lead, "id" | "creat
     address: "",
     city: location.city,
     country: location.country,
-    logistics_needs: prospect.intentSignal || prospect.summary || "High-potential logistics buyer discovered via lead finder.",
+    logistics_needs:
+      prospect.intentSignal || prospect.summary || "High-potential logistics buyer discovered via lead finder.",
     current_provider: "",
     monthly_shipment_volume: "",
     preferred_routes: "",
@@ -190,10 +180,24 @@ const LeadFinderPage: React.FC = () => {
   const [showOnlyVerified, setShowOnlyVerified] = useState(false);
   const [showHighPlus, setShowHighPlus] = useState(true);
 
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [emailOpen, setEmailOpen] = useState(false);
+  const [activeProspect, setActiveProspect] = useState<LeadProspect | null>(null);
+
   const showToast = (message: string) => {
     setToastMessage(message);
     if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
     toastTimeoutRef.current = setTimeout(() => setToastMessage(null), 3500);
+  };
+
+  const openDetails = (p: LeadProspect) => {
+    setActiveProspect(p);
+    setDetailsOpen(true);
+  };
+
+  const openDraftEmail = (p: LeadProspect) => {
+    setActiveProspect(p);
+    setEmailOpen(true);
   };
 
   useEffect(() => {
@@ -381,6 +385,18 @@ const LeadFinderPage: React.FC = () => {
 
   return (
     <div className="space-y-5">
+      <ProspectDetailsModal
+        isOpen={detailsOpen}
+        prospect={activeProspect}
+        onClose={() => setDetailsOpen(false)}
+        onDraftEmail={(p) => {
+          setDetailsOpen(false);
+          openDraftEmail(p as LeadProspect);
+        }}
+      />
+
+      <OutreachEmailModal isOpen={emailOpen} prospect={activeProspect} onClose={() => setEmailOpen(false)} />
+
       {toastMessage ? (
         <div className="fixed inset-x-0 top-6 z-80 flex justify-center px-4">
           <div className="bg-card text-foreground text-sm font-medium px-4 py-3 rounded-2xl border border-border shadow-lg flex items-center gap-2">
@@ -392,7 +408,10 @@ const LeadFinderPage: React.FC = () => {
 
       <ShellCard className="p-5">
         <div className="flex items-start justify-between gap-4 flex-wrap">
-          <SectionHeader title="Lead Finder" subtitle="Grounded search for target companies. Import only what you want." />
+          <SectionHeader
+            title="Lead Finder"
+            subtitle="Grounded search for target companies. Review details, draft outreach, then import."
+          />
 
           <div className="flex items-center gap-2">
             {cached ? <StatusPill tone="info" label="cached" /> : null}
@@ -491,9 +510,7 @@ const LeadFinderPage: React.FC = () => {
         <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
           <div>
             <h3 className="text-sm font-semibold text-slate-900">Results</h3>
-            <p className="text-xs text-slate-500">
-              Sorted by match quality. Import adds the lead into your CRM and prevents duplicates.
-            </p>
+            <p className="text-xs text-slate-500">Review details and draft outreach before importing.</p>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
@@ -640,6 +657,13 @@ const LeadFinderPage: React.FC = () => {
                   </div>
 
                   <div className="flex flex-col gap-2 shrink-0">
+                    <Button variant="secondary" size="sm" onClick={() => openDetails(p)}>
+                      Details
+                    </Button>
+                    <Button variant="secondary" size="sm" onClick={() => openDraftEmail(p)}>
+                      Draft email
+                    </Button>
+
                     {link ? (
                       <a
                         href={link}
