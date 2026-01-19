@@ -1,81 +1,103 @@
-
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { Message, GroundingChunk, Currency } from '../types';
 import { getGeminiResponse } from '../services/geminiService';
 import { CloseIcon, MapPinIcon, SearchIcon, SendIcon } from './icons';
 import { BoxTruckIconBold } from './icons';
 import { useData } from '../contexts/DataContext';
-import { AssistantBookingDraft, AssistantEmailDraft, getFunctionDeclarations, runAssistantTool, ToolRunResult } from '../assistant/tools';
+import {
+  AssistantBookingDraft,
+  AssistantEmailDraft,
+  getFunctionDeclarations,
+  runAssistantTool,
+  ToolRunResult
+} from '../assistant/tools';
 import AddBookingModal from './AddBookingModal';
 import EmailComposer from './campaignBuilder/EmailComposer';
 import type { AppSettings } from '../App';
 
 interface FleetAssistantProps {
-    contextData: any;
-    contextType: 'fleet' | 'crm' | 'financials' | 'routes';
-    settings?: Partial<AppSettings>;
+  contextData: any;
+  contextType: 'fleet' | 'crm' | 'financials' | 'routes';
+  settings?: Partial<AppSettings>;
 }
 
-// Enhanced Markdown Parser Component
-const FormattedText: React.FC<{ text: string }> = ({ text }) => {
+// Minimal Markdown-ish renderer (calm, Notes-like)
+// - Uses text-current so user/assistant styling works
+// - Preserves spacing and list bullets
+const FormattedText: React.FC<{ text: string; className?: string }> = ({ text, className }) => {
   if (!text) return null;
 
-  // Split by newlines but keep track of empty lines for spacing
   const lines = text.split('\n');
 
   return (
-    <div className="text-sm space-y-1.5 leading-relaxed text-slate-800">
+    <div className={`text-[15px] leading-7 text-current ${className || ''}`}>
       {lines.map((line, i) => {
         const trimmed = line.trim();
-        if (!trimmed) return <div key={i} className="h-2" />; // Add space for paragraph breaks
+        if (!trimmed) return <div key={i} className="h-3" />;
 
-        // Headers (e.g. ### Header)
+        // Headers
         if (trimmed.startsWith('### ')) {
-            return <h4 key={i} className="font-bold text-slate-900 mt-2 mb-1">{trimmed.substring(4)}</h4>
+          return (
+            <div key={i} className="mt-4 mb-1 font-semibold text-current">
+              {trimmed.substring(4)}
+            </div>
+          );
         }
         if (trimmed.startsWith('## ')) {
-            return <h3 key={i} className="font-bold text-lg text-slate-900 mt-3 mb-1">{trimmed.substring(3)}</h3>
+          return (
+            <div key={i} className="mt-5 mb-2 text-lg font-semibold tracking-tight text-current">
+              {trimmed.substring(3)}
+            </div>
+          );
         }
 
-        // List items detection
+        // List items
         const listMatch = line.match(/^(\s*)([\*\-]\s+)(.*)/);
         let isList = false;
         let indent = 0;
         let content = line;
 
         if (listMatch) {
-            isList = true;
-            indent = listMatch[1].length;
-            content = listMatch[3];
+          isList = true;
+          indent = listMatch[1].length;
+          content = listMatch[3];
         }
 
-        // Parse Bold (**...**) and Italic (*...*)
-        // Split by ** first to handle bold
-        const parts = [];
-        
+        // Bold + Italic parsing
         const boldSplit = content.split(/(\*\*.*?\*\*)/g);
-        
+
         const parsedParts = boldSplit.map((part, j) => {
-             if (part.startsWith('**') && part.endsWith('**') && part.length >= 4) {
-                 return <strong key={j} className="font-semibold text-slate-900">{part.slice(2, -2)}</strong>;
-             }
-             
-             // Within non-bold parts, handle italics
-             return part.split(/(\*.*?\*)/g).map((subPart, k) => {
-                 if (subPart.startsWith('*') && subPart.endsWith('*') && subPart.length >= 3) {
-                     return <em key={`${j}-${k}`} className="italic text-slate-700">{subPart.slice(1, -1)}</em>;
-                 }
-                 return <span key={`${j}-${k}`}>{subPart}</span>;
-             });
+          if (part.startsWith('**') && part.endsWith('**') && part.length >= 4) {
+            return (
+              <strong key={j} className="font-semibold text-current">
+                {part.slice(2, -2)}
+              </strong>
+            );
+          }
+
+          return part.split(/(\*.*?\*)/g).map((subPart, k) => {
+            if (subPart.startsWith('*') && subPart.endsWith('*') && subPart.length >= 3) {
+              return (
+                <em key={`${j}-${k}`} className="italic text-current opacity-90">
+                  {subPart.slice(1, -1)}
+                </em>
+              );
+            }
+            return <span key={`${j}-${k}`}>{subPart}</span>;
+          });
         });
 
         if (isList) {
-            return (
-                <div key={i} className="flex items-start gap-2.5" style={{ marginLeft: `${indent * 0.5}rem` }}>
-                    <span className="mt-2 w-1.5 h-1.5 bg-orange-500 rounded-full shrink-0 opacity-80" />
-                    <div className="flex-1">{parsedParts}</div>
-                </div>
-            )
+          return (
+            <div
+              key={i}
+              className="flex items-start gap-3"
+              style={{ marginLeft: `${indent * 0.5}rem` }}
+            >
+              <span className="mt-[0.62rem] w-1.5 h-1.5 rounded-full bg-current opacity-50 shrink-0" />
+              <div className="flex-1">{parsedParts}</div>
+            </div>
+          );
         }
 
         return <div key={i}>{parsedParts}</div>;
@@ -85,53 +107,82 @@ const FormattedText: React.FC<{ text: string }> = ({ text }) => {
 };
 
 const FleetAssistant: React.FC<FleetAssistantProps> = ({ contextData, contextType, settings }) => {
-  const { bookings, invoices, customers, leads, opportunities, leadActivities, auditLog, addBooking, logAuditEvent } = useData();
+  const { bookings, invoices, customers, leads, opportunities, leadActivities, auditLog, addBooking, logAuditEvent } =
+    useData();
+
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
-    { id: '1', sender: 'bot', text: 'Hi there! I\'m your Heartfledge AI Assistant. I can help with fleet management, CRM insights, financial analysis, and route optimization. What can I do for you today?' }
+    {
+      id: '1',
+      sender: 'bot',
+      text:
+        "Hi there! I'm your Heartfledge AI Assistant. I can help with fleet management, CRM insights, financial analysis, and route optimization. What can I do for you today?"
+    }
   ]);
+
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [location, setLocation] = useState<{latitude: number, longitude: number} | null>(null);
+
+  const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+
   const [bookingDraft, setBookingDraft] = useState<AssistantBookingDraft | null>(null);
   const [emailDraft, setEmailDraft] = useState<AssistantEmailDraft | null>(null);
+
   const chatEndRef = useRef<HTMLDivElement>(null);
   const assistantTools = useMemo(() => getFunctionDeclarations(), []);
 
-  const toolContext = useMemo(() => ({
-    data: {
+  const toolContext = useMemo(
+    () => ({
+      data: {
+        bookings,
+        invoices,
+        customers,
+        leads,
+        opportunities,
+        leadActivities,
+        auditLog,
+        leadScoringRules: contextData?.leadScoringRules || [],
+        defaultCurrency: (settings?.currency as Currency | undefined) || Currency.USD
+      },
+      actions: {
+        openBookingModal: (draft: AssistantBookingDraft) => setBookingDraft(draft),
+        openEmailComposer: (draft: AssistantEmailDraft) => setEmailDraft(draft)
+      }
+    }),
+    [
+      auditLog,
       bookings,
-      invoices,
       customers,
+      invoices,
+      leadActivities,
       leads,
       opportunities,
-      leadActivities,
-      auditLog,
-      leadScoringRules: contextData?.leadScoringRules || [],
-      defaultCurrency: (settings?.currency as Currency | undefined) || Currency.USD,
-    },
-    actions: {
-      openBookingModal: (draft: AssistantBookingDraft) => setBookingDraft(draft),
-      openEmailComposer: (draft: AssistantEmailDraft) => setEmailDraft(draft),
-    },
-  }), [auditLog, bookings, customers, invoices, leadActivities, leads, opportunities, contextData?.leadScoringRules, settings?.currency]);
-  
+      contextData?.leadScoringRules,
+      settings?.currency
+    ]
+  );
+
   const getPlaceholderText = () => {
-      switch (contextType) {
-          case 'fleet': return 'Ask about your fleet...';
-          case 'crm': return 'Ask about your leads...';
-          case 'financials': return 'Ask about invoices or expenses...';
-          case 'routes': return 'Ask about routes and waypoints...';
-          default: return 'Ask me anything...';
-      }
+    switch (contextType) {
+      case 'fleet':
+        return 'Write a note about your fleet…';
+      case 'crm':
+        return 'Write a note about leads or customers…';
+      case 'financials':
+        return 'Write a note about invoices or expenses…';
+      case 'routes':
+        return 'Write a note about routes and waypoints…';
+      default:
+        return 'Write a note…';
+    }
   };
 
   const scrollToBottom = () => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
-  
+
   useEffect(() => {
-      scrollToBottom();
+    scrollToBottom();
   }, [messages]);
 
   const getLocation = useCallback(() => {
@@ -140,20 +191,20 @@ const FleetAssistant: React.FC<FleetAssistantProps> = ({ contextData, contextTyp
         (position) => {
           setLocation({
             latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
+            longitude: position.coords.longitude
           });
         },
         (error) => {
-          console.error("Error getting location: ", error);
+          console.error('Error getting location: ', error);
         }
       );
     }
   }, []);
 
   useEffect(() => {
-      if (isOpen) {
-          getLocation();
-      }
+    if (isOpen) {
+      getLocation();
+    }
   }, [isOpen, getLocation]);
 
   const formatToolResult = (toolName: string, result: ToolRunResult) => {
@@ -161,11 +212,13 @@ const FleetAssistant: React.FC<FleetAssistantProps> = ({ contextData, contextTyp
     const data = result?.data as any;
 
     if (toolName === 'find_overdue_invoices' && data?.invoices?.length) {
-      const invoices = data.invoices as any[];
-      invoices.slice(0, 3).forEach((inv: any) => {
-        lines.push(`- ${inv.invoiceNumber} (${inv.customerName}) • ${inv.balanceDue} due ${inv.dueDate} (${inv.daysOverdue}d late)`);
+      const invoicesList = data.invoices as any[];
+      invoicesList.slice(0, 3).forEach((inv: any) => {
+        lines.push(
+          `- ${inv.invoiceNumber} (${inv.customerName}) • ${inv.balanceDue} due ${inv.dueDate} (${inv.daysOverdue}d late)`
+        );
       });
-      if (invoices.length > 3) lines.push(`...and ${invoices.length - 3} more.`);
+      if (invoicesList.length > 3) lines.push(`...and ${invoicesList.length - 3} more.`);
     }
 
     if (toolName === 'summarize_customer_activity' && data?.customer) {
@@ -190,12 +243,18 @@ const FleetAssistant: React.FC<FleetAssistantProps> = ({ contextData, contextTyp
 
   const mapToolToEntity = (toolName: string) => {
     switch (toolName) {
-      case 'create_booking': return 'booking';
-      case 'find_overdue_invoices': return 'invoice';
-      case 'summarize_customer_activity': return 'customer';
-      case 'draft_follow_up_email': return 'lead';
-      case 'explain_lead_score_change': return 'lead';
-      default: return 'assistant';
+      case 'create_booking':
+        return 'booking';
+      case 'find_overdue_invoices':
+        return 'invoice';
+      case 'summarize_customer_activity':
+        return 'customer';
+      case 'draft_follow_up_email':
+        return 'lead';
+      case 'explain_lead_score_change':
+        return 'lead';
+      default:
+        return 'assistant';
     }
   };
 
@@ -203,19 +262,19 @@ const FleetAssistant: React.FC<FleetAssistantProps> = ({ contextData, contextTyp
     if (input.trim() === '' || isLoading) return;
 
     const userMessage: Message = { id: Date.now().toString(), sender: 'user', text: input };
-    setMessages(prev => [...prev, userMessage]);
+    setMessages((prev) => [...prev, userMessage]);
     setInput('');
     setIsLoading(true);
 
-    const chatHistory = messages.map(msg => ({
+    const chatHistory = messages.map((msg) => ({
       role: msg.sender === 'user' ? ('user' as const) : ('model' as const),
       parts: [{ text: msg.text }]
     }));
 
     try {
       const response = await getGeminiResponse(
-        input, 
-        chatHistory, 
+        input,
+        chatHistory,
         contextData,
         contextType,
         location,
@@ -228,18 +287,19 @@ const FleetAssistant: React.FC<FleetAssistantProps> = ({ contextData, contextTyp
 
       if (functionCall?.name) {
         const toolResult = runAssistantTool(functionCall.name, functionCall.args || {}, toolContext);
+
         if (logAuditEvent) {
           logAuditEvent({
             action: 'assistant.tool.call',
             entity: { type: mapToolToEntity(functionCall.name), ref: functionCall.name },
-            meta: { args: functionCall.args, ok: toolResult.ok, message: toolResult.message },
+            meta: { args: functionCall.args, ok: toolResult.ok, message: toolResult.message }
           });
         }
 
         const toolMessage: Message = {
           id: (Date.now() + 1).toString(),
           sender: 'bot',
-          text: formatToolResult(functionCall.name, toolResult),
+          text: formatToolResult(functionCall.name, toolResult)
         };
 
         const followUp = await getGeminiResponse(
@@ -252,39 +312,40 @@ const FleetAssistant: React.FC<FleetAssistantProps> = ({ contextData, contextTyp
             functionDeclarations: assistantTools,
             extraContents: [
               { role: 'model' as const, parts },
-              { role: 'user' as const, parts: [{ functionResponse: { name: functionCall.name, response: toolResult, id: functionCall.id } as any }] },
-            ],
+              { role: 'user' as const, parts: [{ functionResponse: { name: functionCall.name, response: toolResult, id: functionCall.id } as any }] }
+            ]
           }
         );
 
-        const groundingChunks = followUp.candidates?.[0]?.groundingMetadata?.groundingChunks as GroundingChunk[] || [];
+        const groundingChunks = (followUp.candidates?.[0]?.groundingMetadata?.groundingChunks as GroundingChunk[]) || [];
         const finalMessage: Message = {
           id: (Date.now() + 2).toString(),
           sender: 'bot',
           text: followUp.text || toolResult.message,
-          groundingChunks: groundingChunks.length > 0 ? groundingChunks : undefined,
+          groundingChunks: groundingChunks.length > 0 ? groundingChunks : undefined
         };
 
-        setMessages(prev => [...prev, toolMessage, finalMessage]);
+        setMessages((prev) => [...prev, toolMessage, finalMessage]);
       } else {
         const botMessageText = response.text;
-        const groundingChunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks as GroundingChunk[] || [];
+        const groundingChunks = (response.candidates?.[0]?.groundingMetadata?.groundingChunks as GroundingChunk[]) || [];
 
         const botMessage: Message = {
           id: (Date.now() + 1).toString(),
           sender: 'bot',
           text: botMessageText,
-          groundingChunks: groundingChunks.length > 0 ? groundingChunks : undefined,
+          groundingChunks: groundingChunks.length > 0 ? groundingChunks : undefined
         };
-        setMessages(prev => [...prev, botMessage]);
+
+        setMessages((prev) => [...prev, botMessage]);
       }
     } catch (error) {
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         sender: 'bot',
-        text: 'Sorry, I am having trouble connecting. Please try again later.',
+        text: 'Sorry, I am having trouble connecting. Please try again later.'
       };
-      setMessages(prev => [...prev, errorMessage]);
+      setMessages((prev) => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
     }
@@ -293,17 +354,29 @@ const FleetAssistant: React.FC<FleetAssistantProps> = ({ contextData, contextTyp
   const GroundingChunkDisplay: React.FC<{ chunk: GroundingChunk }> = ({ chunk }) => {
     if (chunk.web) {
       return (
-        <a href={chunk.web.uri} target="_blank" rel="noopener noreferrer" className="flex items-center space-x-2 text-blue-600 hover:underline bg-blue-50 px-2 py-1.5 rounded-lg text-xs mt-1 transition hover:bg-blue-100">
-          <SearchIcon className="w-3.5 h-3.5" />
-          <span className="truncate max-w-50">{chunk.web.title}</span>
+        <a
+          href={chunk.web.uri}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-50 transition max-w-[280px]"
+          title={chunk.web.title}
+        >
+          <SearchIcon className="w-3.5 h-3.5 opacity-70" />
+          <span className="truncate">{chunk.web.title}</span>
         </a>
       );
     }
     if (chunk.maps) {
-       return (
-        <a href={chunk.maps.uri} target="_blank" rel="noopener noreferrer" className="flex items-center space-x-2 text-green-600 hover:underline bg-green-50 px-2 py-1.5 rounded-lg text-xs mt-1 transition hover:bg-green-100">
-          <MapPinIcon className="w-3.5 h-3.5" />
-          <span className="truncate max-w-50">{chunk.maps.title}</span>
+      return (
+        <a
+          href={chunk.maps.uri}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-50 transition max-w-[280px]"
+          title={chunk.maps.title}
+        >
+          <MapPinIcon className="w-3.5 h-3.5 opacity-70" />
+          <span className="truncate">{chunk.maps.title}</span>
         </a>
       );
     }
@@ -330,7 +403,7 @@ const FleetAssistant: React.FC<FleetAssistantProps> = ({ contextData, contextTyp
           logAuditEvent({
             action: 'assistant.tool.call',
             entity: { type: 'lead', ref: 'draft_follow_up_email' },
-            meta: { subject: payload?.subject_line },
+            meta: { subject: payload?.subject_line }
           });
         }
         setEmailDraft(null);
@@ -344,10 +417,11 @@ const FleetAssistant: React.FC<FleetAssistantProps> = ({ contextData, contextTyp
       <>
         <button
           onClick={() => setIsOpen(true)}
-          className="group fixed bottom-6 right-6 bg-linear-to-br from-orange-500 to-orange-600 text-white p-4 rounded-full shadow-2xl hover:shadow-orange-500/50 transition-all duration-300 transform hover:scale-110 focus:outline-none focus:ring-4 focus:ring-orange-500/30 z-50"
+          className="group fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full border border-slate-200 bg-white shadow-lg hover:shadow-xl transition flex items-center justify-center"
           aria-label="Open AI Assistant"
+          title="Assistant"
         >
-          <BoxTruckIconBold className="w-8 h-8 transition-transform group-hover:translate-x-1" />
+          <BoxTruckIconBold className="w-7 h-7 text-slate-800 transition-transform group-hover:scale-105" />
         </button>
         {bookingModal}
         {emailComposerModal}
@@ -357,83 +431,147 @@ const FleetAssistant: React.FC<FleetAssistantProps> = ({ contextData, contextTyp
 
   return (
     <>
-      <div className="fixed bottom-6 right-6 w-[90vw] max-w-md h-[70vh] max-h-150 bg-white rounded-2xl shadow-2xl flex flex-col z-50 border border-slate-200 overflow-hidden font-sans">
-        <header className="flex items-center justify-between p-5 border-b border-slate-100 bg-linear-to-r from-orange-50/30 via-white to-orange-50/20">
-          <div className="flex items-center space-x-3">
-            <div className="bg-linear-to-br from-orange-100 to-orange-200 p-2 rounded-lg shadow-sm">
-              <BoxTruckIconBold className="w-5 h-5 text-orange-600" />
+      <div className="fixed bottom-6 right-6 z-50 w-[92vw] max-w-md h-[72vh] max-h-[720px] rounded-3xl border border-slate-200 bg-white shadow-2xl overflow-hidden flex flex-col">
+        {/* Header - clean, minimal */}
+        <header className="px-5 py-4 border-b border-slate-200 bg-white">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="h-10 w-10 rounded-2xl border border-slate-200 bg-slate-50 flex items-center justify-center">
+                <BoxTruckIconBold className="w-5 h-5 text-slate-800" />
+              </div>
+              <div className="min-w-0">
+                <div className="text-sm font-semibold tracking-tight text-slate-900 truncate">Assistant</div>
+                <div className="text-xs text-slate-500 truncate">Write a note, get calm answers.</div>
+              </div>
             </div>
-            <div>
-              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
-                AI Assistant
-                <span className="flex h-2 w-2 relative">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-                </span>
-              </h3>
-              <p className="text-[10px] text-slate-500 font-medium">Powered by Gemini</p>
-            </div>
+
+            <button
+              onClick={() => setIsOpen(false)}
+              aria-label="Close assistant"
+              title="Close"
+              className="h-9 w-9 rounded-full border border-transparent hover:border-slate-200 hover:bg-slate-50 text-slate-600 transition flex items-center justify-center"
+            >
+              <CloseIcon className="w-5 h-5" />
+            </button>
           </div>
-          <button onClick={() => setIsOpen(false)} aria-label="Close assistant" title="Close assistant" className="p-2 rounded-full hover:bg-slate-100 text-slate-500 transition">
-            <CloseIcon className="w-5 h-5" />
-          </button>
         </header>
 
-        <div className="flex-1 p-5 overflow-y-auto space-y-4 bg-linear-to-b from-slate-50/50 to-white custom-scrollbar">
-          {messages.map((msg) => (
-            <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-2 duration-300`}>
-              <div className={`relative max-w-[85%] md:max-w-[88%] px-4 py-3.5 rounded-2xl shadow-sm transition-all hover:shadow-md ${
-                  msg.sender === 'user'
-                  ? 'bg-linear-to-br from-orange-500 to-orange-600 border border-orange-500 text-white rounded-br-sm'
-                  : 'bg-white border border-slate-200 text-slate-900 rounded-bl-sm hover:border-slate-300'
-              }`}>
-                <FormattedText text={msg.text} />
-                {msg.groundingChunks && msg.groundingChunks.length > 0 && (
-                  <div className="mt-3 pt-3 border-t border-black/5 flex flex-wrap gap-2">
-                      {msg.groundingChunks.map((chunk, index) => <GroundingChunkDisplay key={index} chunk={chunk} />)}
+        {/* Messages - Notes-like surface */}
+        <div className="flex-1 overflow-y-auto bg-white">
+          <div className="px-5 py-5">
+            <div className="rounded-3xl border border-slate-200 bg-white overflow-hidden">
+              <div className="divide-y divide-slate-200">
+                {messages.map((msg) => {
+                  const isUser = msg.sender === 'user';
+                  return (
+                    <div key={msg.id} className="p-4">
+                      <div className="flex items-center justify-between gap-2 mb-2">
+                        <div className="text-[11px] font-semibold tracking-wide text-slate-500">
+                          {isUser ? 'YOU' : 'ASSISTANT'}
+                        </div>
+                        <div className="text-[11px] text-slate-400">{isUser ? '' : isLoading ? 'Working…' : ''}</div>
+                      </div>
+
+                      <div className={isUser ? 'text-slate-900' : 'text-slate-900'}>
+                        <FormattedText text={msg.text} />
+                      </div>
+
+                      {msg.groundingChunks && msg.groundingChunks.length > 0 ? (
+                        <div className="mt-3 pt-3 border-t border-slate-100 flex flex-wrap gap-2">
+                          {msg.groundingChunks.map((chunk, index) => (
+                            <GroundingChunkDisplay key={index} chunk={chunk} />
+                          ))}
+                        </div>
+                      ) : null}
+                    </div>
+                  );
+                })}
+
+                {isLoading ? (
+                  <div className="p-4">
+                    <div className="text-[11px] font-semibold tracking-wide text-slate-500 mb-2">ASSISTANT</div>
+                    <div className="inline-flex items-center gap-2 text-sm text-slate-600">
+                      <span className="inline-flex gap-1.5 items-center">
+                        <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-pulse"></span>
+                        <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-pulse [animation-delay:0.2s]"></span>
+                        <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-pulse [animation-delay:0.4s]"></span>
+                      </span>
+                      Thinking…
+                    </div>
                   </div>
-                )}
+                ) : null}
               </div>
             </div>
-          ))}
-          {isLoading && (
-              <div className="flex justify-start">
-                  <div className="px-4 py-3 rounded-2xl bg-white border border-slate-200 text-slate-900 rounded-bl-sm shadow-sm">
-                      <div className="flex items-center space-x-1.5">
-                          <span className="w-1.5 h-1.5 bg-orange-400 rounded-full animate-pulse"></span>
-                          <span className="w-1.5 h-1.5 bg-orange-400 rounded-full animate-pulse [animation-delay:0.2s]"></span>
-                          <span className="w-1.5 h-1.5 bg-orange-400 rounded-full animate-pulse [animation-delay:0.4s]"></span>
-                      </div>
-                  </div>
-              </div>
-          )}
-          <div ref={chatEndRef} />
+
+            <div ref={chatEndRef} />
+          </div>
         </div>
 
-        <div className="p-4 border-t border-slate-100 bg-linear-to-r from-slate-50/50 to-white">
-          <div className="flex items-center gap-2.5 bg-white rounded-2xl px-2 py-2 border border-slate-200 focus-within:ring-2 focus-within:ring-orange-500/30 focus-within:border-orange-400 transition-all shadow-sm hover:shadow-md">
-            <input
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-              placeholder={getPlaceholderText()}
-              className="flex-1 px-3 py-2 bg-transparent text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none"
-              disabled={isLoading}
-              autoFocus
-            />
-            <button
-              onClick={handleSendMessage}
-              disabled={isLoading || input.trim() === ''}
-              aria-label="Send message"
-              title="Send message"
-              className="p-2.5 bg-linear-to-br from-orange-500 to-orange-600 text-white rounded-xl disabled:from-slate-300 disabled:to-slate-300 disabled:cursor-not-allowed hover:from-orange-600 hover:to-orange-700 transition-all shadow-md hover:shadow-lg hover:scale-105 shrink-0"
-            >
-              <SendIcon className="w-4 h-4" />
-            </button>
+        {/* Composer - calm toolbar */}
+        <div className="px-5 pb-5">
+          <div className="rounded-3xl border border-slate-200 bg-white shadow-sm">
+            <div className="p-3">
+              <div className="flex items-end gap-2">
+                <input
+                  type="text"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleSendMessage();
+                    }
+                  }}
+                  placeholder={getPlaceholderText()}
+                  className="flex-1 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 text-[15px] leading-7 text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-slate-200 focus:border-slate-300"
+                  disabled={isLoading}
+                  autoFocus
+                />
+
+                <button
+                  onClick={handleSendMessage}
+                  disabled={isLoading || input.trim() === ''}
+                  aria-label="Send message"
+                  title="Send"
+                  className="h-10 w-10 rounded-2xl border border-slate-200 bg-white text-slate-800 hover:bg-slate-50 transition disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center"
+                >
+                  <SendIcon className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="mt-3 flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => setMessages([{ id: '1', sender: 'bot', text: 'What would you like to work on?' }])}
+                  className="text-xs px-3 py-1.5 rounded-full border border-slate-200 bg-white hover:bg-slate-50 transition text-slate-700"
+                  disabled={isLoading}
+                  title="Start a new note"
+                >
+                  New note
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    const text = messages.map((m) => `${m.sender === 'user' ? 'You' : 'Assistant'}: ${m.text}`).join('\n\n');
+                    if (navigator?.clipboard?.writeText) navigator.clipboard.writeText(text);
+                  }}
+                  className="text-xs px-3 py-1.5 rounded-full border border-slate-200 bg-white hover:bg-slate-50 transition text-slate-700"
+                  disabled={messages.length === 0}
+                  title="Copy transcript"
+                >
+                  Copy
+                </button>
+
+                <div className="ml-auto text-[11px] text-slate-400 flex items-center">
+                  Press Enter to send
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
+
       {bookingModal}
       {emailComposerModal}
     </>
