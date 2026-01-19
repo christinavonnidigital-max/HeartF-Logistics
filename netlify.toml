@@ -6,3 +6,6 @@
   framework = "vite"
   command = "npm run dev"
 
+[build.environment]
+  # Avoid Netlify secrets scanner blocking deploys for the public Neon auth URL
+  SECRETS_SCAN_OMIT_KEYS = "NEON_AUTH_URL,VITE_NEON_AUTH_URL"

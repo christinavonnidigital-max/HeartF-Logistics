@@ -44,8 +44,21 @@ const FINANCIALS_DATA_CONTEXT =
 const ROUTES_DATA_CONTEXT =
   "You are a Route Planning Assistant for Heartfledge Logistics. Use the provided routing data (routes, waypoints) to answer questions. If something is not in the data, say so and suggest what information is needed. Be concise and helpful.";
 
-const PROSPECTING_SYSTEM_INSTRUCTION =
-  "You are the Heartfledge Lead Prospecting Assistant. You must respond ONLY with valid JSON that matches the requested schema. Do not include commentary or markdown unless explicitly asked.";
+// ===============================
+// Lead Finder / Prospecting (Gemini)
+// ===============================
+
+const PROSPECTING_SYSTEM_INSTRUCTION = `
+You are the Heartfledge Lead Prospector.
+
+CRITICAL RULES:
+- You MUST use the googleSearch tool before you answer.
+- Only include companies that you can verify with public sources.
+- DO NOT fabricate contact information. If you cannot find a verified public contact, leave contact fields blank.
+- Every lead MUST include at least one of: website OR sourceUrl (prefer both).
+- confidence must reflect evidence strength: 0.0 (weak) to 1.0 (strong).
+- Output JSON only, matching the schema exactly. No markdown, no commentary.
+`.trim();
 
 // Types used by the rest of the app
 export interface LeadProspectingCriteria {
@@ -53,8 +66,7 @@ export interface LeadProspectingCriteria {
   geography?: string;
   industryFocus?: string;
   intentFocus?: string;
-  minHeadcount?: number;
-  maxResults?: number;
+  minHeadcount?: string;
 }
 
 export interface LeadProspectContact {
@@ -62,19 +74,21 @@ export interface LeadProspectContact {
   title?: string;
   email?: string;
   phone?: string;
-  linkedinUrl?: string;
+  linkedin?: string;
 }
 
 export interface LeadProspect {
+  id: string;
   companyName: string;
-  website?: string;
-  industry?: string;
+  summary: string;
   location?: string;
-  headcount?: number;
-  description?: string;
-  contacts?: LeadProspectContact[];
-  evidence?: string[];
-  confidence: number; // 0..1
+  industry?: string;
+  companySize?: string;
+  website?: string;
+  intentSignal?: string;
+  contact?: LeadProspectContact;
+  sourceUrl?: string;
+  confidence?: number;
 }
 
 type FleetData = {
@@ -262,142 +276,244 @@ export const getGeminiResponse = async (
 // Prospecting prompt builder
 const buildProspectingPrompt = (criteria: LeadProspectingCriteria) => {
   const lines: string[] = [];
-  lines.push(`Goal: Find potential leads for Heartfledge Logistics.`);
   lines.push(`Search query: ${criteria.query}`);
 
-  if (criteria.geography) lines.push(`Geography focus: ${criteria.geography}`);
-  if (criteria.industryFocus) lines.push(`Industry focus: ${criteria.industryFocus}`);
-  if (criteria.intentFocus) lines.push(`Buying intent: ${criteria.intentFocus}`);
-  if (criteria.minHeadcount) lines.push(`Minimum company size/headcount: ${criteria.minHeadcount}`);
-
-  const maxResults = criteria.maxResults && criteria.maxResults > 0 ? criteria.maxResults : 10;
+  if (criteria.geography?.trim()) {
+    lines.push(`Geography focus: ${criteria.geography.trim()}`);
+  }
+  if (criteria.industryFocus?.trim()) {
+    lines.push(`Industry focus: ${criteria.industryFocus.trim()}`);
+  }
+  if (criteria.intentFocus?.trim()) {
+    lines.push(`Buying intent focus: ${criteria.intentFocus.trim()}`);
+  }
+  if (criteria.minHeadcount?.trim()) {
+    lines.push(`Minimum headcount / company size: ${criteria.minHeadcount.trim()}`);
+  }
 
   const schema = `Return JSON that matches this schema exactly:
 {
-  "prospects": [
+  "leads": [
     {
-      "companyName": "string",
-      "website": "string or null",
-      "industry": "string or null",
-      "location": "string or null",
-      "headcount": number or null,
-      "description": "string or null",
-      "contacts": [
-        {
-          "name": "string or null",
-          "title": "string or null",
-          "email": "string or null",
-          "phone": "string or null",
-          "linkedinUrl": "string or null"
-        }
-      ],
-      "evidence": ["short strings explaining why this is a match"],
-      "confidence": number
+      "companyName": "",
+      "summary": "",
+      "location": "",
+      "industry": "",
+      "companySize": "",
+      "website": "",
+      "intentSignal": "",
+      "contact": {
+        "name": "",
+        "title": "",
+        "email": "",
+        "phone": "",
+        "linkedin": ""
+      },
+      "sourceUrl": "",
+      "confidence": 0.0
     }
   ]
 }`;
 
-  return `${PROSPECTING_SYSTEM_INSTRUCTION}\n\n${lines.join("\n")}\n\nConstraints:
-- Return at most ${maxResults} prospects.
-- confidence must be between 0 and 1.
-- evidence must be short and relevant.
-\n\n${schema}\nAnswer with JSON only.`;
+  return `
+Task:
+Find 3–6 net-new companies that match the Heartfledge Logistics ICP, grounded in live web data.
+
+Use googleSearch to verify:
+- Company existence
+- Website
+- Any strong intent signal relevant to logistics (fleet expansion, distribution, freight needs, warehousing, deliveries, procurement, transport partnerships, etc.)
+
+Criteria:
+${lines.join("\n")}
+
+Reporting requirements:
+- summary: 1–2 sentences describing what the company does and why it is a fit.
+- intentSignal: what suggests they need logistics services (and what you found).
+- contact: include at least one verified public contact if available; otherwise blank fields.
+- sourceUrl: a public URL supporting the claim (company site or credible directory/news page).
+- confidence: 0.0–1.0 based on how strong the match and evidence are.
+
+${schema}
+
+Answer with JSON only.
+`.trim();
 };
 
-// Extract JSON from model output robustly
 const extractJsonPayload = (rawText: string): any | null => {
   if (!rawText) return null;
 
-  // Strip ```json fences if present
   const fencedMatch = rawText.match(/```json([\s\S]*?)```/i);
   const candidate = fencedMatch ? fencedMatch[1] : rawText;
 
-  const startObj = candidate.indexOf("{");
-  const endObj = candidate.lastIndexOf("}");
-  if (startObj !== -1 && endObj !== -1 && endObj > startObj) {
-    const slice = candidate.slice(startObj, endObj + 1);
-    try {
-      return JSON.parse(slice);
-    } catch {
-      // fallthrough
-    }
-  }
+  const start = candidate.indexOf("{");
+  const end = candidate.lastIndexOf("}");
+  if (start === -1 || end === -1) return null;
 
-  return null;
+  const jsonSlice = candidate.slice(start, end + 1);
+
+  try {
+    return JSON.parse(jsonSlice);
+  } catch (error) {
+    console.warn("[LeadProspector] Failed to parse JSON payload:", error);
+    return null;
+  }
 };
 
-function clamp01(n: number): number {
-  if (!Number.isFinite(n)) return 0;
-  if (n < 0) return 0;
-  if (n > 1) return 1;
-  return n;
-}
+const hashId = (value: string): string => {
+  let hash = 5381;
+  for (let i = 0; i < value.length; i++) {
+    hash = (hash * 33) ^ value.charCodeAt(i);
+  }
+  return Math.abs(hash >>> 0).toString(36);
+};
 
 const normalizeProspects = (payload: any): LeadProspect[] => {
-  const arr = payload?.prospects;
-  if (!Array.isArray(arr)) return [];
-
-  const out: LeadProspect[] = [];
-  for (const p of arr) {
-    const companyName = typeof p?.companyName === "string" ? p.companyName.trim() : "";
-    if (!companyName) continue;
-
-    const contactsRaw = Array.isArray(p?.contacts) ? p.contacts : [];
-    const contacts: LeadProspectContact[] = contactsRaw.map((c: any) => ({
-      name: typeof c?.name === "string" ? c.name : undefined,
-      title: typeof c?.title === "string" ? c.title : undefined,
-      email: typeof c?.email === "string" ? c.email : undefined,
-      phone: typeof c?.phone === "string" ? c.phone : undefined,
-      linkedinUrl: typeof c?.linkedinUrl === "string" ? c.linkedinUrl : undefined,
-    }));
-
-    const evidence = Array.isArray(p?.evidence)
-      ? p.evidence.map((e: any) => String(e)).filter(Boolean).slice(0, 8)
+  const rawList = Array.isArray(payload?.leads)
+    ? payload.leads
+    : Array.isArray(payload?.prospects)
+      ? payload.prospects
       : [];
 
-    const confidence = clamp01(Number(p?.confidence));
+  if (!rawList.length) return [];
 
-    out.push({
-      companyName,
-      website: typeof p?.website === "string" ? p.website : undefined,
-      industry: typeof p?.industry === "string" ? p.industry : undefined,
-      location: typeof p?.location === "string" ? p.location : undefined,
-      headcount: Number.isFinite(Number(p?.headcount)) ? Number(p?.headcount) : undefined,
-      description: typeof p?.description === "string" ? p.description : undefined,
-      contacts,
-      evidence,
-      confidence,
-    });
+  const normalized = rawList
+    .map((lead: any, index: number) => {
+      const rawContact = lead?.contact || {};
+      const contactHasAny =
+        !!rawContact &&
+        (rawContact.name || rawContact.title || rawContact.email || rawContact.phone || rawContact.linkedin);
+
+      const contact: LeadProspectContact | undefined = contactHasAny
+        ? {
+            name: typeof rawContact.name === "string" ? rawContact.name.trim() : undefined,
+            title: typeof rawContact.title === "string" ? rawContact.title.trim() : undefined,
+            email: typeof rawContact.email === "string" ? rawContact.email.trim() : undefined,
+            phone: typeof rawContact.phone === "string" ? rawContact.phone.trim() : undefined,
+            linkedin: typeof rawContact.linkedin === "string" ? rawContact.linkedin.trim() : undefined,
+          }
+        : undefined;
+
+      const companyName = typeof lead?.companyName === "string" ? lead.companyName.trim() : "";
+      const website = typeof lead?.website === "string" ? lead.website.trim() : "";
+      const sourceUrl = typeof lead?.sourceUrl === "string" ? lead.sourceUrl.trim() : "";
+
+      const summary =
+        typeof lead?.summary === "string"
+          ? lead.summary.trim()
+          : typeof lead?.intentSignal === "string"
+            ? lead.intentSignal.trim()
+            : "";
+
+      const confidence =
+        typeof lead?.confidence === "number" && Number.isFinite(lead.confidence)
+          ? Math.max(0, Math.min(1, lead.confidence))
+          : undefined;
+
+      if (!companyName) return null;
+      if (!website && !sourceUrl) return null;
+
+      const idSource = `${companyName}|${website || ""}|${sourceUrl || ""}|${index}`;
+      const id = hashId(idSource);
+
+      const out: LeadProspect = {
+        id,
+        companyName,
+        summary,
+        location: typeof lead?.location === "string" ? lead.location.trim() : undefined,
+        industry: typeof lead?.industry === "string" ? lead.industry.trim() : undefined,
+        companySize: typeof lead?.companySize === "string" ? lead.companySize.trim() : undefined,
+        website: website || undefined,
+        intentSignal: typeof lead?.intentSignal === "string" ? lead.intentSignal.trim() : undefined,
+        contact,
+        sourceUrl: sourceUrl || (website ? website : undefined),
+        confidence,
+      };
+
+      return out;
+    })
+    .filter(Boolean) as LeadProspect[];
+
+  const seen = new Set<string>();
+  const deduped: LeadProspect[] = [];
+  for (const p of normalized) {
+    const key = `${p.companyName.toLowerCase()}|${(p.website || "").toLowerCase()}|${(p.sourceUrl || "").toLowerCase()}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    deduped.push(p);
   }
 
-  // Sort best matches first
-  out.sort((a, b) => b.confidence - a.confidence);
-  return out;
+  deduped.sort((a, b) => (b.confidence ?? 0) - (a.confidence ?? 0));
+
+  return deduped;
 };
 
-export const findPotentialLeads = async (
-  criteria: LeadProspectingCriteria,
-  options?: { modelOverride?: string }
-): Promise<LeadProspect[]> => {
-  if (!ai) {
-    return [];
+const extractProspectTextFromResult = (result: any): string => {
+  const extractFromCandidates = (candidates: any[]) =>
+    candidates
+      .map((candidate: any) => {
+        const parts = candidate.content?.parts || [];
+        return parts.map((part: any) => part.text || "").join("\n");
+      })
+      .join("\n")
+      .trim();
+
+  if (result?.response?.candidates?.length) {
+    return extractFromCandidates(result.response.candidates);
   }
+  if (result?.candidates?.length) {
+    return extractFromCandidates(result.candidates);
+  }
+  if (typeof result?.text === "string") {
+    return result.text;
+  }
+  return "";
+};
+
+export const findPotentialLeads = async (criteria: LeadProspectingCriteria): Promise<LeadProspect[]> => {
+  if (!criteria.query?.trim()) {
+    throw new Error("Search query is required");
+  }
+  if (!ai) {
+    throw new Error("AI is disabled because no API key is configured. Set API_KEY or GEMINI_API_KEY.");
+  }
+
+  console.log("[LeadProspector] Starting search with criteria:", criteria);
 
   const prompt = buildProspectingPrompt(criteria);
 
   const request: GenerateContentParameters = {
-    model: options?.modelOverride || "gemini-2.5-flash",
-    contents: [{ role: "user" as const, parts: [{ text: prompt }] }],
+    model: "gemini-2.5-pro",
+    contents: [
+      {
+        role: "user",
+        parts: [{ text: prompt }],
+      },
+    ],
     config: {
       systemInstruction: PROSPECTING_SYSTEM_INSTRUCTION,
-    } as any,
-  } as any;
+      temperature: 0.2,
+      topP: 0.9,
+      maxOutputTokens: 4096,
+      tools: [{ googleSearch: {} }] as any,
+    },
+  };
 
-  // Use search tool for prospecting, if supported
-  (request as any).tools = [{ googleSearch: {} }];
+  try {
+    const result = await ai!.models.generateContent(request);
+    const rawText = extractProspectTextFromResult(result);
+    const payload = extractJsonPayload(rawText);
 
-  const result = await (ai as any).models.generateContent(request);
-  const rawText = extractTextFromResult(result);
-  const payload = extractJsonPayload(rawText);
-  return normalizeProspects(payload);
+    if (!payload) {
+      console.warn("[LeadProspector] No JSON payload returned. Raw output:", rawText);
+      return [];
+    }
+
+    const prospects = normalizeProspects(payload);
+    console.log("[LeadProspector] Normalized prospects:", prospects.length);
+    return prospects;
+  } catch (error) {
+    console.error("[LeadProspector] Error finding potential leads:", error);
+    throw error;
+  }
 };
