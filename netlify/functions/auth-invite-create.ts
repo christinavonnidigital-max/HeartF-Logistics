@@ -135,6 +135,8 @@ export const handler: Handler = async (event) => {
     return json(200, { ok: true, inviteLink });
   } catch (e: any) {
     const msg = String(e?.message || e);
+    if (msg === "UNAUTHENTICATED") return json(401, { error: "Unauthenticated" });
+    if (msg === "FORBIDDEN") return json(403, { error: "Forbidden" });
     return json(500, { error: "Server error", detail: msg });
   }
 };
