@@ -138,15 +138,16 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onChangeSettings 
   const handleInviteUser = async (userData: Omit<User, 'id' | 'created_at' | 'updated_at' | 'is_active' | 'email_verified'>) => {
     try {
       setUserError(null);
-      const res = await fetch("/.netlify/functions/invites", {
+      const res = await fetch("/.netlify/functions/auth-invite-create", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: userData.email, role: userData.role }),
+        body: JSON.stringify({ email: userData.email, role: userData.role, sendEmail: true }),
       });
       const data = await safeJson(res);
-      if (!res.ok || !data?.ok) throw new Error(data?.error || "Failed to send invite");
+      if (!res.ok || !data?.ok) throw new Error(data?.error || data?.detail || "Failed to send invite");
       setIsInviteModalOpen(false);
+      setLastInviteLink(data.inviteLink || null);
       await fetchUsers();
     } catch (err: any) {
       setUserError(err?.message || "Failed to send invite");
