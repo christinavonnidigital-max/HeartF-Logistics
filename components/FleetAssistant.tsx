@@ -21,104 +21,278 @@ interface FleetAssistantProps {
   settings?: Partial<AppSettings>;
 }
 
-// Minimal Markdown-ish renderer (calm, Notes-like)
-// - Uses text-current so user/assistant styling works
-// - Preserves spacing and list bullets
-const FormattedText: React.FC<{ text: string; className?: string }> = ({ text, className }) => {
+type DetailsEntry = {
+  title: string;
+  body: string;
+};
+
+type LayoutMode = 'floating' | 'sidebar';
+
+const LAYOUT_STORAGE_KEY = 'heartf_assistant_layout_mode_v1';
+
+function safeJsonStringify(value: any, maxLen = 2000) {
+  try {
+    const s = JSON.stringify(value, null, 2);
+    if (s.length > maxLen) return s.slice(0, maxLen) + '\n…';
+    return s;
+  } catch {
+    return String(value);
+  }
+}
+
+function normalizeUrl(url: string) {
+  const u = String(url || '').trim();
+  if (!u) return '';
+  if (/^https?:\/\//i.test(u)) return u;
+  return `https://${u}`;
+}
+
+/**
+ * Notes-style markdown renderer (restrained).
+ * Supports:
+ * - Headings: #, ##, ###
+ * - Bullet lists: -, *
+ * - Inline code: `code`
+ * - Code fences: ```lang ... ```
+ * - Links: https://...
+ *
+ * Styling is intentionally calm: spacing + typography, no heavy colors.
+ */
+const NotesMarkdown: React.FC<{ text: string; className?: string }> = ({ text, className }) => {
   if (!text) return null;
 
-  const lines = text.split('\n');
+  const lines = text.replace(/\r\n/g, '\n').split('\n');
+
+  type Block =
+    | { type: 'code'; lang?: string; content: string }
+    | { type: 'text'; content: string[] };
+
+  const blocks: Block[] = [];
+  let inCode = false;
+  let codeLang = '';
+  let codeBuffer: string[] = [];
+  let textBuffer: string[] = [];
+
+  const flushText = () => {
+    if (textBuffer.length) {
+      blocks.push({ type: 'text', content: textBuffer });
+      textBuffer = [];
+    }
+  };
+
+  const flushCode = () => {
+    blocks.push({ type: 'code', lang: codeLang || undefined, content: codeBuffer.join('\n') });
+    codeBuffer = [];
+    codeLang = '';
+  };
+
+  for (const line of lines) {
+    const fence = line.match(/^```(\w+)?\s*$/);
+    if (fence) {
+      if (!inCode) {
+        flushText();
+        inCode = true;
+        codeLang = fence[1] || '';
+      } else {
+        inCode = false;
+        flushCode();
+      }
+      continue;
+    }
+
+    if (inCode) codeBuffer.push(line);
+    else textBuffer.push(line);
+  }
+
+  if (inCode) {
+    inCode = false;
+    flushCode();
+  }
+  flushText();
+
+  const renderInline = (content: string) => {
+    const parts = content.split(/(`[^`]*`)/g).filter(Boolean);
+
+    return parts.map((part, idx) => {
+      if (part.startsWith('`') && part.endsWith('`') && part.length >= 2) {
+        const code = part.slice(1, -1);
+        return (
+          <code
+            key={idx}
+            className="mx-[1px] rounded-md border border-slate-200 bg-slate-50 px-1 py-[1px] text-[13px] leading-6 text-slate-900"
+          >
+            {code}
+          </code>
+        );
+      }
+
+      const tokens = part.split(/(https?:\/\/[^\s)]+|www\.[^\s)]+)/g).filter(Boolean);
+      return tokens.map((tok, j) => {
+        const isUrl = /^https?:\/\//i.test(tok) || /^www\./i.test(tok);
+        if (isUrl) {
+          const href = normalizeUrl(tok);
+          return (
+            <a
+              key={`${idx}-${j}`}
+              href={href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline underline-offset-2 decoration-slate-300 hover:decoration-slate-500"
+            >
+              {tok}
+            </a>
+          );
+        }
+        return <span key={`${idx}-${j}`}>{tok}</span>;
+      });
+    });
+  };
+
+  const renderTextLines = (textLines: string[]) => {
+    const nodes: React.ReactNode[] = [];
+    let listBuffer: string[] = [];
+    let paraBuffer: string[] = [];
+
+    const flushList = () => {
+      if (!listBuffer.length) return;
+      const items = [...listBuffer];
+      listBuffer = [];
+      nodes.push(
+        <ul key={`ul-${nodes.length}`} className="my-2 ml-5 list-disc space-y-1">
+          {items.map((it, i) => (
+            <li key={i} className="text-[15px] leading-7 text-current">
+              {renderInline(it)}
+            </li>
+          ))}
+        </ul>
+      );
+    };
+
+    const flushPara = () => {
+      if (!paraBuffer.length) return;
+      const paragraph = paraBuffer.join(' ').trim();
+      paraBuffer = [];
+      if (!paragraph) return;
+
+      nodes.push(
+        <p key={`p-${nodes.length}`} className="my-2 text-[15px] leading-7 text-current">
+          {renderInline(paragraph)}
+        </p>
+      );
+    };
+
+    for (const raw of textLines) {
+      const line = raw ?? '';
+      const trimmed = line.trim();
+
+      if (!trimmed) {
+        flushList();
+        flushPara();
+        nodes.push(<div key={`sp-${nodes.length}`} className="h-2" />);
+        continue;
+      }
+
+      const h3 = trimmed.startsWith('### ');
+      const h2 = trimmed.startsWith('## ');
+      const h1 = trimmed.startsWith('# ');
+
+      if (h1 || h2 || h3) {
+        flushList();
+        flushPara();
+        const title = trimmed.replace(/^###\s|^##\s|^#\s/, '');
+
+        nodes.push(
+          <div
+            key={`h-${nodes.length}`}
+            className={
+              h1
+                ? 'mt-4 mb-1 text-[18px] font-semibold tracking-tight text-current'
+                : h2
+                  ? 'mt-4 mb-1 text-[16px] font-semibold tracking-tight text-current'
+                  : 'mt-3 mb-1 text-[15px] font-semibold text-current'
+            }
+          >
+            {renderInline(title)}
+          </div>
+        );
+        continue;
+      }
+
+      const bullet = line.match(/^\s*[-*]\s+(.*)$/);
+      if (bullet) {
+        flushPara();
+        listBuffer.push(bullet[1]);
+        continue;
+      }
+
+      flushList();
+      paraBuffer.push(trimmed);
+    }
+
+    flushList();
+    flushPara();
+
+    return <div className="text-current">{nodes}</div>;
+  };
 
   return (
-    <div className={`text-[15px] leading-7 text-current ${className || ''}`}>
-      {lines.map((line, i) => {
-        const trimmed = line.trim();
-        if (!trimmed) return <div key={i} className="h-3" />;
-
-        // Headers
-        if (trimmed.startsWith('### ')) {
+    <div className={className ? className : ''}>
+      {blocks.map((b, i) => {
+        if (b.type === 'code') {
           return (
-            <div key={i} className="mt-4 mb-1 font-semibold text-current">
-              {trimmed.substring(4)}
-            </div>
-          );
-        }
-        if (trimmed.startsWith('## ')) {
-          return (
-            <div key={i} className="mt-5 mb-2 text-lg font-semibold tracking-tight text-current">
-              {trimmed.substring(3)}
+            <div key={i} className="my-3">
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3 overflow-x-auto">
+                <pre className="m-0 text-[12.5px] leading-6 text-slate-900">
+                  <code>{b.content}</code>
+                </pre>
+              </div>
+              {b.lang ? (
+                <div className="mt-1 text-[11px] text-slate-400">{b.lang}</div>
+              ) : null}
             </div>
           );
         }
 
-        // List items
-        const listMatch = line.match(/^(\s*)([\*\-]\s+)(.*)/);
-        let isList = false;
-        let indent = 0;
-        let content = line;
-
-        if (listMatch) {
-          isList = true;
-          indent = listMatch[1].length;
-          content = listMatch[3];
-        }
-
-        // Bold + Italic parsing
-        const boldSplit = content.split(/(\*\*.*?\*\*)/g);
-
-        const parsedParts = boldSplit.map((part, j) => {
-          if (part.startsWith('**') && part.endsWith('**') && part.length >= 4) {
-            return (
-              <strong key={j} className="font-semibold text-current">
-                {part.slice(2, -2)}
-              </strong>
-            );
-          }
-
-          return part.split(/(\*.*?\*)/g).map((subPart, k) => {
-            if (subPart.startsWith('*') && subPart.endsWith('*') && subPart.length >= 3) {
-              return (
-                <em key={`${j}-${k}`} className="italic text-current opacity-90">
-                  {subPart.slice(1, -1)}
-                </em>
-              );
-            }
-            return <span key={`${j}-${k}`}>{subPart}</span>;
-          });
-        });
-
-        if (isList) {
-          return (
-            <div
-              key={i}
-              className="flex items-start gap-3"
-              style={{ marginLeft: `${indent * 0.5}rem` }}
-            >
-              <span className="mt-[0.62rem] w-1.5 h-1.5 rounded-full bg-current opacity-50 shrink-0" />
-              <div className="flex-1">{parsedParts}</div>
-            </div>
-          );
-        }
-
-        return <div key={i}>{parsedParts}</div>;
+        return (
+          <div key={i} className="text-current">
+            {renderTextLines(b.content)}
+          </div>
+        );
       })}
     </div>
   );
 };
 
 const FleetAssistant: React.FC<FleetAssistantProps> = ({ contextData, contextType, settings }) => {
-  const { bookings, invoices, customers, leads, opportunities, leadActivities, auditLog, addBooking, logAuditEvent } =
-    useData();
+  const {
+    bookings,
+    invoices,
+    customers,
+    leads,
+    opportunities,
+    leadActivities,
+    auditLog,
+    addBooking,
+    logAuditEvent
+  } = useData();
 
   const [isOpen, setIsOpen] = useState(false);
+
+  const [layoutMode, setLayoutMode] = useState<LayoutMode>(() => {
+    const stored = typeof window !== 'undefined' ? window.localStorage.getItem(LAYOUT_STORAGE_KEY) : null;
+    return stored === 'sidebar' ? 'sidebar' : 'floating';
+  });
+
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
       sender: 'bot',
       text:
-        "Hi there! I'm your Heartfledge AI Assistant. I can help with fleet management, CRM insights, financial analysis, and route optimization. What can I do for you today?"
+        "Hi there! I'm your Heartfledge AI Assistant. I can help with fleet management, CRM insights, financial analysis, and route optimization. What would you like to work on?"
     }
   ]);
+
+  const [detailsByMessageId, setDetailsByMessageId] = useState<Record<string, DetailsEntry[]>>({});
 
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -183,7 +357,7 @@ const FleetAssistant: React.FC<FleetAssistantProps> = ({ contextData, contextTyp
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [messages, isLoading]);
 
   const getLocation = useCallback(() => {
     if (navigator.geolocation) {
@@ -195,7 +369,10 @@ const FleetAssistant: React.FC<FleetAssistantProps> = ({ contextData, contextTyp
           });
         },
         (error) => {
-          console.error('Error getting location: ', error);
+          // Non-fatal: permission denied / unavailable location shouldn't break the assistant
+          // error.code: 1=permission denied, 2=position unavailable, 3=timeout
+          console.warn('Geolocation unavailable (non-fatal):', { code: error.code, message: error.message });
+          setLocation(null);
         }
       );
     }
@@ -218,7 +395,7 @@ const FleetAssistant: React.FC<FleetAssistantProps> = ({ contextData, contextTyp
           `- ${inv.invoiceNumber} (${inv.customerName}) • ${inv.balanceDue} due ${inv.dueDate} (${inv.daysOverdue}d late)`
         );
       });
-      if (invoicesList.length > 3) lines.push(`...and ${invoicesList.length - 3} more.`);
+      if (invoicesList.length > 3) lines.push(`…and ${invoicesList.length - 3} more.`);
     }
 
     if (toolName === 'summarize_customer_activity' && data?.customer) {
@@ -258,23 +435,34 @@ const FleetAssistant: React.FC<FleetAssistantProps> = ({ contextData, contextTyp
     }
   };
 
+  const persistLayout = (mode: LayoutMode) => {
+    setLayoutMode(mode);
+    try {
+      window.localStorage.setItem(LAYOUT_STORAGE_KEY, mode);
+    } catch {
+      // ignore
+    }
+  };
+
   const handleSendMessage = async () => {
     if (input.trim() === '' || isLoading) return;
 
-    const userMessage: Message = { id: Date.now().toString(), sender: 'user', text: input };
+    const userText = input;
+    const userMessage: Message = { id: Date.now().toString(), sender: 'user', text: userText };
+
     setMessages((prev) => [...prev, userMessage]);
     setInput('');
     setIsLoading(true);
 
-    const chatHistory = messages.map((msg) => ({
+    const historyForCall = [...messages, userMessage].map((msg) => ({
       role: msg.sender === 'user' ? ('user' as const) : ('model' as const),
       parts: [{ text: msg.text }]
     }));
 
     try {
       const response = await getGeminiResponse(
-        input,
-        chatHistory,
+        userText,
+        historyForCall,
         contextData,
         contextType,
         location,
@@ -286,25 +474,22 @@ const FleetAssistant: React.FC<FleetAssistantProps> = ({ contextData, contextTyp
       const functionCall = parts.find((part) => part.functionCall)?.functionCall;
 
       if (functionCall?.name) {
-        const toolResult = runAssistantTool(functionCall.name, functionCall.args || {}, toolContext);
+        const toolName = functionCall.name;
+        const toolArgs = functionCall.args || {};
+
+        const toolResult = runAssistantTool(toolName, toolArgs, toolContext);
 
         if (logAuditEvent) {
           logAuditEvent({
             action: 'assistant.tool.call',
-            entity: { type: mapToolToEntity(functionCall.name), ref: functionCall.name },
-            meta: { args: functionCall.args, ok: toolResult.ok, message: toolResult.message }
+            entity: { type: mapToolToEntity(toolName), ref: toolName },
+            meta: { args: toolArgs, ok: toolResult.ok, message: toolResult.message }
           });
         }
 
-        const toolMessage: Message = {
-          id: (Date.now() + 1).toString(),
-          sender: 'bot',
-          text: formatToolResult(functionCall.name, toolResult)
-        };
-
         const followUp = await getGeminiResponse(
-          input,
-          chatHistory,
+          userText,
+          historyForCall,
           contextData,
           contextType,
           location,
@@ -312,28 +497,59 @@ const FleetAssistant: React.FC<FleetAssistantProps> = ({ contextData, contextTyp
             functionDeclarations: assistantTools,
             extraContents: [
               { role: 'model' as const, parts },
-              { role: 'user' as const, parts: [{ functionResponse: { name: functionCall.name, response: toolResult, id: functionCall.id } as any }] }
+              {
+                role: 'user' as const,
+                parts: [
+                  {
+                    functionResponse: {
+                      name: toolName,
+                      response: toolResult,
+                      id: functionCall.id
+                    } as any
+                  }
+                ]
+              }
             ]
           }
         );
 
-        const groundingChunks = (followUp.candidates?.[0]?.groundingMetadata?.groundingChunks as GroundingChunk[]) || [];
+        const groundingChunks =
+          (followUp.candidates?.[0]?.groundingMetadata?.groundingChunks as GroundingChunk[]) || [];
+
+        const finalMessageId = (Date.now() + 2).toString();
         const finalMessage: Message = {
-          id: (Date.now() + 2).toString(),
+          id: finalMessageId,
           sender: 'bot',
           text: followUp.text || toolResult.message,
           groundingChunks: groundingChunks.length > 0 ? groundingChunks : undefined
         };
 
-        setMessages((prev) => [...prev, toolMessage, finalMessage]);
+        const detailsEntry: DetailsEntry[] = [
+          {
+            title: `Tool: ${toolName}`,
+            body: [
+              `Args:`,
+              safeJsonStringify(toolArgs, 2000),
+              '',
+              `Result:`,
+              formatToolResult(toolName, toolResult),
+              '',
+              `Raw result data (truncated):`,
+              safeJsonStringify((toolResult as any)?.data, 2000)
+            ].join('\n')
+          }
+        ];
+
+        setDetailsByMessageId((prev) => ({ ...prev, [finalMessageId]: detailsEntry }));
+        setMessages((prev) => [...prev, finalMessage]);
       } else {
-        const botMessageText = response.text;
-        const groundingChunks = (response.candidates?.[0]?.groundingMetadata?.groundingChunks as GroundingChunk[]) || [];
+        const groundingChunks =
+          (response.candidates?.[0]?.groundingMetadata?.groundingChunks as GroundingChunk[]) || [];
 
         const botMessage: Message = {
           id: (Date.now() + 1).toString(),
           sender: 'bot',
-          text: botMessageText,
+          text: response.text,
           groundingChunks: groundingChunks.length > 0 ? groundingChunks : undefined
         };
 
@@ -408,7 +624,9 @@ const FleetAssistant: React.FC<FleetAssistantProps> = ({ contextData, contextTyp
         }
         setEmailDraft(null);
       }}
-      initialData={{ subject_line: emailDraft.subject, email_body: emailDraft.body, delay_days: 0, delay_hours: 0 } as any}
+      initialData={
+        { subject_line: emailDraft.subject, email_body: emailDraft.body, delay_days: 0, delay_hours: 0 } as any
+      }
     />
   ) : null;
 
@@ -417,11 +635,11 @@ const FleetAssistant: React.FC<FleetAssistantProps> = ({ contextData, contextTyp
       <>
         <button
           onClick={() => setIsOpen(true)}
-          className="group fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full border border-slate-200 bg-white shadow-lg hover:shadow-xl transition flex items-center justify-center"
+          className="group fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full border border-transparent bg-gradient-to-br from-[#f5993b] via-[#f57f3a] to-[#f55a3a] shadow-lg shadow-orange-500/25 hover:shadow-xl transition flex items-center justify-center"
           aria-label="Open AI Assistant"
           title="Assistant"
         >
-          <BoxTruckIconBold className="w-7 h-7 text-slate-800 transition-transform group-hover:scale-105" />
+          <BoxTruckIconBold className="w-7 h-7 text-white drop-shadow-sm transition-transform group-hover:scale-105" />
         </button>
         {bookingModal}
         {emailComposerModal}
@@ -429,11 +647,22 @@ const FleetAssistant: React.FC<FleetAssistantProps> = ({ contextData, contextTyp
     );
   }
 
+  const isSidebar = layoutMode === 'sidebar';
+
+  const containerClass = isSidebar
+    ? 'fixed inset-y-0 right-0 z-50 w-[420px] max-w-[92vw] bg-white border-l border-slate-200 shadow-2xl flex flex-col'
+    : 'fixed bottom-6 right-6 z-50 w-[92vw] max-w-md h-[72vh] max-h-[720px] rounded-3xl border border-slate-200 bg-white shadow-2xl overflow-hidden flex flex-col';
+
+  const headerClass = isSidebar ? 'px-5 py-4 border-b border-slate-200 bg-white' : 'px-5 py-4 border-b border-slate-200 bg-white';
+
+  const bodyWrapperClass = isSidebar ? 'flex-1 overflow-y-auto bg-white' : 'flex-1 overflow-y-auto bg-white';
+
+  const composerWrapperClass = isSidebar ? 'px-5 pb-5 pt-3 border-t border-slate-200 bg-white' : 'px-5 pb-5';
+
   return (
     <>
-      <div className="fixed bottom-6 right-6 z-50 w-[92vw] max-w-md h-[72vh] max-h-[720px] rounded-3xl border border-slate-200 bg-white shadow-2xl overflow-hidden flex flex-col">
-        {/* Header - clean, minimal */}
-        <header className="px-5 py-4 border-b border-slate-200 bg-white">
+      <div className={containerClass}>
+        <header className={headerClass}>
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3 min-w-0">
               <div className="h-10 w-10 rounded-2xl border border-slate-200 bg-slate-50 flex items-center justify-center">
@@ -441,40 +670,83 @@ const FleetAssistant: React.FC<FleetAssistantProps> = ({ contextData, contextTyp
               </div>
               <div className="min-w-0">
                 <div className="text-sm font-semibold tracking-tight text-slate-900 truncate">Assistant</div>
-                <div className="text-xs text-slate-500 truncate">Write a note, get calm answers.</div>
+                <div className="text-xs text-slate-500 truncate">
+                  {isSidebar ? 'Sidebar note mode' : 'Floating note mode'}
+                </div>
               </div>
             </div>
 
-            <button
-              onClick={() => setIsOpen(false)}
-              aria-label="Close assistant"
-              title="Close"
-              className="h-9 w-9 rounded-full border border-transparent hover:border-slate-200 hover:bg-slate-50 text-slate-600 transition flex items-center justify-center"
-            >
-              <CloseIcon className="w-5 h-5" />
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => persistLayout(isSidebar ? 'floating' : 'sidebar')}
+                className="h-9 px-3 rounded-full border border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 transition"
+                title={isSidebar ? 'Switch to floating' : 'Switch to sidebar'}
+              >
+                {isSidebar ? 'Floating' : 'Sidebar'}
+              </button>
+
+              <button
+                onClick={() => setIsOpen(false)}
+                aria-label="Close assistant"
+                title="Close"
+                className="h-9 w-9 rounded-full border border-transparent hover:border-slate-200 hover:bg-slate-50 text-slate-600 transition flex items-center justify-center"
+              >
+                <CloseIcon className="w-5 h-5" />
+              </button>
+            </div>
           </div>
         </header>
 
-        {/* Messages - Notes-like surface */}
-        <div className="flex-1 overflow-y-auto bg-white">
+        <div className={bodyWrapperClass}>
           <div className="px-5 py-5">
-            <div className="rounded-3xl border border-slate-200 bg-white overflow-hidden">
+            <div className={isSidebar ? 'rounded-2xl border border-slate-200 bg-white overflow-hidden' : 'rounded-3xl border border-slate-200 bg-white overflow-hidden'}>
               <div className="divide-y divide-slate-200">
                 {messages.map((msg) => {
                   const isUser = msg.sender === 'user';
+                  const details = detailsByMessageId[msg.id] || [];
+
                   return (
                     <div key={msg.id} className="p-4">
                       <div className="flex items-center justify-between gap-2 mb-2">
                         <div className="text-[11px] font-semibold tracking-wide text-slate-500">
                           {isUser ? 'YOU' : 'ASSISTANT'}
                         </div>
-                        <div className="text-[11px] text-slate-400">{isUser ? '' : isLoading ? 'Working…' : ''}</div>
+                        <div className="text-[11px] text-slate-400">{''}</div>
                       </div>
 
-                      <div className={isUser ? 'text-slate-900' : 'text-slate-900'}>
-                        <FormattedText text={msg.text} />
+                      <div className="text-slate-900">
+                        <NotesMarkdown text={msg.text} />
                       </div>
+
+                      {!isUser && details.length > 0 ? (
+                        <div className="mt-3">
+                          <details className="group">
+                            <summary className="cursor-pointer select-none text-xs font-semibold text-slate-600 hover:text-slate-800 inline-flex items-center gap-2">
+                              <span className="rounded-full border border-slate-200 bg-white px-2.5 py-1">
+                                Details
+                              </span>
+                              <span className="text-[11px] text-slate-400 group-open:hidden">
+                                (tool output)
+                              </span>
+                              <span className="text-[11px] text-slate-400 hidden group-open:inline">
+                                (hide)
+                              </span>
+                            </summary>
+
+                            <div className="mt-2 space-y-2">
+                              {details.map((d, idx) => (
+                                <div key={idx} className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                                  <div className="text-xs font-semibold text-slate-700">{d.title}</div>
+                                  <pre className="mt-2 whitespace-pre-wrap break-words text-[12.5px] leading-6 text-slate-800 m-0">
+{d.body}
+                                  </pre>
+                                </div>
+                              ))}
+                            </div>
+                          </details>
+                        </div>
+                      ) : null}
 
                       {msg.groundingChunks && msg.groundingChunks.length > 0 ? (
                         <div className="mt-3 pt-3 border-t border-slate-100 flex flex-wrap gap-2">
@@ -507,9 +779,8 @@ const FleetAssistant: React.FC<FleetAssistantProps> = ({ contextData, contextTyp
           </div>
         </div>
 
-        {/* Composer - calm toolbar */}
-        <div className="px-5 pb-5">
-          <div className="rounded-3xl border border-slate-200 bg-white shadow-sm">
+        <div className={composerWrapperClass}>
+          <div className={isSidebar ? 'rounded-2xl border border-slate-200 bg-white shadow-sm' : 'rounded-3xl border border-slate-200 bg-white shadow-sm'}>
             <div className="p-3">
               <div className="flex items-end gap-2">
                 <input
@@ -539,10 +810,13 @@ const FleetAssistant: React.FC<FleetAssistantProps> = ({ contextData, contextTyp
                 </button>
               </div>
 
-              <div className="mt-3 flex flex-wrap gap-2">
+              <div className="mt-3 flex flex-wrap gap-2 items-center">
                 <button
                   type="button"
-                  onClick={() => setMessages([{ id: '1', sender: 'bot', text: 'What would you like to work on?' }])}
+                  onClick={() => {
+                    setMessages([{ id: '1', sender: 'bot', text: 'What would you like to work on?' }]);
+                    setDetailsByMessageId({});
+                  }}
                   className="text-xs px-3 py-1.5 rounded-full border border-slate-200 bg-white hover:bg-slate-50 transition text-slate-700"
                   disabled={isLoading}
                   title="Start a new note"
@@ -553,12 +827,27 @@ const FleetAssistant: React.FC<FleetAssistantProps> = ({ contextData, contextTyp
                 <button
                   type="button"
                   onClick={() => {
-                    const text = messages.map((m) => `${m.sender === 'user' ? 'You' : 'Assistant'}: ${m.text}`).join('\n\n');
-                    if (navigator?.clipboard?.writeText) navigator.clipboard.writeText(text);
+                    const transcript = messages
+                      .map((m) => `${m.sender === 'user' ? 'You' : 'Assistant'}: ${m.text}`)
+                      .join('\n\n');
+
+                    const detailsLines: string[] = [];
+                    for (const m of messages) {
+                      const entries = detailsByMessageId[m.id];
+                      if (!entries || entries.length === 0) continue;
+                      detailsLines.push(`\n--- Details for message ${m.id} ---\n`);
+                      entries.forEach((e) => {
+                        detailsLines.push(`${e.title}\n${e.body}\n`);
+                      });
+                    }
+
+                    const full = detailsLines.length ? `${transcript}\n\n${detailsLines.join('\n')}` : transcript;
+
+                    if (navigator?.clipboard?.writeText) navigator.clipboard.writeText(full);
                   }}
                   className="text-xs px-3 py-1.5 rounded-full border border-slate-200 bg-white hover:bg-slate-50 transition text-slate-700"
                   disabled={messages.length === 0}
-                  title="Copy transcript"
+                  title="Copy transcript (includes Details)"
                 >
                   Copy
                 </button>

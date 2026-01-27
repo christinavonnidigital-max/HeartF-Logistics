@@ -20,15 +20,33 @@ import {
 } from "../types";
 
 // Resolve API key safely in both Vite/browser and Node environments
-const viteEnv = (import.meta as any)?.env as any | undefined;
-const nodeEnv = (typeof process !== "undefined" ? (process as any).env : undefined) as any | undefined;
+const getApiKey = (): string => {
+  // Vite (client)
+  const viteEnv = (import.meta as any)?.env || {};
+  const viteKey =
+    viteEnv.VITE_GEMINI_API_KEY ||
+    viteEnv.VITE_API_KEY ||
+    viteEnv.VITE_GOOGLE_GENAI_API_KEY;
 
-const apiKey: string | undefined =
-  (viteEnv?.VITE_GEMINI_API_KEY as string | undefined) ||
-  (viteEnv?.VITE_API_KEY as string | undefined) ||
-  (nodeEnv?.GEMINI_API_KEY as string | undefined) ||
-  (nodeEnv?.API_KEY as string | undefined);
+  if (viteKey && String(viteKey).trim()) return String(viteKey).trim();
 
+  // Node/Netlify (server)
+  const procEnv =
+    typeof process !== "undefined" && (process as any).env ? (process as any).env : {};
+
+  const serverKey =
+    procEnv.GEMINI_API_KEY ||
+    procEnv.API_KEY ||
+    procEnv.GOOGLE_GENAI_API_KEY ||
+    procEnv.REACT_APP_GEMINI_API_KEY ||
+    procEnv.REACT_APP_API_KEY;
+
+  if (serverKey && String(serverKey).trim()) return String(serverKey).trim();
+
+  return "";
+};
+
+const apiKey = getApiKey();
 const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
 
 // System instructions (not truncated)

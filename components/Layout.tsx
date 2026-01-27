@@ -61,6 +61,11 @@ const Layout: React.FC<LayoutProps> = ({
   const { user, logout } = useAuth();
   const displayName = user ? [user.firstName, user.lastName].filter(Boolean).join(" ") || user.email : "";
 
+  const assistantAvailable =
+    settings?.enableAssistant !== false &&
+    user &&
+    !["customer", "driver"].includes(user.role);
+
   let contextType: "fleet" | "crm" | "financials" | "routes" = "fleet";
 
   if (["fleet", "dashboard", "bookings", "drivers"].includes(activeView)) {
@@ -156,7 +161,7 @@ const Layout: React.FC<LayoutProps> = ({
         </main>
       </div>
 
-      {settings?.enableAssistant !== false && user && !['customer', 'driver'].includes(user.role) && (
+      {assistantAvailable && (
         <AiAssistant contextData={contextData} contextType={contextType} settings={settings} />
       )}
       {user && ['customer', 'driver'].includes(user.role) ? (

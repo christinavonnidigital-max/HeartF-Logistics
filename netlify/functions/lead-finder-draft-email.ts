@@ -27,7 +27,20 @@ type Body = {
   variants?: number;
 };
 
-const apiKey = process.env.API_KEY || process.env.GEMINI_API_KEY;
+// Resolve API key safely for Netlify (server) and local dev
+const getApiKey = (): string => {
+  const env = process?.env || {};
+  const key =
+    env.GEMINI_API_KEY ||
+    env.API_KEY ||
+    env.GOOGLE_GENAI_API_KEY ||
+    env.REACT_APP_GEMINI_API_KEY ||
+    env.REACT_APP_API_KEY;
+
+  return key ? String(key).trim() : "";
+};
+
+const apiKey = getApiKey();
 const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
 
 function json(statusCode: number, body: any) {
