@@ -174,6 +174,115 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [leadActivities, setLeadActivities] = useState<LeadActivity[]>(mockLeadActivities ?? []);
     const [opportunityActivities, setOpportunityActivities] = useState<OpportunityActivity[]>([]);
     const [deliveryProofs, setDeliveryProofs] = useState<DeliveryProof[]>([]);
+    const [loadingRemote, setLoadingRemote] = useState(false);
+    const [remoteError, setRemoteError] = useState<string | null>(null);
+
+    const mapDbVehicle = (v: any, idx: number): Vehicle => ({
+        id: v.id ?? idx,
+        registration_number: v.reg_number || v.reg_number_clean || `UNKNOWN-${idx}`,
+        make: v.make || v.truck_make_short || 'Unknown',
+        model: '',
+        year: new Date().getFullYear(),
+        vehicle_type: 'dry' as any,
+        capacity_tonnes: Number(v.capacity_tonnes ?? 0),
+        status: 'active' as any,
+        purchase_date: v.purchase_date || new Date().toISOString().split('T')[0],
+        purchase_cost: Number(v.purchase_cost_usd ?? 0),
+        current_value: v.resale_value_2024_usd ? Number(v.resale_value_2024_usd) : undefined,
+        insurance_provider: v.service_provider,
+        insurance_policy_number: undefined,
+        insurance_expiry_date: undefined,
+        fitness_certificate_expiry: undefined,
+        license_disc_expiry: undefined,
+        last_service_date: new Date().toISOString().split('T')[0],
+        last_service_km: undefined,
+        next_service_due_km: Number(v.next_service_due_km ?? 0),
+        next_service_due_date: undefined,
+        current_km: Number(v.current_km ?? 0),
+        fuel_type: 'diesel',
+        gps_device_id: undefined,
+        gps_device_active: false,
+        notes: v.maintenance_requirements || undefined,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+    });
+
+    const mapFuelToExpense = (row: any, idx: number): Expense => ({
+        id: row.id ?? idx,
+        description: row.comments || 'Fuel purchase',
+        amount: Number(row.amount_usd ?? 0),
+        currency: 'USD',
+        vendor: row.supplier || undefined,
+        category: 'fuel',
+        receipt_url: row.receipt_url || undefined,
+        expense_date: row.created_at || new Date().toISOString(),
+        created_at: row.created_at || new Date().toISOString(),
+        updated_at: row.created_at || new Date().toISOString(),
+    });
+
+    const mapLead = (row: any, idx: number): Lead => ({
+        id: row.id ?? idx,
+        lead_source: 'web',
+        lead_status: 'new',
+        lead_score: 0,
+        first_name: row.customer_contact || row.customer || 'Lead',
+        last_name: '',
+        email: row.email || '',
+        phone: '',
+        company_name: row.customer || 'Unknown',
+        company_size: 'small',
+        industry: 'other',
+        position: row.position || '',
+        website: '',
+        address: '',
+        city: '',
+        country: '',
+        logistics_needs: row.follow_up_action || '',
+        current_provider: '',
+        monthly_shipment_volume: undefined,
+        preferred_routes: '',
+        assigned_to: undefined,
+        next_follow_up_date: row.follow_up_date || undefined,
+        next_action: row.follow_up_action || undefined,
+        next_action_date: row.follow_up_date || undefined,
+        last_contact_date: row.action_date || undefined,
+        converted_to_customer_id: undefined,
+        converted_at: undefined,
+        lost_reason: undefined,
+        lost_at: undefined,
+        notes: row.action_completed || '',
+        tags: [],
+        custom_fields: {},
+        created_at: row.created_at || new Date().toISOString(),
+        updated_at: row.created_at || new Date().toISOString(),
+    });
+
+    const mapCustomer = (row: any, idx: number): Customer => ({
+        id: row.id ?? idx,
+        user_id: idx,
+        company_name: row.customer || 'Customer',
+        company_registration: '',
+        industry: '',
+        address_line1: '',
+        address_line2: '',
+        city: '',
+        country: '',
+        postal_code: '',
+        billing_email: row.customer_contact || '',
+        billing_phone: '',
+        tax_id: '',
+        loyalty_points: 0,
+        loyalty_tier: 'bronze',
+        total_spent: 0,
+        total_bookings: 0,
+        preferred_currency: 'USD',
+        credit_limit: undefined,
+        payment_terms: undefined,
+        is_verified: false,
+        notes: row.follow_up_action || '',
+        created_at: row.created_at || new Date().toISOString(),
+        updated_at: row.created_at || new Date().toISOString(),
+    });
 
     // Part 3: Load/reset persisted state whenever the authenticated user changes
     useEffect(() => {
@@ -203,15 +312,52 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setOpportunities(persisted?.opportunities ?? []);
         setInvoices(persisted?.invoices ?? []);
         setExpenses(persisted?.expenses ?? []);
-        setDrivers(persisted?.drivers ?? mockDrivers ?? []);
+        setDrivers(persisted?.drivers ?? (mockDrivers ?? []));
         setUsers(persisted?.users ?? []);
-        setCustomers(persisted?.customers ?? mockCustomers ?? []);
+        setCustomers(persisted?.customers ?? (mockCustomers ?? []));
         setAuditLog(persisted?.auditLog ?? []);
-        setMaintenance(persisted?.maintenance ?? mockMaintenance ?? []);
-        setLeadActivities(persisted?.leadActivities ?? mockLeadActivities ?? []);
+        setMaintenance(persisted?.maintenance ?? (mockMaintenance ?? []));
+        setLeadActivities(persisted?.leadActivities ?? (mockLeadActivities ?? []));
         setOpportunityActivities(persisted?.opportunityActivities ?? []);
         setDeliveryProofs(persisted?.deliveryProofs ?? []);
     }, [storageKey]);
+
+    // Part 4: Load remote data from Neon via Netlify functions
+    useEffect(() => {
+        if (!user) return;
+        let cancelled = false;
+        (async () => {
+            setLoadingRemote(true);
+            setRemoteError(null);
+            try {
+                const [fleetRes, crmRes] = await Promise.all([
+                    fetch("/.netlify/functions/fleet-data", { credentials: "include" }),
+                    fetch("/.netlify/functions/crm-data", { credentials: "include" }),
+                ]);
+                if (!fleetRes.ok) throw new Error(`Fleet data error: ${fleetRes.status}`);
+                if (!crmRes.ok) throw new Error(`CRM data error: ${crmRes.status}`);
+                const fleet = await fleetRes.json();
+                const crm = await crmRes.json();
+
+                if (cancelled) return;
+
+                const mappedVehicles = (fleet?.vehicles ?? []).map(mapDbVehicle);
+                const mappedExpenses = (fleet?.fuel ?? []).map(mapFuelToExpense);
+                setVehicles(mappedVehicles);
+                setExpenses(mappedExpenses);
+                setLeads((crm?.leads ?? []).map(mapLead));
+                setCustomers((crm?.customers ?? []).map(mapCustomer));
+            } catch (err: any) {
+                if (cancelled) return;
+                setRemoteError(err?.message || "Failed to load remote data");
+            } finally {
+                if (!cancelled) setLoadingRemote(false);
+            }
+        })();
+        return () => {
+            cancelled = true;
+        };
+    }, [user?.userId, user?.orgId]);
 
     const emitChange = (type: string, payload: any) => {
         if (!channelRef.current) return;
