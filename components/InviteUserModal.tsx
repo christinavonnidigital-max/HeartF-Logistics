@@ -36,11 +36,10 @@ const ROLES: { id: User['role']; label: string; description: string; icon: React
 ];
 
 const InviteUserModal: React.FC<InviteUserModalProps> = ({ onClose, onInvite }) => {
-    // Pre-fill with sample data
     const [formData, setFormData] = useState({
-        first_name: 'Michael',
-        last_name: 'Scott',
-        email: 'michael.s@heartfledge.local',
+        first_name: '',
+        last_name: '',
+        email: '',
         role: 'dispatcher' as User['role'],
     });
     const [error, setError] = useState('');
@@ -58,6 +57,10 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({ onClose, onInvite }) 
         e.preventDefault();
         if (!formData.first_name || !formData.last_name || !formData.email) {
             setError('Please fill out all fields.');
+            return;
+        }
+        if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(formData.email)) {
+            setError('Enter a valid email address.');
             return;
         }
         setError('');

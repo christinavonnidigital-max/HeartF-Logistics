@@ -14,7 +14,15 @@ export const handler: Handler = async (event) => {
     requireRole(a, ["admin"]);
 
     const body = readJson<Body>(event);
-    const email = body.email.toLowerCase().trim();
+    const email = (body.email || "").toLowerCase().trim();
+    const role = body.role;
+
+    if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+      return json(400, { error: "Valid email is required" });
+    }
+    if (!role || !["admin", "ops_manager", "dispatcher", "finance", "customer"].includes(role)) {
+      return json(400, { error: "Invalid role" });
+    }
 
     const token = randomToken(24);
     const tokenHash = sha256Hex(token);
@@ -27,16 +35,18 @@ export const handler: Handler = async (event) => {
       on conflict (org_id, email)
       do update set role = excluded.role, token_hash = excluded.token_hash, expires_at = excluded.expires_at, invited_by = excluded.invited_by, accepted_at = null
     `,
-      [a.orgId, email, body.role, tokenHash, a.userId, expires.toISOString()]
+      [a.orgId, email, role, tokenHash, a.userId, expires.toISOString()]
     );
 
-    const inviteLink = `${process.env.URL || ""}/accept-invite?token=${token}&email=${encodeURIComponent(email)}`;
+    const originHeader = event.headers.origin || event.headers.Origin || "";
+    const baseUrl = process.env.URL || originHeader || "";
+    const inviteLink = `${baseUrl}/accept-invite?token=${token}&email=${encodeURIComponent(email)}`;
 
     return json(200, { ok: true, inviteLink, expiresAt: expires.toISOString() });
   } catch (e: any) {
     const msg = String(e?.message || "");
     if (msg === "UNAUTHENTICATED") return json(401, { error: "Unauthenticated" });
     if (msg === "FORBIDDEN") return json(403, { error: "Forbidden" });
-    return json(500, { error: "Server error" });
+    return json(500, { error: "Server error", detail: msg });
   }
 };
