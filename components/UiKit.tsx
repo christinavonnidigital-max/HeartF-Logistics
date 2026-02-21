@@ -162,10 +162,10 @@ export const Button: React.FC<
 
   const sizes =
     size === "sm"
-      ? "h-9 px-3 text-sm"
+      ? "h-10 min-h-[44px] px-3 text-sm"
       : size === "lg"
-      ? "h-11 px-5 text-sm"
-      : "h-10 px-4 text-sm";
+      ? "h-12 min-h-[48px] px-5 text-sm"
+      : "h-11 min-h-[44px] px-4 text-sm";
 
   const variants =
     variant === "primary"
@@ -186,8 +186,8 @@ export const Input: React.FC<
 > = ({ className = "", ...props }) => (
   <input
     className={cn(
-      "h-10 w-full rounded-xl border border-border bg-card px-3 text-sm text-foreground shadow-sm",
-      "placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500/50",
+      "h-11 min-h-[44px] w-full rounded-xl border border-border bg-card px-3 text-sm text-foreground shadow-sm",
+      "placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500/50",
       className
     )}
     {...props}
@@ -200,7 +200,7 @@ export const Textarea: React.FC<
   <textarea
     className={cn(
       "min-h-[100px] w-full rounded-xl border border-border bg-card px-3 py-2 text-sm text-foreground shadow-sm",
-      "placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500/50",
+      "placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500/50",
       className
     )}
     {...props}
@@ -212,8 +212,8 @@ export const Select: React.FC<
 > = ({ className = "", ...props }) => (
   <select
     className={cn(
-      "h-10 w-full rounded-xl border border-border bg-card px-3 text-sm text-foreground shadow-sm",
-      "placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500/50",
+      "h-11 min-h-[44px] w-full rounded-xl border border-border bg-card px-3 text-sm text-foreground shadow-sm",
+      "placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500/50",
       className
     )}
     {...props}

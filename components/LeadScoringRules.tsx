@@ -41,7 +41,16 @@ const LeadScoringRules: React.FC<LeadScoringRulesProps> = ({ rules, onAddRuleCli
         />
       </div>
       <div className="overflow-x-auto flex-1">
-        <table className="min-w-full text-sm text-left">
+        <div className="sm:hidden space-y-2">
+            {rules.map((rule) => (
+                <div key={rule.id} className="rounded-xl border border-slate-200 bg-white p-3">
+                    <div className="text-sm font-semibold text-slate-900">{rule.field}</div>
+                    <div className="text-xs text-slate-500">{rule.operator} {rule.value}</div>
+                    <div className="text-xs text-slate-500 mt-1">Score: {rule.score}</div>
+                </div>
+            ))}
+        </div>
+        <table className="min-w-full text-sm text-left hidden sm:table">
           <thead className="text-xs uppercase tracking-wide text-slate-500">
             <tr>
               <th scope="col" className="px-4 py-2 font-medium">Rule Name</th>

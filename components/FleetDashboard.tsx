@@ -3,6 +3,7 @@ import { Vehicle, VehicleStatus, VehicleExpense, VehicleType } from '../types';
 import { useData } from '../contexts/DataContext';
 import { mockExpenses } from '../data/mockData';
 import VehicleDetails from './VehicleDetails';
+import FleetLiveMap from './FleetLiveMap';
 import {
   PlusIcon,
   SearchIcon,
@@ -27,7 +28,7 @@ interface FleetDashboardProps {
 }
 
 const FleetDashboard: React.FC<FleetDashboardProps> = ({ settings }) => {
-  const { vehicles, maintenance, addVehicle, deleteVehicle, updateVehicle, logAuditEvent } = useData();
+  const { vehicles, maintenance, addVehicle, deleteVehicle, updateVehicle, logAuditEvent, gpsLocations } = useData();
 
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -401,7 +402,8 @@ const FleetDashboard: React.FC<FleetDashboardProps> = ({ settings }) => {
         </ShellCard>
 
         {/* Right: details */}
-        <div className="flex flex-col min-h-[60vh]">
+        <div className="flex flex-col min-h-[60vh] gap-6">
+          <FleetLiveMap vehicles={filteredVehicles} gpsLocations={gpsLocations} />
           {selectedVehicle ? (
             <VehicleDetails
               vehicle={selectedVehicle}

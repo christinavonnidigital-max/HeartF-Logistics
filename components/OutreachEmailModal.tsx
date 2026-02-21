@@ -72,39 +72,30 @@ export const OutreachEmailModal: React.FC<{
     reset();
 
     try {
-      const res = await fetch("/.netlify/functions/lead-finder-draft-email", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-          tone,
-          goal,
-          length,
-          variants: 3,
-          prospect,
-        }),
-      });
+      const subject = `[${goal === "intro_call" ? "Intro" : "Update"}] ${prospect.companyName} logistics`;
+      const body = [
+        `Hi ${prospect.contact?.name || "there"},`,
+        "",
+        `I lead operations at Heartfledge Logistics. We help companies like ${prospect.companyName} with reliable ${prospect.industry || "logistics"} support in ${prospect.location || "your region"}.`,
+        "",
+        goal === "intro_call"
+          ? "Could we schedule a short intro call to understand your routes and SLAs?"
+          : "Sharing a quick update on capacity and cross-border coverage this month.",
+        "",
+        "If helpful, I can share a lane plan or pricing benchmarks.",
+        "",
+        "Thanks,\nHeartfledge Team",
+      ].join("\n");
 
-      const text = await res.text();
-      let data: DraftResponse;
-      try {
-        data = JSON.parse(text);
-      } catch {
-        throw new Error("Unexpected response from draft function.");
-      }
+      const variants = [
+        { subject, body },
+        { subject: `${prospect.companyName}: streamline fleet ops`, body: body.replace("schedule a short intro call", "set up a 15-minute call") },
+        { subject: `Support for ${prospect.location || "your"} lanes`, body },
+      ];
 
-      if (!res.ok || !data?.ok) {
-        throw new Error((data as any)?.error || "Failed to draft email");
-      }
-
-      const list = Array.isArray(data.emails) ? data.emails : [];
-      setVariants(list);
+      setVariants(variants);
       setActiveIndex(0);
-
-      setPersonalizationInfo({
-        snippetsUsed: Boolean(data.personalization?.snippetsUsed),
-        urlUsed: data.personalization?.urlUsed ?? null,
-      });
+      setPersonalizationInfo({ snippetsUsed: false, urlUsed: prospect.website || prospect.sourceUrl || null });
     } catch (e: any) {
       setError(String(e?.message || e));
     } finally {

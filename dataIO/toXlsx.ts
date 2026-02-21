@@ -1,6 +1,6 @@
-import writeXlsxFile, { Column } from 'write-excel-file';
+import writeXlsxFile, { Columns } from 'write-excel-file';
 
-export type XlsxColumn<T> = Column & { key: keyof T | string; format?: (value: any, row: T) => any };
+export type XlsxColumn<T> = Columns[number] & { key: keyof T | string; format?: (value: any, row: T) => any };
 
 export const downloadXlsx = async <T extends Record<string, any>>(
   rows: T[],
@@ -9,13 +9,13 @@ export const downloadXlsx = async <T extends Record<string, any>>(
 ) => {
   const sheetData = rows.map((row) =>
     columns.map((col) => {
-      const raw = typeof col.key === 'string' ? row[col.key] : (row as any)[col.key as string];
+      const raw = typeof col.key === 'string' ? row[col.key] : (row as any)[col.key as any];
       return col.format ? col.format(raw, row) : raw;
     }),
   );
 
   await writeXlsxFile(sheetData, {
-    columns: columns.map(({ key, format, ...rest }) => rest as Column),
+    columns: columns.map(({ key, format, ...rest }) => rest as any),
     fileName: filename.endsWith('.xlsx') ? filename : `${filename}.xlsx`,
   });
 };

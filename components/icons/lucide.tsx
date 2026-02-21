@@ -203,5 +203,6 @@ export const DuplicateIcon = makeIcon("DuplicateIcon");
 export const MapPinIcon = makeIcon("MapPinIcon");
 export const SendIcon = makeIcon("SendIcon");
 export const TruckIcon = makeIcon("TruckIcon");
+export const BellIcon = makeIcon("BellIcon");
 
 export default {} as Record<string, unknown>;

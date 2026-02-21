@@ -21,6 +21,8 @@ import { DataProvider, useData } from './contexts/DataContext';
 import AcceptInvitePage from './components/AcceptInvitePage';
 import InviteUsersPage from './components/InviteUsersPage';
 import LeadFinderPage from './components/LeadFinderPage';
+import CustomerPortalPage from './components/CustomerPortalPage';
+import WaitingRoom from './components/WaitingRoom';
 
 // Static mocks still needed for some secondary data like routes/waypoints/activities which we aren't putting in global state yet
 import { mockLeadScoringRules, mockSalesReps } from './data/mockCrmData';
@@ -173,6 +175,10 @@ const AuthedApp: React.FC = () => {
     return <FullScreenLoader message="Loading Heartfledge workspace..." />; 
   }
 
+  if (user?.role === 'pending') {
+    return <WaitingRoom email={user.email} />;
+  }
+
   if (!user) {
     return <LoginPage />;
   }
@@ -284,7 +290,9 @@ const AuthedApp: React.FC = () => {
 const App: React.FC = () => (
   <AuthProvider>
     <DataProvider>
-      {typeof window !== 'undefined' && window.location.pathname.startsWith('/accept-invite') ? (
+      {typeof window !== 'undefined' && window.location.pathname.startsWith('/customer-portal') ? (
+        <CustomerPortalPage />
+      ) : typeof window !== 'undefined' && window.location.pathname.startsWith('/accept-invite') ? (
         <AcceptInvitePage />
       ) : typeof window !== 'undefined' && window.location.pathname.startsWith('/invite-users') ? (
         <InviteUsersPage />

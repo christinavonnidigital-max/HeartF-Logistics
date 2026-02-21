@@ -27,7 +27,21 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onAddExpenseClick }
         }
       />
       <div className="mt-2 overflow-x-auto">
-        <table className="min-w-full text-left text-sm">
+        <div className="sm:hidden space-y-2">
+          {expenses.map((expense) => (
+            <div key={expense.id} className="rounded-xl border border-slate-200 bg-white p-3">
+              <div className="flex items-center justify-between">
+                <div className="text-sm font-semibold text-slate-900">{expense.expense_type}</div>
+                <div className="text-sm font-semibold text-slate-900">
+                  {new Intl.NumberFormat(undefined, { style: "currency", currency: expense.currency }).format(expense.amount)}
+                </div>
+              </div>
+              <div className="text-xs text-slate-500">{expense.description}</div>
+              <div className="text-xs text-slate-500 mt-1">{new Date(expense.expense_date).toLocaleDateString()}</div>
+            </div>
+          ))}
+        </div>
+        <table className="min-w-full text-left text-sm hidden sm:table">
           <thead className="text-xs uppercase tracking-wide text-slate-500">
             <tr>
               <th scope="col" className="px-3 py-2">Category</th>

@@ -82,3 +82,57 @@ jobs:
         run: npm ci
       - name: Build
         run: npm run build
+
+  accessibility:
+    name: Axe smoke
+    runs-on: ubuntu-latest
+    needs: typecheck
+    env:
+      AXE_FAIL_SEVERITY: serious
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '18'
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm ci
+      - name: Install Playwright (chromium only)
+        run: npx playwright install chromium --with-deps
+      - name: Start dev server
+        run: npm run dev -- --host --port 4002 &
+      - name: Wait for dev server
+        uses: jakejarvis/wait-action@v0.1.18
+        with:
+          url: http://localhost:4002
+          timeout: 60
+      - name: Run axe smoke tests
+        run: npx playwright test tests/e2e/accessibility.spec.ts tests/e2e/login-accessibility.spec.ts --project=chromium --reporter=list
+      - name: Upload artifacts on failure
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: axe-smoke-artifacts
+          path: |
+            playwright-report
+            test-results
+            axe-violations*.json
+
+  lighthouse:
+    name: Lighthouse
+    runs-on: ubuntu-latest
+    needs: typecheck
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '18'
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm ci
+      - name: Build
+        run: npm run build
+      - name: Run Lighthouse CI
+        run: npx lhci autorun --config=./lighthouserc.js --collect.staticDistDir=dist

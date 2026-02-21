@@ -71,7 +71,7 @@ const BookingsPage: React.FC<BookingsPageProps> = ({ settings }) => {
   const filteredBookings = useMemo(() => {
     let baseData = bookings;
     if (isCustomer) {
-        const customerId = Number(user?.id);
+        const customerId = Number((user as any)?.userId ?? (user as any)?.id);
         baseData = !isNaN(customerId) ? bookings.filter(b => b.customer_id === customerId) : [];
     }
 
@@ -105,7 +105,7 @@ const BookingsPage: React.FC<BookingsPageProps> = ({ settings }) => {
             <p className="text-xs text-slate-500">Manage logistics pipeline and active loads</p>
         </div>
         
-        <div className="flex flex-col sm:flex-row gap-3">
+        <div className="flex flex-col sm:flex-row flex-wrap gap-3 w-full md:w-auto">
             <div className="relative w-full sm:w-64">
                 <SearchIcon className="absolute left-3 top-2.5 w-4 h-4 text-slate-500" />
                 <input 
@@ -117,7 +117,7 @@ const BookingsPage: React.FC<BookingsPageProps> = ({ settings }) => {
                     className="w-full pl-9 pr-4 py-2 rounded-lg border border-slate-200 bg-slate-50 text-sm focus:bg-white focus:ring-2 focus:ring-orange-500 focus:outline-none transition-all"
                 />
             </div>
-            <button onClick={() => setIsAddModalOpen(true)} className="flex items-center justify-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg text-sm font-bold shadow-md shadow-orange-200 hover:bg-orange-700 transition-all hover:scale-105 active:scale-95">
+            <button onClick={() => setIsAddModalOpen(true)} className="flex items-center justify-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg text-sm font-bold shadow-md shadow-orange-200 hover:bg-orange-700 transition-all hover:scale-105 active:scale-95 w-full sm:w-auto">
                 <PlusIcon className="w-4 h-4" />
                 <span>{isCustomer ? 'Request Booking' : 'New Booking'}</span>
             </button>
@@ -128,7 +128,7 @@ const BookingsPage: React.FC<BookingsPageProps> = ({ settings }) => {
       <div className="flex-1 overflow-x-auto overflow-y-hidden pb-4 lg:pb-0">
         <div className="flex h-full gap-5 min-w-max lg:min-w-0 px-1 snap-x snap-mandatory">
             {BOARD_COLUMNS.map(col => (
-                <div key={col.key} className="w-80 flex flex-col h-full rounded-2xl bg-slate-100 border border-slate-200/60 overflow-hidden shrink-0 lg:shrink snap-start">
+                <div key={col.key} className="w-80 sm:w-[21rem] flex flex-col h-full rounded-2xl bg-slate-100 border border-slate-200/60 overflow-hidden shrink-0 lg:shrink snap-start">
                     {/* Column Header */}
                     <div className="p-3 bg-white border-b border-slate-200">
                         <div className="flex justify-between items-center mb-1">

@@ -94,7 +94,23 @@ const InvoiceList: React.FC<InvoiceListProps> = ({ invoices, onAddInvoiceClick, 
         }
       />
       <div className="mt-2 overflow-x-auto">
-        <table className="min-w-full text-left text-sm">
+        <div className="sm:hidden space-y-2">
+          {invoices.map((invoice) => (
+            <div key={invoice.id} className="rounded-xl border border-slate-200 bg-white p-3">
+              <div className="flex items-center justify-between">
+                <div className="text-sm font-semibold text-slate-900">
+                  {invoice.invoice_number}
+                </div>
+                <StatusPill label={invoice.status} tone={invoice.status === "paid" ? "success" : "warn"} />
+              </div>
+              <div className="text-xs text-slate-500">Due {new Date(invoice.due_date).toLocaleDateString()}</div>
+              <div className="text-sm font-semibold text-slate-900 mt-1">
+                {new Intl.NumberFormat(undefined, { style: "currency", currency: invoice.currency }).format(invoice.total_amount)}
+              </div>
+            </div>
+          ))}
+        </div>
+        <table className="min-w-full text-left text-sm hidden sm:table">
           <thead className="text-xs uppercase tracking-wide text-slate-500">
             <tr>
               <th className="px-3 py-2">Invoice #</th>

@@ -18,6 +18,7 @@ const CustomersPage: React.FC = () => {
     const [customerToDelete, setCustomerToDelete] = useState<number | null>(null);
     const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
     const [isImportOpen, setIsImportOpen] = useState(false);
+    const [sendStatus, setSendStatus] = useState<string | null>(null);
 
     // Set selected customer when customers load
     useEffect(() => {
@@ -42,6 +43,31 @@ const CustomersPage: React.FC = () => {
         if (customerToDelete) {
             deleteCustomer(customerToDelete);
             setCustomerToDelete(null);
+        }
+    };
+
+    const sendMagicLink = async (customer: Customer) => {
+        try {
+            setSendStatus('Sending link...');
+            const res = await fetch('/api/magic-links/send', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-admin-token': (import.meta as any).env?.VITE_ADMIN_API_TOKEN || '',
+                },
+                body: JSON.stringify({
+                    customerId: customer.id,
+                    email: customer.billing_email,
+                    expiresMinutes: 60,
+                }),
+            });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok || !data?.ok) throw new Error(data?.error || 'Failed to send link');
+            setSendStatus(`Sent link to ${customer.billing_email}`);
+        } catch (e: any) {
+            setSendStatus(e?.message || 'Failed to send link');
+        } finally {
+            setTimeout(() => setSendStatus(null), 4000);
         }
     };
 
@@ -174,18 +200,31 @@ const CustomersPage: React.FC = () => {
                 >
                     Export XLSX
                 </button>
-                <button
-                    onClick={() => setIsAddModalOpen(true)}
-                    className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-xl text-sm font-bold shadow-md shadow-orange-200 hover:bg-orange-700 transition-all hover:scale-105 active:scale-95"
-                >
-                    <PlusIcon className="w-4 h-4" />
-                    <span className="hidden sm:inline">Add Customer</span>
-                </button>
+                <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                    <button
+                        onClick={() => setIsAddModalOpen(true)}
+                        className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-xl text-sm font-bold shadow-md shadow-orange-200 hover:bg-orange-700 transition-all hover:scale-105 active:scale-95 w-full sm:w-auto"
+                    >
+                        <PlusIcon className="w-4 h-4" />
+                        <span className="hidden sm:inline">Add Customer</span>
+                        <span className="sm:hidden">Add</span>
+                    </button>
+                    {selectedCustomer && (
+                        <button
+                            onClick={() => sendMagicLink(selectedCustomer)}
+                            className="flex items-center gap-2 px-4 py-2 bg-white text-slate-800 border border-slate-200 rounded-xl text-sm font-semibold hover:border-orange-400 hover:text-orange-700 w-full sm:w-auto"
+                        >
+                            <EnvelopeIcon className="w-4 h-4" />
+                            <span className="hidden sm:inline">Send view link</span>
+                            <span className="sm:hidden">Send link</span>
+                        </button>
+                    )}
+                </div>
             </div>
         </ShellCard>
         
         {filteredCustomers.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
             {filteredCustomers.map(customer => {
                 const isSelected = selectedCustomer?.id === customer.id;
                 return (
@@ -248,6 +287,12 @@ const CustomersPage: React.FC = () => {
                     title="No customers found"
                     message="Adjust search terms or add a new customer."
                 />
+            </div>
+        )}
+
+        {sendStatus && (
+            <div className="flex mt-2">
+                <StatusPill tone={sendStatus.startsWith('Sent') ? 'success' : 'warn'} label={sendStatus} />
             </div>
         )}
 

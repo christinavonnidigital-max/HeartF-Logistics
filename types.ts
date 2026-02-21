@@ -6,7 +6,7 @@ export interface User {
     id: number | string;
     email: string;
     // password_hash: string; // Omitted for frontend security
-    role: 'admin' | 'customer' | 'driver' | 'marketing' | 'dispatcher' | 'ops_manager' | 'finance';
+    role: 'admin' | 'customer' | 'driver' | 'marketing' | 'dispatcher' | 'ops_manager' | 'finance' | 'pending';
     first_name: string;
     last_name: string;
     phone?: string;
@@ -1160,6 +1160,21 @@ export interface Expense {
     notes?: string;
     created_at: string;
     updated_at: string;
+    [key: string]: any;
+}
+
+// Notifications
+export interface Notification {
+    id: number;
+    type: string;
+    entity_id?: number;
+    recipient_email: string;
+    status: 'queued' | 'sent' | 'failed';
+    payload?: any;
+    created_at?: string;
+    sent_at?: string;
+    failed_at?: string;
+    error?: string;
 }
 
 

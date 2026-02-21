@@ -14,9 +14,8 @@ export default defineConfig(({ mode }) => {
         strictPort: true,
         host: '0.0.0.0',
         proxy: {
-          // Forward Netlify Functions to the Netlify dev server when running locally
-          '/.netlify/functions': {
-            target: 'http://localhost:8888',
+          '/api': {
+            target: 'http://localhost:8788',
             changeOrigin: true,
           },
         },

@@ -28,8 +28,9 @@ import {
 import { ShellCard, SubtleCard, StatusPill, Button, IconButton, ModalShell, Input, Label } from "./UiKit";
 import AddDocumentModal from "./AddDocumentModal";
 import ConfirmModal from "./ConfirmModal";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import * as L from "leaflet";
+import { useData } from "../contexts/DataContext";
 
 interface VehicleDetailsProps {
   vehicle: Vehicle;
@@ -159,6 +160,7 @@ const VehicleDetails: React.FC<VehicleDetailsProps> = ({
   const [isDeleteVehicleModalOpen, setIsDeleteVehicleModalOpen] = useState(false);
   const [documentToDelete, setDocumentToDelete] = useState<number | null>(null);
 
+  const { gpsLocations } = useData();
   const [isOdometerModalOpen, setIsOdometerModalOpen] = useState(false);
   const [odometerValue, setOdometerValue] = useState(String(vehicle.current_km ?? ""));
   const [odometerError, setOdometerError] = useState("");
@@ -177,9 +179,15 @@ const VehicleDetails: React.FC<VehicleDetailsProps> = ({
       .sort((a, b) => new Date(b.expense_date).getTime() - new Date(a.expense_date).getTime());
   }, [expenses, vehicle.id]);
 
-  const gpsData = useMemo(() => {
-    return mockGpsLocations.find((g) => g.vehicle_id === vehicle.id);
-  }, [vehicle.id]);
+  const gpsData = gpsLocations[vehicle.id] || mockGpsLocations.find((g) => g.vehicle_id === vehicle.id);
+
+  const MapUpdater: React.FC<{ lat: number; lng: number }> = ({ lat, lng }) => {
+    const map = useMap();
+    useEffect(() => {
+      map.setView([lat, lng]);
+    }, [map, lat, lng]);
+    return null;
+  };
 
   const vehicleMarkerIcon = useMemo(() => {
     return L.divIcon({
@@ -545,6 +553,7 @@ const VehicleDetails: React.FC<VehicleDetailsProps> = ({
               style={{ height: "100%", width: "100%" }}
               attributionControl={false}
             >
+              <MapUpdater lat={gpsData.latitude} lng={gpsData.longitude} />
               <TileLayer
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

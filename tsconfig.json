@@ -28,5 +28,17 @@
     "allowImportingTsExtensions": true,
     "noEmit": true
   },
-  "include": ["src"]
+  "include": [
+    "src",
+    "components",
+    "auth",
+    "contexts",
+    "db",
+    "api",
+    "drizzle.config.ts",
+    "lighthouserc.js"
+  ],
+  "exclude": [
+    "tests"
+  ]
 }

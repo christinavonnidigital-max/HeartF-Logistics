@@ -92,6 +92,18 @@ export const DEFAULT_PERMISSIONS: PermissionsMatrix = {
     'data.import': false,
     'data.export': false,
   },
+  pending: {
+    'booking.view': false,
+    'booking.update': false,
+    'booking.status.change': false,
+    'booking.assign': false,
+    'audit.view': false,
+    'permissions.manage': false,
+    'files.view': false,
+    'files.upload': false,
+    'data.import': false,
+    'data.export': false,
+  },
 };
 
 const loadStoredPermissions = (): PermissionsMatrix | null => {
@@ -127,6 +139,7 @@ const transitionRoleMap: Record<UserRole, Partial<Record<BookingStatus, BookingS
     [BookingStatus.PENDING]: [BookingStatus.CANCELLED],
   },
   finance: {},
+  pending: {},
 };
 
 export function canTransitionBookingStatus(args: {

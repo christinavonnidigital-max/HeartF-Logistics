@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import type {
+import {
     AuditLogEntry,
     AuditEvent,
     AuditAction,
@@ -23,6 +23,8 @@ import type {
     MaintenanceStatus,
     MaintenanceType,
     FileRecord,
+    Notification,
+    GpsLocation,
 } from '../types';
 import { useAuth } from '../auth/AuthContext';
 import { mockMaintenance } from '../data/mockData';
@@ -30,17 +32,21 @@ import { mockLeadActivities } from '../data/mockCrmData';
 import { mockDrivers } from '../data/mockDriversData';
 import { mockCustomers } from '../data/mockCrmData';
 import { DEFAULT_PERMISSIONS, PERMISSIONS_STORAGE_KEY, PermissionsMatrix } from '../src/lib/permissions';
+import {
+    vehiclesApi,
+    customersApi,
+    bookingsApi,
+    driversApi,
+    leadsApi,
+    invoicesApi,
+    expensesApi,
+    opportunitiesApi,
+    usersApi,
+    notificationsApi,
+} from '../src/services/dbApi';
+import { openEventStream, publishEvent } from '../src/services/eventsApi';
 
-// Part 1: Persistence keys scoped per user/org to prevent data leakage between logins
-const BASE_STORAGE_KEY = 'hf_global_data_v1';
-
-function getStorageKey(user: { orgId?: string | number; userId?: string | number } | null | undefined) {
-    if (!user) return null;
-    const orgPart = user.orgId ?? 'no-org';
-    const userPart = user.userId ?? 'no-user';
-    return `${BASE_STORAGE_KEY}:${orgPart}:${userPart}`;
-}
-
+// Persistence is now in the database; no localStorage scoping needed
 function getChannelName(user: { orgId?: string | number } | null | undefined) {
     if (!user) return null;
     const orgPart = user.orgId ?? 'no-org';
@@ -57,28 +63,33 @@ type DataContextValue = {
     drivers: Driver[];
     users: User[];
     customers: Customer[];
+    notifications: Notification[];
+    gpsLocations: Record<number, GpsLocation>;
     auditLog: AuditEvent[];
     maintenance: VehicleMaintenance[];
     leadActivities: LeadActivity[];
     opportunityActivities: OpportunityActivity[];
     deliveryProofs: DeliveryProof[];
 
-    addBooking: (booking: Omit<Booking, 'id' | 'created_at' | 'updated_at'>) => void;
-    updateBooking: (booking: Booking) => void;
+    addBooking: (booking: Omit<Booking, 'id' | 'created_at' | 'updated_at'>) => Promise<void>;
+    updateBooking: (booking: Booking) => Promise<void>;
 
-    addLead: (lead: Omit<Lead, 'id' | 'created_at' | 'updated_at'>) => void;
-    updateLead: (lead: Lead) => void;
-    deleteLead: (id: number) => void;
+    addLead: (lead: Omit<Lead, 'id' | 'created_at' | 'updated_at'>) => Promise<void>;
+    updateLead: (lead: Lead) => Promise<void>;
+    deleteLead: (id: number) => Promise<void>;
 
-    updateOpportunity: (opportunity: Opportunity) => void;
+    updateOpportunity: (opportunity: Opportunity) => Promise<void>;
 
-    addInvoice: (invoice: Omit<Invoice, 'id' | 'created_at' | 'updated_at'>) => void;
-    updateInvoice: (invoice: Invoice) => void;
-    addExpense: (expense: Omit<Expense, 'id' | 'created_at' | 'updated_at'>) => void;
+    addInvoice: (invoice: Omit<Invoice, 'id' | 'created_at' | 'updated_at'>) => Promise<void>;
+    updateInvoice: (invoice: Invoice) => Promise<void>;
+    addExpense: (expense: Omit<Expense, 'id' | 'created_at' | 'updated_at'>) => Promise<void>;
 
-    addVehicle: (vehicle: Omit<Vehicle, 'id' | 'created_at' | 'updated_at'>) => void;
-    updateVehicle: (vehicle: Vehicle) => void;
-    deleteVehicle: (id: number) => void;
+    addVehicle: (vehicle: Omit<Vehicle, 'id' | 'created_at' | 'updated_at'>) => Promise<void>;
+    updateVehicle: (vehicle: Vehicle) => Promise<void>;
+    deleteVehicle: (id: number) => Promise<void>;
+    addDriver: (driver: Omit<Driver, 'id' | 'created_at' | 'updated_at'>) => Promise<void>;
+    updateDriver: (driver: Driver) => Promise<void>;
+    deleteDriver: (id: number) => Promise<void>;
     addMaintenance: (maintenance: Omit<VehicleMaintenance, 'id' | 'created_at' | 'updated_at'>) => void;
     addCustomer: (customer: Omit<Customer, 'id' | 'created_at' | 'updated_at' | 'user_id'>) => void;
     updateCustomer: (customer: Customer) => void;
@@ -89,8 +100,10 @@ type DataContextValue = {
 
     addDeliveryProof: (proof: Omit<DeliveryProof, 'id' | 'created_at'>) => void;
 
-    addUser: (user: Omit<User, 'id'>) => void;
-    deleteUser: (id: string | number) => void;
+    addUser: (user: Omit<User, 'id'>) => Promise<void>;
+    updateUser: (user: User) => Promise<void>;
+    deleteUser: (id: string | number) => Promise<void>;
+    addNotification?: (n: Omit<Notification, 'id' | 'created_at'>) => Promise<void>;
     logAuditEvent: (entry: Omit<AuditEvent, 'id' | 'at'>) => void;
     clearAuditLog?: () => void;
 };
@@ -106,6 +119,475 @@ const safeId = () => {
 };
 
 const nowIso = () => new Date().toISOString();
+
+const getStorageKey = (user: { orgId?: string | number; userId?: string | number } | null) => {
+    if (!user) return null;
+    const org = user.orgId ?? 'no-org';
+    const uid = user.userId ?? 'anon';
+    return `hf:data:v2:${org}:${uid}`;
+};
+
+// --- DB mappers (camelCase from API -> snake_case app types) ---
+const fromDbVehicle = (v: any): Vehicle => ({
+    id: v.id,
+    registration_number: v.registrationNumber || v.registration_number || '',
+    make: v.make || '',
+    model: v.model || '',
+    year: Number(v.year || new Date().getFullYear()),
+    vehicle_type: (v.vehicleType || v.vehicle_type || 'dry') as any,
+    capacity_tonnes: Number(v.capacityTonnes ?? v.capacity_tonnes ?? 0),
+    status: (v.status || 'active') as any,
+    purchase_date: v.purchaseDate || v.purchase_date || nowIso(),
+    purchase_cost: Number(v.purchaseCost ?? v.purchase_cost ?? 0),
+    current_value: v.currentValue ?? v.current_value,
+    insurance_provider: v.insuranceProvider ?? v.insurance_provider,
+    insurance_policy_number: v.insurancePolicyNumber ?? v.insurance_policy_number,
+    insurance_expiry_date: v.insuranceExpiryDate ?? v.insurance_expiry_date,
+    fitness_certificate_expiry: v.fitnessCertificateExpiry ?? v.fitness_certificate_expiry,
+    license_disc_expiry: v.licenseDiscExpiry ?? v.license_disc_expiry,
+    last_service_date: v.lastServiceDate ?? v.last_service_date ?? nowIso(),
+    last_service_km: v.lastServiceKm ?? v.last_service_km,
+    next_service_due_km: Number(v.nextServiceDueKm ?? v.next_service_due_km ?? 0),
+    next_service_due_date: v.nextServiceDueDate ?? v.next_service_due_date,
+    current_km: Number(v.currentKm ?? v.current_km ?? 0),
+    fuel_type: (v.fuelType ?? v.fuel_type ?? 'diesel') as any,
+    gps_device_id: v.gpsDeviceId ?? v.gps_device_id,
+    gps_device_active: Boolean(v.gpsDeviceActive ?? v.gps_device_active ?? false),
+    notes: v.notes ?? '',
+    created_at: v.createdAt ?? v.created_at ?? nowIso(),
+    updated_at: v.updatedAt ?? v.updated_at ?? nowIso(),
+});
+
+const toDbVehicle = (v: Partial<Vehicle>) => ({
+    registrationNumber: v.registration_number,
+    make: v.make,
+    model: v.model,
+    year: v.year,
+    vehicleType: v.vehicle_type,
+    capacityTonnes: v.capacity_tonnes,
+    status: v.status,
+    purchaseDate: v.purchase_date,
+    purchaseCost: v.purchase_cost,
+    currentValue: v.current_value,
+    insuranceProvider: v.insurance_provider,
+    insurancePolicyNumber: v.insurance_policy_number,
+    insuranceExpiryDate: v.insurance_expiry_date,
+    fitnessCertificateExpiry: v.fitness_certificate_expiry,
+    licenseDiscExpiry: v.license_disc_expiry,
+    lastServiceDate: v.last_service_date,
+    lastServiceKm: v.last_service_km,
+    nextServiceDueKm: v.next_service_due_km,
+    nextServiceDueDate: v.next_service_due_date,
+    currentKm: v.current_km,
+    fuelType: v.fuel_type,
+    gpsDeviceId: v.gps_device_id,
+    gpsDeviceActive: v.gps_device_active,
+    notes: v.notes,
+});
+
+const fromDbCustomer = (c: any): Customer => ({
+    id: c.id,
+    user_id: c.userId ?? c.user_id ?? 0,
+    company_name: c.companyName ?? c.company_name ?? '',
+    company_registration: c.companyRegistration ?? c.company_registration ?? '',
+    industry: c.industry ?? '',
+    address_line1: c.addressLine1 ?? c.address_line1 ?? '',
+    address_line2: c.addressLine2 ?? c.address_line2 ?? '',
+    city: c.city ?? '',
+    country: c.country ?? '',
+    postal_code: c.postalCode ?? c.postal_code ?? '',
+    billing_email: c.billingEmail ?? c.billing_email ?? '',
+    billing_phone: c.billingPhone ?? c.billing_phone ?? '',
+    tax_id: c.taxId ?? c.tax_id ?? '',
+    loyalty_points: Number(c.loyaltyPoints ?? c.loyalty_points ?? 0),
+        loyalty_tier: (c.loyaltyTier ?? c.loyalty_tier ?? 'bronze') as any,
+    total_spent: Number(c.totalSpent ?? c.total_spent ?? 0),
+    total_bookings: Number(c.totalBookings ?? c.total_bookings ?? 0),
+    preferred_currency: (c.preferredCurrency ?? c.preferred_currency ?? 'USD') as any,
+    credit_limit: c.creditLimit ?? c.credit_limit,
+    payment_terms: c.paymentTerms ?? c.payment_terms,
+    is_verified: Boolean(c.isVerified ?? c.is_verified ?? true),
+    notes: c.notes ?? '',
+    created_at: c.createdAt ?? c.created_at ?? nowIso(),
+    updated_at: c.updatedAt ?? c.updated_at ?? nowIso(),
+});
+
+const fromDbUser = (u: any): User => ({
+    id: u.id,
+    email: u.email,
+    role: u.role || 'pending',
+    first_name: u.firstName || u.first_name || '',
+    last_name: u.lastName || u.last_name || '',
+    phone: u.phone || '',
+    avatar_url: u.avatarUrl || u.avatar_url || '',
+    is_active: u.isActive ?? u.is_active ?? true,
+    email_verified: u.emailVerified ?? u.email_verified ?? false,
+    created_at: u.createdAt ?? u.created_at ?? nowIso(),
+    updated_at: u.updatedAt ?? u.updated_at ?? nowIso(),
+    last_login_at: u.lastLoginAt ?? u.last_login_at,
+});
+
+const toDbUser = (u: Partial<User>) => ({
+    email: u.email,
+    role: u.role,
+    firstName: (u as any).first_name ?? (u as any).firstName,
+    lastName: (u as any).last_name ?? (u as any).lastName,
+    phone: (u as any).phone,
+    avatarUrl: (u as any).avatar_url ?? (u as any).avatarUrl,
+    isActive: (u as any).is_active ?? (u as any).isActive,
+    emailVerified: (u as any).email_verified ?? (u as any).emailVerified,
+});
+
+const toDbCustomer = (c: Partial<Customer>) => ({
+    userId: c.user_id,
+    companyName: c.company_name,
+    companyRegistration: c.company_registration,
+    industry: c.industry,
+    addressLine1: c.address_line1,
+    addressLine2: c.address_line2,
+    city: c.city,
+    country: c.country,
+    postalCode: c.postal_code,
+    billingEmail: c.billing_email,
+    billingPhone: c.billing_phone,
+    taxId: c.tax_id,
+    loyaltyPoints: c.loyalty_points,
+    loyaltyTier: c.loyalty_tier,
+    totalSpent: c.total_spent,
+    totalBookings: c.total_bookings,
+    preferredCurrency: c.preferred_currency,
+    creditLimit: c.credit_limit,
+    paymentTerms: c.payment_terms,
+    isVerified: c.is_verified,
+    notes: c.notes,
+});
+
+const fromDbBooking = (b: any): Booking => ({
+    id: b.id,
+    booking_number: b.bookingNumber ?? b.booking_number ?? `B-${b.id}`,
+    customer_id: b.customerId ?? b.customer_id ?? 0,
+    pickup_location: b.pickupLocation ?? '',
+    pickup_address: b.pickupAddress ?? '',
+    pickup_city: b.pickupCity ?? '',
+    pickup_country: b.pickupCountry ?? '',
+    delivery_location: b.deliveryLocation ?? '',
+    delivery_address: b.deliveryAddress ?? '',
+    delivery_city: b.deliveryCity ?? '',
+    delivery_country: b.deliveryCountry ?? '',
+    pickup_date: b.pickupDate ?? nowIso(),
+    delivery_date: b.deliveryDate ?? nowIso(),
+    cargo_type: b.cargoType ?? 'general',
+    cargo_description: b.cargoDescription ?? '',
+    weight_tonnes: Number(b.weightTonnes ?? 0),
+    requires_refrigeration: Boolean(b.requiresRefrigeration ?? false),
+    vehicle_id: b.vehicleId ?? null,
+    driver_id: b.driverId ?? null,
+    status: b.status ?? 'pending',
+    base_price: Number(b.basePrice ?? 0),
+    surcharges: Number(b.surcharges ?? 0),
+    discount: Number(b.discount ?? 0),
+    total_price: Number(b.totalPrice ?? 0),
+    currency: b.currency ?? 'USD',
+    payment_status: b.paymentStatus ?? 'unpaid',
+    payment_method: b.paymentMethod ?? null,
+    loyalty_points_earned: b.loyaltyPointsEarned ?? 0,
+    special_instructions: b.specialInstructions ?? '',
+    notes: b.notes ?? '',
+    status_history: b.statusHistory ?? [],
+    created_at: b.createdAt ?? nowIso(),
+    updated_at: b.updatedAt ?? nowIso(),
+    confirmed_at: b.confirmedAt ?? null,
+    started_at: b.startedAt ?? null,
+    delivered_at: b.deliveredAt ?? null,
+    cancelled_at: b.cancelledAt ?? null,
+});
+
+const toDbBooking = (b: Partial<Booking>) => ({
+    bookingNumber: b.booking_number,
+    customerId: b.customer_id,
+    pickupLocation: b.pickup_location,
+    pickupAddress: b.pickup_address,
+    pickupCity: b.pickup_city,
+    pickupCountry: b.pickup_country,
+    deliveryLocation: b.delivery_location,
+    deliveryAddress: b.delivery_address,
+    deliveryCity: b.delivery_city,
+    deliveryCountry: b.delivery_country,
+    pickupDate: b.pickup_date,
+    deliveryDate: b.delivery_date,
+    cargoType: b.cargo_type,
+    cargoDescription: b.cargo_description,
+    weightTonnes: b.weight_tonnes,
+    requiresRefrigeration: b.requires_refrigeration,
+    vehicleId: b.vehicle_id,
+    driverId: b.driver_id,
+    status: b.status,
+    basePrice: b.base_price,
+    surcharges: b.surcharges,
+    discount: b.discount,
+    totalPrice: b.total_price,
+    currency: b.currency,
+    paymentStatus: b.payment_status,
+    paymentMethod: b.payment_method,
+    loyaltyPointsEarned: b.loyalty_points_earned,
+    specialInstructions: b.special_instructions,
+    notes: b.notes,
+    statusHistory: b.status_history,
+    confirmedAt: b.confirmed_at,
+    startedAt: b.started_at,
+    deliveredAt: b.delivered_at,
+    cancelledAt: b.cancelled_at,
+});
+
+const fromDbDriver = (d: any): Driver => ({
+    id: d.id,
+    user_id: d.userId ?? 0,
+    license_number: d.licenseNumber ?? '',
+    license_type: d.licenseType ?? '',
+    license_expiry_date: d.licenseExpiryDate ?? nowIso(),
+    date_of_birth: d.dateOfBirth ?? nowIso(),
+    national_id: d.nationalId ?? '',
+    emergency_contact_name: d.emergencyContactName ?? '',
+    emergency_contact_phone: d.emergencyContactPhone ?? '',
+    address: d.address ?? '',
+    city: d.city ?? '',
+    country: d.country ?? '',
+    hire_date: d.hireDate ?? nowIso(),
+    employment_status: d.employmentStatus ?? 'active',
+    salary: Number(d.salary ?? 0),
+    medical_certificate_expiry: d.medicalCertificateExpiry ?? null,
+    background_check_date: d.backgroundCheckDate ?? null,
+    background_check_status: d.backgroundCheckStatus ?? 'pending',
+    rating: d.rating ?? null,
+    total_deliveries: d.totalDeliveries ?? 0,
+    notes: d.notes ?? '',
+    created_at: d.createdAt ?? nowIso(),
+    updated_at: d.updatedAt ?? nowIso(),
+});
+
+const toDbDriver = (d: Partial<Driver>) => ({
+    userId: d.user_id,
+    licenseNumber: d.license_number,
+    licenseType: d.license_type,
+    licenseExpiryDate: d.license_expiry_date,
+    dateOfBirth: d.date_of_birth,
+    nationalId: d.national_id,
+    emergencyContactName: d.emergency_contact_name,
+    emergencyContactPhone: d.emergency_contact_phone,
+    address: d.address,
+    city: d.city,
+    country: d.country,
+    hireDate: d.hire_date,
+    employmentStatus: d.employment_status,
+    salary: d.salary,
+    medicalCertificateExpiry: d.medical_certificate_expiry,
+    backgroundCheckDate: d.background_check_date,
+    backgroundCheckStatus: d.background_check_status,
+    rating: d.rating,
+    totalDeliveries: d.total_deliveries,
+    notes: d.notes,
+});
+
+const fromDbLead = (l: any): Lead => ({
+    id: l.id,
+    lead_source: l.leadSource ?? 'website',
+    lead_status: l.leadStatus ?? 'new',
+    lead_score: l.leadScore ?? 0,
+    first_name: l.firstName ?? '',
+    last_name: l.lastName ?? '',
+    email: l.email ?? '',
+    phone: l.phone ?? '',
+    company_name: l.companyName ?? '',
+    company_size: l.companySize ?? 'medium',
+    industry: l.industry ?? 'other',
+    position: l.position ?? '',
+    website: l.website ?? '',
+    address: l.address ?? '',
+    city: l.city ?? '',
+    country: l.country ?? '',
+    logistics_needs: l.logisticsNeeds ?? '',
+    current_provider: l.currentProvider ?? '',
+    monthly_shipment_volume: l.monthlyShipmentVolume ?? null,
+    preferred_routes: l.preferredRoutes ?? '',
+    assigned_to: l.assignedTo ?? null,
+    next_follow_up_date: l.nextFollowUpDate ?? null,
+    next_action: l.nextAction ?? '',
+    next_action_date: l.nextActionDate ?? null,
+    last_contact_date: l.lastContactDate ?? null,
+    converted_to_customer_id: l.convertedToCustomerId ?? null,
+    converted_at: l.convertedAt ?? null,
+    lost_reason: l.lostReason ?? null,
+    lost_at: l.lostAt ?? null,
+    notes: l.notes ?? '',
+    tags: l.tags ?? [],
+    custom_fields: l.customFields ?? {},
+    created_at: l.createdAt ?? nowIso(),
+    updated_at: l.updatedAt ?? nowIso(),
+});
+
+const toDbLead = (l: Partial<Lead>) => ({
+    leadSource: l.lead_source,
+    leadStatus: l.lead_status,
+    leadScore: l.lead_score,
+    firstName: l.first_name,
+    lastName: l.last_name,
+    email: l.email,
+    phone: l.phone,
+    companyName: l.company_name,
+    companySize: l.company_size,
+    industry: l.industry,
+    position: l.position,
+    website: l.website,
+    address: l.address,
+    city: l.city,
+    country: l.country,
+    logisticsNeeds: l.logistics_needs,
+    currentProvider: l.current_provider,
+    monthlyShipmentVolume: l.monthly_shipment_volume,
+    preferredRoutes: l.preferred_routes,
+    assignedTo: l.assigned_to,
+    nextFollowUpDate: l.next_follow_up_date,
+    nextAction: l.next_action,
+    nextActionDate: l.next_action_date,
+    lastContactDate: l.last_contact_date,
+    convertedToCustomerId: l.converted_to_customer_id,
+    convertedAt: l.converted_at,
+    lostReason: l.lost_reason,
+    lostAt: l.lost_at,
+    notes: l.notes,
+    tags: l.tags,
+    customFields: l.custom_fields,
+});
+
+const fromDbInvoice = (inv: any): Invoice => ({
+    id: inv.id,
+    invoice_number: inv.invoiceNumber ?? inv.id,
+    customer_id: inv.customerId ?? 0,
+    booking_id: inv.bookingId ?? null,
+    invoice_type: inv.invoiceType ?? 'booking',
+    issue_date: inv.issueDate ?? nowIso(),
+    due_date: inv.dueDate ?? nowIso(),
+    reminder_at: inv.reminderAt ?? null,
+    reminder_note: inv.reminderNote ?? '',
+    last_reminder_at: inv.lastReminderAt ?? null,
+    subtotal: Number(inv.subtotal ?? 0),
+    tax_amount: Number(inv.taxAmount ?? 0),
+    discount_amount: Number(inv.discountAmount ?? 0),
+    total_amount: Number(inv.totalAmount ?? 0),
+    amount_paid: Number(inv.amountPaid ?? 0),
+    balance_due: Number(inv.balanceDue ?? 0),
+    currency: inv.currency ?? 'USD',
+    status: inv.status ?? 'draft',
+    payment_terms: inv.paymentTerms ?? null,
+    notes: inv.notes ?? '',
+    customer_notes: inv.customerNotes ?? '',
+    sent_at: inv.sentAt ?? null,
+    viewed_at: inv.viewedAt ?? null,
+    paid_at: inv.paidAt ?? null,
+    created_by: inv.createdBy ?? 0,
+    created_at: inv.createdAt ?? nowIso(),
+    updated_at: inv.updatedAt ?? nowIso(),
+});
+
+const toDbInvoice = (inv: Partial<Invoice>) => ({
+    invoiceNumber: inv.invoice_number,
+    customerId: inv.customer_id,
+    bookingId: inv.booking_id,
+    invoiceType: inv.invoice_type,
+    issueDate: inv.issue_date,
+    dueDate: inv.due_date,
+    reminderAt: inv.reminder_at,
+    reminderNote: inv.reminder_note,
+    lastReminderAt: inv.last_reminder_at,
+    subtotal: inv.subtotal,
+    taxAmount: inv.tax_amount,
+    discountAmount: inv.discount_amount,
+    totalAmount: inv.total_amount,
+    amountPaid: inv.amount_paid,
+    balanceDue: inv.balance_due,
+    currency: inv.currency,
+    status: inv.status,
+    paymentTerms: inv.payment_terms,
+    notes: inv.notes,
+    customerNotes: inv.customer_notes,
+    sentAt: inv.sent_at,
+    viewedAt: inv.viewed_at,
+    paidAt: inv.paid_at,
+    createdBy: inv.created_by,
+});
+
+const fromDbExpense = (ex: any): Expense => ({
+    id: ex.id,
+    expense_number: ex.expenseNumber ?? `EXP-${ex.id ?? 'tmp'}`,
+    expense_category: (ex.expenseCategory ?? ex.expense_type ?? 'fuel') as any,
+    vehicle_id: ex.vehicleId ?? null,
+    expense_type: ex.expenseType ?? 'other',
+    amount: Number(ex.amount ?? 0),
+    currency: (ex.currency ?? 'USD') as any,
+    description: ex.description ?? '',
+    vendor_name: ex.vendorName ?? ex.vendor ?? '',
+    amount_in_base_currency: Number(ex.amountInBaseCurrency ?? ex.amount ?? 0),
+    receipt_url: ex.receiptUrl ?? '',
+    expense_date: ex.expenseDate ?? nowIso(),
+    recorded_by: ex.recordedBy ?? 0,
+    payment_method: ex.paymentMethod ?? 'cash',
+    payment_status: ex.paymentStatus ?? 'unpaid',
+    created_at: ex.createdAt ?? nowIso(),
+    is_recurring: Boolean(ex.isRecurring ?? false),
+    recurring_frequency: ex.recurringFrequency ?? '',
+    notes: ex.notes ?? '',
+    updated_at: ex.updatedAt ?? nowIso(),
+});
+
+const toDbExpense = (ex: Partial<Expense>) => ({
+    vehicleId: ex.vehicle_id,
+    expenseType: ex.expense_type,
+    amount: ex.amount,
+    currency: ex.currency,
+    description: ex.description,
+    receiptUrl: ex.receipt_url,
+    expenseDate: ex.expense_date,
+    recordedBy: ex.recorded_by,
+    isRecurring: ex.is_recurring,
+    recurringFrequency: ex.recurring_frequency,
+});
+
+const fromDbOpportunity = (o: any): Opportunity => ({
+    id: o.id,
+    opportunity_name: o.opportunityName ?? '',
+    lead_id: o.leadId ?? null,
+    customer_id: o.customerId ?? null,
+    stage: o.stage ?? 'prospecting',
+    expected_value: Number(o.expectedValue ?? 0),
+    currency: o.currency ?? 'USD',
+    probability: Number(o.probability ?? 0),
+    expected_close_date: o.expectedCloseDate ?? nowIso(),
+    next_action_date: o.nextActionDate ?? null,
+    actual_close_date: o.actualCloseDate ?? null,
+    assigned_to: o.assignedTo ?? 0,
+    description: o.description ?? '',
+    next_step: o.nextStep ?? '',
+    lost_reason: o.lostReason ?? '',
+    created_at: o.createdAt ?? nowIso(),
+    updated_at: o.updatedAt ?? nowIso(),
+});
+
+const toDbOpportunity = (o: Partial<Opportunity>) => ({
+    opportunityName: o.opportunity_name,
+    leadId: o.lead_id,
+    customerId: o.customer_id,
+    stage: o.stage,
+    expectedValue: o.expected_value,
+    currency: o.currency,
+    probability: o.probability,
+    expectedCloseDate: o.expected_close_date,
+    nextActionDate: o.next_action_date,
+    actualCloseDate: o.actual_close_date,
+    assignedTo: o.assigned_to,
+    description: o.description,
+    nextStep: o.next_step,
+    lostReason: o.lost_reason,
+});
 
 // Helpers for status history and audit generation
 function appendStatusHistory(prev: Booking, next: Booking, actor?: { id?: string | number; role?: string }) {
@@ -169,6 +651,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [drivers, setDrivers] = useState<Driver[]>(mockDrivers ?? []);
     const [users, setUsers] = useState<User[]>([]);
     const [customers, setCustomers] = useState<Customer[]>(mockCustomers ?? []);
+    const [notifications, setNotifications] = useState<Notification[]>([]);
+    const [gpsLocations, setGpsLocations] = useState<Record<number, GpsLocation>>({});
     const [auditLog, setAuditLog] = useState<AuditEvent[]>([]);
     const [maintenance, setMaintenance] = useState<VehicleMaintenance[]>(mockMaintenance ?? []);
     const [leadActivities, setLeadActivities] = useState<LeadActivity[]>(mockLeadActivities ?? []);
@@ -199,7 +683,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         next_service_due_km: Number(v.next_service_due_km ?? 0),
         next_service_due_date: undefined,
         current_km: Number(v.current_km ?? 0),
-        fuel_type: 'diesel',
+        fuel_type: 'diesel' as any,
         gps_device_id: undefined,
         gps_device_active: false,
         notes: v.maintenance_requirements || undefined,
@@ -211,27 +695,27 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         id: row.id ?? idx,
         description: row.comments || 'Fuel purchase',
         amount: Number(row.amount_usd ?? 0),
-        currency: 'USD',
+        currency: 'USD' as any,
         vendor: row.supplier || undefined,
         category: 'fuel',
         receipt_url: row.receipt_url || undefined,
         expense_date: row.created_at || new Date().toISOString(),
         created_at: row.created_at || new Date().toISOString(),
         updated_at: row.created_at || new Date().toISOString(),
-    });
+    } as any);
 
     const mapLead = (row: any, idx: number): Lead => ({
         id: row.id ?? idx,
-        lead_source: 'web',
-        lead_status: 'new',
+        lead_source: 'web' as any,
+        lead_status: 'new' as any,
         lead_score: 0,
         first_name: row.customer_contact || row.customer || 'Lead',
         last_name: '',
         email: row.email || '',
         phone: '',
         company_name: row.customer || 'Unknown',
-        company_size: 'small',
-        industry: 'other',
+        company_size: 'small' as any,
+        industry: 'other' as any,
         position: row.position || '',
         website: '',
         address: '',
@@ -272,10 +756,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         billing_phone: '',
         tax_id: '',
         loyalty_points: 0,
-        loyalty_tier: 'bronze',
+        loyalty_tier: 'bronze' as any,
         total_spent: 0,
         total_bookings: 0,
-        preferred_currency: 'USD',
+        preferred_currency: 'USD' as any,
         credit_limit: undefined,
         payment_terms: undefined,
         is_verified: false,
@@ -315,6 +799,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setDrivers(persisted?.drivers ?? (mockDrivers ?? []));
         setUsers(persisted?.users ?? []);
         setCustomers(persisted?.customers ?? (mockCustomers ?? []));
+        setNotifications(persisted?.notifications ?? []);
+        setGpsLocations(persisted?.gpsLocations ?? {});
         setAuditLog(persisted?.auditLog ?? []);
         setMaintenance(persisted?.maintenance ?? (mockMaintenance ?? []));
         setLeadActivities(persisted?.leadActivities ?? (mockLeadActivities ?? []));
@@ -322,7 +808,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setDeliveryProofs(persisted?.deliveryProofs ?? []);
     }, [storageKey]);
 
-    // Part 4: Load remote data from Neon via Netlify functions
+    // Part 4: Remote sync from API (Neon + Drizzle)
     useEffect(() => {
         if (!user) return;
         let cancelled = false;
@@ -330,26 +816,55 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setLoadingRemote(true);
             setRemoteError(null);
             try {
-                const [fleetRes, crmRes] = await Promise.all([
-                    fetch("/.netlify/functions/fleet-data", { credentials: "include" }),
-                    fetch("/.netlify/functions/crm-data", { credentials: "include" }),
+                const [vRes, cRes, bRes, dRes, lRes, iRes, eRes, oRes, uRes, nRes, gpsRes] = await Promise.all([
+                    vehiclesApi.getAll(),
+                    customersApi.getAll(),
+                    bookingsApi.getAll(),
+                    driversApi.getAll(),
+                    leadsApi.getAll(),
+                    invoicesApi.getAll(),
+                    expensesApi.getAll(),
+                    opportunitiesApi.getAll(),
+                    usersApi.getAll(),
+                    notificationsApi.getAll(),
+                    fetch("/api/vehicle-locations/latest", {
+                        headers: {
+                            "x-admin-token": (import.meta as any).env?.VITE_ADMIN_API_TOKEN || "",
+                        },
+                    }).then((r) => r.json()).catch(() => []),
                 ]);
-                if (!fleetRes.ok) throw new Error(`Fleet data error: ${fleetRes.status}`);
-                if (!crmRes.ok) throw new Error(`CRM data error: ${crmRes.status}`);
-                const fleet = await fleetRes.json();
-                const crm = await crmRes.json();
 
                 if (cancelled) return;
 
-                const mappedVehicles = (fleet?.vehicles ?? []).map(mapDbVehicle);
-                const mappedExpenses = (fleet?.fuel ?? []).map(mapFuelToExpense);
-                setVehicles(mappedVehicles);
-                setExpenses(mappedExpenses);
-                setLeads((crm?.leads ?? []).map(mapLead));
-                setCustomers((crm?.customers ?? []).map(mapCustomer));
+                setVehicles((vRes || []).map(fromDbVehicle));
+                setCustomers((cRes || []).map(fromDbCustomer));
+                setBookings((bRes || []).map(fromDbBooking));
+                setDrivers((dRes || []).map(fromDbDriver));
+                setLeads((lRes || []).map(fromDbLead));
+                setInvoices((iRes || []).map(fromDbInvoice));
+                setExpenses((eRes || []).map(fromDbExpense));
+                setOpportunities((oRes || []).map(fromDbOpportunity));
+                setUsers((uRes || []).map(fromDbUser));
+                setNotifications((nRes || []) as Notification[]);
+                const gpsMap: Record<number, GpsLocation> = {};
+                (gpsRes || []).forEach((g: any) => {
+                    gpsMap[g.vehicle_id || g.vehicleId] = {
+                        id: g.id,
+                        vehicle_id: g.vehicle_id ?? g.vehicleId,
+                        driver_id: g.driver_id ?? g.driverId,
+                        booking_id: g.booking_id ?? g.bookingId,
+                        latitude: Number(g.latitude),
+                        longitude: Number(g.longitude),
+                        speed: g.speed != null ? Number(g.speed) : undefined,
+                        heading: g.heading != null ? Number(g.heading) : undefined,
+                        timestamp: g.timestamp ?? g.created_at ?? nowIso(),
+                        created_at: g.created_at ?? nowIso(),
+                    };
+                });
+                setGpsLocations(gpsMap);
             } catch (err: any) {
                 if (cancelled) return;
-                setRemoteError(err?.message || "Failed to load remote data");
+                setRemoteError(err?.message || 'Failed to load remote data');
             } finally {
                 if (!cancelled) setLoadingRemote(false);
             }
@@ -362,6 +877,11 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const emitChange = (type: string, payload: any) => {
         if (!channelRef.current) return;
         channelRef.current.postMessage({ source: instanceId, type, payload });
+        // Also send to server for cross-user realtime if configured
+        const adminToken = (import.meta as any).env?.VITE_ADMIN_API_TOKEN || undefined;
+        publishEvent(type, payload, adminToken).catch(() => {
+            // non-fatal
+        });
     };
 
     useEffect(() => {
@@ -377,8 +897,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         channelRef.current = channel;
 
-        channel.onmessage = (event: MessageEvent) => {
-            const { source, type, payload } = (event.data || {}) as { source?: string; type?: string; payload?: any };
+        const handleMessage = (event: { source?: string; type?: string; payload?: any }) => {
+            const { source, type, payload } = event;
             if (!type || source === instanceId) return;
 
             switch (type) {
@@ -396,6 +916,15 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     break;
                 case 'bookings:update':
                     setBookings((prev) => prev.map((b) => (b.id === payload.id ? { ...b, ...payload } : b)));
+                    break;
+                case 'drivers:add':
+                    setDrivers((prev) => (prev.some((d) => d.id === payload.id) ? prev : [payload, ...prev]));
+                    break;
+                case 'drivers:update':
+                    setDrivers((prev) => prev.map((d) => (d.id === payload.id ? { ...d, ...payload } : d)));
+                    break;
+                case 'drivers:delete':
+                    setDrivers((prev) => prev.filter((d) => d.id !== payload.id));
                     break;
                 case 'leads:add':
                     setLeads((prev) => (prev.some((l) => l.id === payload.id) ? prev : [payload, ...prev]));
@@ -442,19 +971,62 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 case 'users:add':
                     setUsers((prev) => (prev.some((u) => u.id === payload.id) ? prev : [payload, ...prev]));
                     break;
+                case 'users:update':
+                    setUsers((prev) => prev.map((u) => (u.id === payload.id ? { ...u, ...payload } : u)));
+                    break;
                 case 'users:delete':
                     setUsers((prev) => prev.filter((u) => u.id !== payload.id));
                     break;
-                case 'audit:append':
-                    setAuditLog((prev) => [payload, ...prev].slice(0, 500));
-                    break;
-                default:
-                    break;
+        case 'audit:append':
+            setAuditLog((prev) => [payload, ...prev].slice(0, 500));
+            break;
+        case 'notifications:add':
+            setNotifications((prev) => [payload, ...prev].slice(0, 50));
+            break;
+        case 'vehicle.location':
+            setGpsLocations((prev) => ({
+                ...prev,
+                [payload.vehicle_id ?? payload.vehicleId]: {
+                    id: payload.id,
+                    vehicle_id: payload.vehicle_id ?? payload.vehicleId,
+                    driver_id: payload.driver_id ?? payload.driverId,
+                    booking_id: payload.booking_id ?? payload.bookingId,
+                    latitude: Number(payload.latitude),
+                    longitude: Number(payload.longitude),
+                    speed: payload.speed != null ? Number(payload.speed) : undefined,
+                    heading: payload.heading != null ? Number(payload.heading) : undefined,
+                    timestamp: payload.timestamp ?? nowIso(),
+                    created_at: payload.created_at ?? nowIso(),
+                },
+            }));
+            break;
+        default:
+            break;
+        }
+    };
+
+        channel.onmessage = (event: MessageEvent) => {
+            handleMessage(event.data as any);
+        };
+
+        // Also listen to server-sent events for cross-user realtime
+        const adminToken = (import.meta as any).env?.VITE_ADMIN_API_TOKEN || undefined;
+        const es = openEventStream(adminToken);
+        es.onmessage = (evt) => {
+            try {
+                const parsed = JSON.parse(evt.data);
+                handleMessage(parsed);
+            } catch {
+                // ignore
             }
+        };
+        es.onerror = () => {
+            // let the browser reconnect automatically
         };
 
         return () => {
             channel.close();
+            es.close();
         };
     }, [instanceId, channelName]);
 
@@ -471,6 +1043,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
             drivers,
             users,
             customers,
+            gpsLocations,
             auditLog,
             maintenance,
             leadActivities,
@@ -495,11 +1068,14 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         drivers,
         users,
         customers,
+        notifications,
+        gpsLocations,
         auditLog,
         maintenance,
         leadActivities,
         opportunityActivities,
         deliveryProofs,
+        gpsLocations,
         storageKey,
     ]);
 
@@ -507,6 +1083,12 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const full: AuditEvent = { id: safeId(), at: nowIso(), ...entry };
         setAuditLog((prev) => [full, ...prev].slice(0, 500));
         emitChange('audit:append', full);
+    };
+
+    const getCustomerEmail = (customerId?: number | null) => {
+        if (!customerId) return null;
+        const c = customers.find((c) => c.id === customerId);
+        return c?.billing_email || null;
     };
 
     const logAuditEvent = (entry: Omit<AuditEvent, 'id' | 'at'>) => {
@@ -520,10 +1102,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const clearAuditLog = () => setAuditLog([]);
 
-    const addBooking = (booking: Omit<Booking, 'id' | 'created_at' | 'updated_at'>) => {
+    const addBooking = async (booking: Omit<Booking, 'id' | 'created_at' | 'updated_at'>) => {
         const createdAt = nowIso();
-        const id = bookings.length ? Math.max(...bookings.map((b) => b.id)) + 1 : 1;
-
         const statusChange: BookingStatusEvent = {
             at: createdAt,
             from: null,
@@ -535,196 +1115,300 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
             } : undefined,
         };
 
-        const full: Booking = {
+        const toSave: Booking = {
             ...booking,
-            id,
             created_at: createdAt,
             updated_at: createdAt,
             status_history: [statusChange],
         } as Booking;
 
-        setBookings((prev) => [full, ...prev]);
-        emitChange('bookings:add', full);
+        try {
+            const saved = await bookingsApi.create(toDbBooking(toSave));
+            const mapped = fromDbBooking(saved);
+            setBookings((prev) => [mapped, ...prev]);
+            emitChange('bookings:add', mapped);
 
-        addAudit({
-            actor: user ? {
-                id: user.userId,
-                name: [user.firstName, user.lastName].filter(Boolean).join(" ") || user.email,
-                role: user.role,
-            } : undefined,
-            action: 'booking.status.change',
-            entity: { type: 'booking', id, ref: full.booking_number },
-            meta: { booking_number: full.booking_number },
-        });
-    };
-
-    const updateBooking = (updated: Booking) => {
-        let nextState: Booking | null = null;
-        setBookings((prev) => {
-            const existing = prev.find((b) => b.id === updated.id);
-            if (!existing) return prev;
-
-            const didStatusChange = existing.status !== updated.status;
-            const updatedAt = nowIso();
-
-            const next: Booking = { ...existing, ...updated, updated_at: updatedAt };
-
-            if (didStatusChange) {
-                const actor = user ? { id: user.userId, role: user.role } : undefined;
-
-                const { status_history } = appendStatusHistory(existing, updated, actor as any);
-                next.status_history = status_history;
-
-                const auditEntry = makeAuditForStatusChange(existing, updated, actor as any);
-                setAuditLog((prev) => [auditEntry, ...prev].slice(0, 500));
-
-                if (updated.status === 'confirmed') next.confirmed_at = updatedAt;
-                if (updated.status === 'in_transit' || updated.status === 'dispatched') next.started_at = updatedAt;
-                if (updated.status === 'delivered') next.delivered_at = updatedAt;
-                if (updated.status === 'cancelled') next.cancelled_at = updatedAt;
+            addAudit({
+                actor: statusChange.by,
+                action: 'booking.status.change',
+                entity: { type: 'booking', id: mapped.id, ref: mapped.booking_number },
+                meta: { booking_number: mapped.booking_number },
+            });
+            const recipient = getCustomerEmail(mapped.customer_id);
+            if (recipient) {
+                await addNotification?.({
+                    type: 'booking.created',
+                    entity_id: mapped.id,
+                    recipient_email: recipient,
+                    status: 'queued',
+                    payload: { booking_number: mapped.booking_number, status: mapped.status },
+                } as any);
             }
-
-            nextState = next;
-            return prev.map((b) => (b.id === updated.id ? next : b));
-        });
-        if (nextState) {
-            emitChange('bookings:update', nextState);
+        } catch {
+            // optimistic fallback
+            setBookings((prev) => {
+                const id = prev.length ? Math.max(...prev.map((b) => b.id)) + 1 : 1;
+                const optimistic = { ...toSave, id };
+                emitChange('bookings:add', optimistic);
+                return [optimistic, ...prev];
+            });
         }
     };
 
-    const addLead = (lead: Omit<Lead, 'id' | 'created_at' | 'updated_at'>) => {
-        const createdAt = nowIso();
-        const id = leads.length ? Math.max(...leads.map((l) => l.id)) + 1 : 1;
-        const full: Lead = { ...lead, id, created_at: createdAt, updated_at: createdAt } as Lead;
-        setLeads((prev) => [full, ...prev]);
-        emitChange('leads:add', full);
+    const updateBooking = async (updated: Booking) => {
+        const existing = bookings.find((b) => b.id === updated.id);
+        if (!existing) return;
+
+        const updatedAt = nowIso();
+        const actor = user ? { id: user.userId, role: user.role } : undefined;
+        const { statusChanged, status_history } = appendStatusHistory(existing, updated, actor as any);
+
+        let next: Booking = { ...existing, ...updated, updated_at: updatedAt, status_history };
+        if (statusChanged) {
+            if (updated.status === 'confirmed') next.confirmed_at = updatedAt;
+            if (updated.status === 'in_transit' || updated.status === 'dispatched') next.started_at = updatedAt;
+            if (updated.status === 'delivered') next.delivered_at = updatedAt;
+            if (updated.status === 'cancelled') next.cancelled_at = updatedAt;
+        }
+
+        setBookings((prev) => prev.map((b) => (b.id === updated.id ? next : b)));
+        emitChange('bookings:update', next);
+        if (statusChanged) {
+            const auditEntry = makeAuditForStatusChange(existing, next, actor as any);
+            setAuditLog((prev) => [auditEntry, ...prev].slice(0, 500));
+            const recipient = getCustomerEmail(next.customer_id);
+            if (recipient) {
+                await addNotification?.({
+                    type: 'booking.status',
+                    entity_id: next.id,
+                    recipient_email: recipient,
+                    status: 'queued',
+                    payload: { booking_number: next.booking_number, status: next.status },
+                } as any);
+            }
+        }
+
+        try {
+            const saved = await bookingsApi.update(updated.id, { ...toDbBooking(next), updatedAt });
+            const mapped = fromDbBooking(saved);
+            setBookings((prev) => prev.map((b) => (b.id === updated.id ? mapped : b)));
+        } catch {
+            // keep optimistic state
+        }
     };
 
-    const updateLead = (lead: Lead) => {
+    const addLead = async (lead: Omit<Lead, 'id' | 'created_at' | 'updated_at'>) => {
+        const createdAt = nowIso();
+        const toSave: Lead = { ...lead, created_at: createdAt, updated_at: createdAt } as Lead;
+        try {
+            const saved = await leadsApi.create(toDbLead(toSave));
+            const mapped = fromDbLead(saved);
+            setLeads((prev) => [mapped, ...prev]);
+            emitChange('leads:add', mapped);
+        } catch {
+            setLeads((prev) => {
+                const id = prev.length ? Math.max(...prev.map((l) => l.id)) + 1 : 1;
+                const optimistic = { ...toSave, id };
+                emitChange('leads:add', optimistic);
+                return [optimistic, ...prev];
+            });
+        }
+    };
+
+    const updateLead = async (lead: Lead) => {
         const updatedAt = nowIso();
         setLeads((prev) => prev.map((l) => (l.id === lead.id ? { ...l, ...lead, updated_at: updatedAt } : l)));
         emitChange('leads:update', { ...lead, updated_at: updatedAt });
+        try {
+            const saved = await leadsApi.update(lead.id, { ...toDbLead(lead), updatedAt });
+            const mapped = fromDbLead(saved);
+            setLeads((prev) => prev.map((l) => (l.id === lead.id ? mapped : l)));
+        } catch {
+            // keep optimistic
+        }
     };
 
-    const deleteLead = (id: number) => {
+    const deleteLead = async (id: number) => {
         setLeads((prev) => prev.filter((l) => l.id !== id));
         emitChange('leads:delete', { id });
+        try {
+            await leadsApi.delete(id);
+        } catch {
+            // ignore
+        }
     };
 
-    const updateOpportunity = (opportunity: Opportunity) => {
+    const updateOpportunity = async (opportunity: Opportunity) => {
+        const updatedAt = nowIso();
         setOpportunities((prev) =>
-            prev.map((o) => (o.id === opportunity.id ? { ...o, ...opportunity, updated_at: nowIso() } : o))
+            prev.map((o) => (o.id === opportunity.id ? { ...o, ...opportunity, updated_at: updatedAt } : o))
         );
-        emitChange('opportunities:update', opportunity);
+        emitChange('opportunities:update', { ...opportunity, updated_at: updatedAt });
+
+        try {
+            const saved = await opportunitiesApi.update(opportunity.id, { ...toDbOpportunity(opportunity), updatedAt });
+            const mapped = fromDbOpportunity(saved);
+            setOpportunities((prev) => prev.map((o) => (o.id === opportunity.id ? mapped : o)));
+        } catch {
+            // leave optimistic
+        }
     };
 
-    const addInvoice = (invoice: Omit<Invoice, 'id' | 'created_at' | 'updated_at'>) => {
+    const addInvoice = async (invoice: Omit<Invoice, 'id' | 'created_at' | 'updated_at'>) => {
         const createdAt = nowIso();
-        const full: Invoice = { ...invoice, created_at: createdAt, updated_at: createdAt } as Invoice;
-        setInvoices((prev) => {
-            const id = prev.length ? Math.max(...prev.map((i) => i.id)) + 1 : 1;
-            const next = { ...full, id };
-            emitChange('invoices:add', next);
-            return [next, ...prev];
-        });
+        const toSave: Invoice = { ...invoice, created_at: createdAt, updated_at: createdAt } as Invoice;
+        try {
+            const saved = await invoicesApi.create(toDbInvoice(toSave));
+            const mapped = fromDbInvoice(saved);
+            setInvoices((prev) => [mapped, ...prev]);
+            emitChange('invoices:add', mapped);
+        } catch {
+            setInvoices((prev) => {
+                const id = prev.length ? Math.max(...prev.map((i) => i.id)) + 1 : 1;
+                const optimistic = { ...toSave, id };
+                emitChange('invoices:add', optimistic);
+                return [optimistic, ...prev];
+            });
+        }
     };
 
-    const updateInvoice = (updated: Invoice) => {
+    const updateInvoice = async (updated: Invoice) => {
+        const updatedAt = nowIso();
         let nextState: Invoice | null = null;
+
         setInvoices((prev) => {
             const existing = prev.find((i) => i.id === updated.id);
             if (!existing) return prev;
-            const updatedAt = nowIso();
-            const next: Invoice = { ...existing, ...updated, updated_at: updatedAt };
 
+            const next: Invoice = { ...existing, ...updated, updated_at: updatedAt };
             if (updated.status === InvoiceStatus.PAID) {
                 if (!next.paid_at) next.paid_at = updatedAt;
                 if (!Number.isFinite(next.amount_paid) || next.amount_paid <= 0) next.amount_paid = next.total_amount;
                 if (!Number.isFinite(next.balance_due) || next.balance_due !== 0) next.balance_due = 0;
             }
-
             nextState = next;
             return prev.map((i) => (i.id === updated.id ? next : i));
         });
+
         if (nextState) {
             emitChange('invoices:update', nextState);
+            try {
+                const saved = await invoicesApi.update(updated.id, { ...toDbInvoice(nextState), updatedAt });
+                const mapped = fromDbInvoice(saved);
+                setInvoices((prev) => prev.map((i) => (i.id === updated.id ? mapped : i)));
+                if (mapped.status === InvoiceStatus.PAID || mapped.status === 'overdue') {
+                    const recipient = getCustomerEmail(mapped.customer_id);
+                    if (recipient) {
+                        await addNotification?.({
+                            type: mapped.status === InvoiceStatus.PAID ? 'invoice.paid' : 'invoice.overdue',
+                            entity_id: mapped.id,
+                            recipient_email: recipient,
+                            status: 'queued',
+                            payload: { invoice_number: mapped.invoice_number, status: mapped.status },
+                        } as any);
+                    }
+                }
+            } catch {
+                // keep optimistic
+            }
         }
     };
 
-    const addExpense = (expense: Omit<Expense, 'id' | 'created_at' | 'updated_at'>) => {
+    const addExpense = async (expense: Omit<Expense, 'id' | 'created_at' | 'updated_at'>) => {
         const createdAt = nowIso();
-        const full: Expense = { ...expense, created_at: createdAt, updated_at: createdAt } as Expense;
-        setExpenses((prev) => {
-            const id = prev.length ? Math.max(...prev.map((e) => e.id)) + 1 : 1;
-            const next = { ...full, id };
-            emitChange('expenses:add', next);
-            return [next, ...prev];
-        });
+        const toSave: Expense = { ...expense, created_at: createdAt, updated_at: createdAt } as Expense;
+        try {
+            const saved = await expensesApi.create(toDbExpense(toSave));
+            const mapped = fromDbExpense(saved);
+            setExpenses((prev) => [mapped, ...prev]);
+            emitChange('expenses:add', mapped);
+        } catch {
+            setExpenses((prev) => {
+                const id = prev.length ? Math.max(...prev.map((e) => e.id)) + 1 : 1;
+                const optimistic = { ...toSave, id };
+                emitChange('expenses:add', optimistic);
+                return [optimistic, ...prev];
+            });
+        }
     };
 
-    const addVehicle = (vehicle: Omit<Vehicle, 'id' | 'created_at' | 'updated_at'>) => {
+    const addVehicle = async (vehicle: Omit<Vehicle, 'id' | 'created_at' | 'updated_at'>) => {
         const createdAt = nowIso();
         const full: Vehicle = { ...vehicle, created_at: createdAt, updated_at: createdAt } as Vehicle;
-        setVehicles((prev) => {
-            const id = prev.length ? Math.max(...prev.map((v) => v.id)) + 1 : 1;
-            const next = { ...full, id };
-            emitChange('vehicles:add', next);
-            return [next, ...prev];
-        });
-    };
-
-    const updateVehicle = (vehicle: Vehicle) => {
-        let nextState: Vehicle | null = null;
-        setVehicles((prev) => {
-            const existing = prev.find((v) => v.id === vehicle.id);
-            if (!existing) return prev;
-
-            const updatedAt = nowIso();
-            const next: Vehicle = { ...existing, ...vehicle, updated_at: updatedAt };
-            const hadBelowThreshold = (existing.current_km ?? 0) < (existing.next_service_due_km ?? 0);
-            const nowAtOrAbove = (next.current_km ?? 0) >= (next.next_service_due_km ?? 0);
-            const shouldSchedule = hadBelowThreshold && nowAtOrAbove;
-
-            if (shouldSchedule) {
-                setMaintenance((prevMaintenance) => {
-                    const hasOpen = prevMaintenance.some(
-                        (m) =>
-                            m.vehicle_id === next.id &&
-                            (m.status === MaintenanceStatus.SCHEDULED || m.status === MaintenanceStatus.IN_PROGRESS)
-                    );
-                    if (hasOpen) return prevMaintenance;
-
-                    const id = prevMaintenance.length ? Math.max(...prevMaintenance.map((m) => m.id)) + 1 : 1;
-                    const createdAt = nowIso();
-                    const serviceDate = createdAt.split('T')[0];
-                    const scheduled: VehicleMaintenance = {
-                        id,
-                        vehicle_id: next.id,
-                        maintenance_type: MaintenanceType.ROUTINE,
-                        description: 'Scheduled service (auto)',
-                        cost: 0,
-                        km_at_service: next.current_km,
-                        service_date: serviceDate,
-                        status: MaintenanceStatus.SCHEDULED,
-                        created_by: user?.userId ? Number(user.userId) : 0,
-                        created_at: createdAt,
-                        updated_at: createdAt,
-                    };
-                    return [scheduled, ...prevMaintenance];
-                });
-            }
-
-            nextState = next;
-            return prev.map((v) => (v.id === vehicle.id ? next : v));
-        });
-        if (nextState) {
-            emitChange('vehicles:update', nextState);
+        try {
+            const saved = await vehiclesApi.create(toDbVehicle(full));
+            const mapped = fromDbVehicle(saved);
+            setVehicles((prev) => [mapped, ...prev]);
+        } catch (e) {
+            // fallback optimistic
+            setVehicles((prev) => {
+                const id = prev.length ? Math.max(...prev.map((v) => v.id)) + 1 : 1;
+                return [{ ...full, id }, ...prev];
+            });
         }
     };
 
-    const deleteVehicle = (id: number) => {
+    const updateVehicle = async (vehicle: Vehicle) => {
+        const updatedAt = nowIso();
+        try {
+            const saved = await vehiclesApi.update(vehicle.id, { ...toDbVehicle(vehicle), updatedAt });
+            const mapped = fromDbVehicle(saved);
+            setVehicles((prev) => prev.map((v) => (v.id === vehicle.id ? mapped : v)));
+        } catch {
+            setVehicles((prev) =>
+                prev.map((v) => (v.id === vehicle.id ? { ...v, ...vehicle, updated_at: updatedAt } : v))
+            );
+        }
+    };
+
+    const deleteVehicle = async (id: number) => {
         setVehicles((prev) => prev.filter((v) => v.id !== id));
-        emitChange('vehicles:delete', { id });
+        try {
+            await vehiclesApi.delete(id);
+        } catch {
+            // swallow errors; state already updated
+        }
+    };
+
+    const addDriver = async (driver: Omit<Driver, 'id' | 'created_at' | 'updated_at'>) => {
+        const createdAt = nowIso();
+        const toSave: Driver = { ...driver, created_at: createdAt, updated_at: createdAt } as Driver;
+        try {
+            const saved = await driversApi.create(toDbDriver(toSave));
+            const mapped = fromDbDriver(saved);
+            setDrivers((prev) => [mapped, ...prev]);
+            emitChange('drivers:add', mapped);
+        } catch {
+            setDrivers((prev) => {
+                const id = prev.length ? Math.max(...prev.map((d) => d.id)) + 1 : 1;
+                const optimistic = { ...toSave, id };
+                emitChange('drivers:add', optimistic);
+                return [optimistic, ...prev];
+            });
+        }
+    };
+
+    const updateDriver = async (driver: Driver) => {
+        const updatedAt = nowIso();
+        setDrivers((prev) => prev.map((d) => (d.id === driver.id ? { ...d, ...driver, updated_at: updatedAt } : d)));
+        emitChange('drivers:update', { ...driver, updated_at: updatedAt });
+        try {
+            const saved = await driversApi.update(driver.id, { ...toDbDriver(driver), updatedAt });
+            const mapped = fromDbDriver(saved);
+            setDrivers((prev) => prev.map((d) => (d.id === driver.id ? mapped : d)));
+        } catch {
+            // keep optimistic
+        }
+    };
+
+    const deleteDriver = async (id: number) => {
+        setDrivers((prev) => prev.filter((d) => d.id !== id));
+        emitChange('drivers:delete', { id });
+        try {
+            await driversApi.delete(id);
+        } catch {
+            // ignore
+        }
     };
 
     const addMaintenance = (item: Omit<VehicleMaintenance, 'id' | 'created_at' | 'updated_at'>) => {
@@ -737,12 +1421,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
     };
 
-    const addCustomer = (customerData: Omit<Customer, 'id' | 'created_at' | 'updated_at' | 'user_id'>) => {
+    const addCustomer = async (customerData: Omit<Customer, 'id' | 'created_at' | 'updated_at' | 'user_id'>) => {
         const createdAt = nowIso();
-        const id = customers.length ? Math.max(...customers.map((c) => c.id)) + 1 : 1;
-        const full: Customer = {
+        const toSave: Customer = {
             ...customerData,
-            id,
             user_id: 0,
             loyalty_points: customerData.loyalty_points ?? 0,
             total_spent: customerData.total_spent ?? 0,
@@ -751,21 +1433,40 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
             preferred_currency: (customerData as any).preferred_currency || Currency.USD,
             created_at: createdAt,
             updated_at: createdAt,
+            id: 0,
         } as Customer;
-        setCustomers((prev) => [full, ...prev]);
-        emitChange('customers:add', full);
+        try {
+            const saved = await customersApi.create(toDbCustomer(toSave));
+            const mapped = fromDbCustomer(saved);
+            setCustomers((prev) => [mapped, ...prev]);
+        } catch {
+            setCustomers((prev) => {
+                const id = prev.length ? Math.max(...prev.map((c) => c.id)) + 1 : 1;
+                return [{ ...toSave, id }, ...prev];
+            });
+        }
     };
 
-    const updateCustomer = (customer: Customer) => {
+    const updateCustomer = async (customer: Customer) => {
         const updatedAt = nowIso();
-        const next = { ...customer, updated_at: updatedAt };
-        setCustomers((prev) => prev.map((c) => (c.id === customer.id ? next : c)));
-        emitChange('customers:update', next);
+        try {
+            const saved = await customersApi.update(customer.id, { ...toDbCustomer(customer), updatedAt });
+            const mapped = fromDbCustomer(saved);
+            setCustomers((prev) => prev.map((c) => (c.id === customer.id ? mapped : c)));
+        } catch {
+            setCustomers((prev) =>
+                prev.map((c) => (c.id === customer.id ? { ...c, ...customer, updated_at: updatedAt } : c))
+            );
+        }
     };
 
-    const deleteCustomer = (id: number) => {
+    const deleteCustomer = async (id: number) => {
         setCustomers((prev) => prev.filter((c) => c.id !== id));
-        emitChange('customers:delete', { id });
+        try {
+            await customersApi.delete(id);
+        } catch {
+            // ignore
+        }
     };
 
     const addLeadActivity = (activity: Omit<LeadActivity, 'id' | 'created_at'>) => {
@@ -798,16 +1499,51 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
     };
 
-    const addUser = (u: Omit<User, 'id'>) => {
-        const id = safeId();
-        const full = { ...u, id };
-        setUsers((prev) => [full, ...prev]);
-        emitChange('users:add', full);
+    const addUser = async (u: Omit<User, 'id'>) => {
+        const toSave = { ...u, role: (u as any).role || 'pending' };
+        try {
+            const saved = await usersApi.create(toDbUser(toSave));
+            const mapped = fromDbUser(saved);
+            setUsers((prev) => [mapped, ...prev]);
+            emitChange('users:add', mapped);
+        } catch {
+            const id = safeId();
+            const optimistic = { ...toSave, id };
+            setUsers((prev) => [optimistic as any, ...prev]);
+            emitChange('users:add', optimistic);
+        }
     };
 
-    const deleteUser = (id: string | number) => {
+    const addNotification = async (n: Omit<Notification, 'id' | 'created_at'>) => {
+        try {
+            const saved = await notificationsApi.create(n);
+            setNotifications((prev) => [saved as Notification, ...prev].slice(0, 50));
+            emitChange('notifications:add', saved);
+        } catch {
+            // ignore
+        }
+    };
+
+    const updateUser = async (u: User) => {
+        try {
+            const saved = await usersApi.update(u.id as any, toDbUser(u));
+            const mapped = fromDbUser(saved);
+            setUsers((prev) => prev.map((x) => (x.id === u.id ? mapped : x)));
+            emitChange('users:update', mapped);
+        } catch {
+            setUsers((prev) => prev.map((x) => (x.id === u.id ? u : x)));
+            emitChange('users:update', u);
+        }
+    };
+
+    const deleteUser = async (id: string | number) => {
         setUsers((prev) => prev.filter((u) => u.id !== id));
         emitChange('users:delete', { id });
+        try {
+            await usersApi.delete(id);
+        } catch {
+            // ignore
+        }
     };
 
     const value: DataContextValue = {
@@ -825,6 +1561,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         leadActivities,
         opportunityActivities,
         deliveryProofs,
+        gpsLocations,
 
         addBooking,
         updateBooking,
@@ -842,6 +1579,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         addVehicle,
         updateVehicle,
         deleteVehicle,
+        addDriver,
+        updateDriver,
+        deleteDriver,
         addMaintenance,
         addCustomer,
         updateCustomer,
@@ -853,7 +1593,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         addDeliveryProof,
 
         addUser,
+        updateUser,
         deleteUser,
+        notifications,
+        addNotification,
         logAuditEvent,
         clearAuditLog,
     };

@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Lead, LeadSource, LeadStatus, CompanySize, Industry } from "../types";
+import { searchLeadFinder } from "../src/services/leadFinderApi";
 import {
   CloseIcon,
   SparklesIcon,
@@ -40,17 +41,10 @@ type LeadProspect = {
   sourcesCount?: number;
 };
 
-async function findPotentialLeads(criteria: LeadProspectingCriteria): Promise<{ results: LeadProspect[]; cached?: boolean; reasonHints?: string[] }> {
-  const res = await fetch("/.netlify/functions/lead-finder-search", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    credentials: "include",
-    body: JSON.stringify(criteria),
-  });
-
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data?.error || "Lead Finder failed");
-  return { results: data?.results || [], cached: data?.cached, reasonHints: data?.reasonHints || [] };
+async function findPotentialLeads(
+  criteria: LeadProspectingCriteria
+): Promise<{ results: LeadProspect[]; cached?: boolean; reasonHints?: string[] }> {
+  return searchLeadFinder<LeadProspect>(criteria as any);
 }
 
 interface LeadFinderModalProps {

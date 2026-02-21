@@ -191,7 +191,21 @@ const ImportLeadsModal: React.FC<ImportLeadsModalProps> = ({ onClose, onImport }
                         <h3 className="text-lg font-medium text-slate-900">Review Import</h3>
                         <p className="mt-1 text-sm text-slate-500">Here is a preview of the first 5 records. If everything looks correct, confirm the import.</p>
                         <div className="mt-4 overflow-x-auto">
-                            <table className="min-w-full text-sm">
+                            <div className="sm:hidden space-y-2">
+                                {parsedData.slice(0, 5).map((row, rowIndex) => (
+                                    <div key={rowIndex} className="rounded-xl border border-slate-200 bg-white p-3">
+                                        {Object.values(columnMap)
+                                            .filter(f => f)
+                                            .map((field, idx) => (
+                                                <div key={idx} className="text-xs text-slate-600">
+                                                    <span className="font-medium">{(field as string).replace(/_/g, ' ')}: </span>
+                                                    <span className="text-slate-900">{row[field as string] ?? '—'}</span>
+                                                </div>
+                                            ))}
+                                    </div>
+                                ))}
+                            </div>
+                            <table className="min-w-full text-sm hidden sm:table">
                                 <thead className="bg-slate-50">
                                     <tr>
                                         {Object.values(columnMap).filter(f => f).map(field => (

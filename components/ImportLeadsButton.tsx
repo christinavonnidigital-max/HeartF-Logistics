@@ -574,7 +574,35 @@ const ImportLeadsButton: React.FC<ImportLeadsButtonProps> = ({ buttonLabel, clas
           </SubtleCard>
 
           <div className="overflow-auto rounded-2xl border border-border bg-card">
-            <table className="min-w-full text-sm">
+            <div className="sm:hidden space-y-2 p-3">
+              {reviewRows
+                .filter((r) => r.action === "update" && r.reason !== "processing-error" && r.reason !== "no-identity")
+                .map((r) => {
+                  const inCompany = getValue(r.payload, ["company_name", "companyName", "company"]);
+                  const inContact = getValue(r.payload, ["contact_name", "contactName", "name", "contact"]);
+                  const inEmail = getValue(r.payload, ["email"]);
+                  const exCompany = getValue(r.match, ["company_name", "companyName", "company"]);
+                  return (
+                    <div key={r.key} className="rounded-xl border border-border bg-white p-3">
+                      <div className="flex items-center justify-between">
+                        <div className="text-sm font-semibold text-foreground">{inCompany || "—"}</div>
+                        <input
+                          type="checkbox"
+                          className="h-4 w-4 accent-brand-600"
+                          checked={r.selected}
+                          onChange={(e) => toggleRow(r.key, e.target.checked)}
+                          disabled={isApplying}
+                        />
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-1">Contact: {inContact || "—"}</div>
+                      <div className="text-xs text-muted-foreground">Email: {inEmail || "—"}</div>
+                      <div className="text-xs text-muted-foreground mt-1">Matched: {exCompany || "—"}</div>
+                      <div className="text-xs text-muted-foreground">Reason: {r.reason}</div>
+                    </div>
+                  );
+                })}
+            </div>
+            <table className="min-w-full text-sm hidden sm:table">
               <thead className="bg-muted">
                 <tr>
                   <th className="px-3 py-2 text-left font-medium text-muted-foreground w-[72px]">Update?</th>

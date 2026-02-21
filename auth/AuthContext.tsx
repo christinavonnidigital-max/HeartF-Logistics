@@ -1,8 +1,6 @@
-// Part 1: Auth context (Neon Auth + Netlify cookie session)
-// Goals:
-// - Stable auth lifecycle with explicit status
-// - Refresh restores user reliably
-// - Expose authFetch() which auto-logs out on 401/403
+// Auth context (Netlify-free) using Neon Auth directly
+// - Uses @neondatabase/auth for hosted auth flows
+// - Falls back to dev demo users for offline testing
 
 import React, {
   createContext,
@@ -15,15 +13,16 @@ import React, {
 } from "react";
 import { authClient } from "../src/lib/neonAuth";
 import { apiFetch } from "../src/services/apiClient";
+import { usersApi } from "../src/services/dbApi";
 
-// Part 2: Types
 export type UserRole =
   | "dispatcher"
   | "ops_manager"
   | "finance"
   | "admin"
   | "customer"
-  | "driver";
+  | "driver"
+  | "pending";
 
 export type User = {
   userId: string;
@@ -42,10 +41,11 @@ type AuthContextValue = {
   loading: boolean;
 
   login: (email: string, password: string) => Promise<"ok" | "invalid">;
+  signUp: (payload: { email: string; password: string; firstName: string; lastName: string }) => Promise<"ok" | "invalid">;
+  requestPasswordReset: (email: string, redirectTo?: string) => Promise<"ok" | "invalid">;
   logout: () => Promise<void>;
   refresh: () => Promise<void>;
 
-  // Shared fetch helper that auto-logs out on 401/403
   authFetch: <T>(
     url: string,
     init?: Omit<Parameters<typeof apiFetch<T>>[1], "onUnauthorized">
@@ -76,12 +76,6 @@ const DEV_TEST_USERS: Record<
     firstName: "Ops",
     lastName: "Manager",
   },
-  "customer@heartfledge.local": {
-    password: "client123",
-    role: "customer",
-    firstName: "Customer",
-    lastName: "User",
-  },
   "finance@heartfledge.local": {
     password: "finance123",
     role: "finance",
@@ -95,6 +89,37 @@ const DEV_TEST_USERS: Record<
     lastName: "User",
   },
 };
+
+function splitName(name?: string | null) {
+  const trimmed = (name || "").trim();
+  if (!trimmed) return { firstName: "", lastName: "" };
+  const parts = trimmed.split(/\s+/);
+  const firstName = parts.shift() || "";
+  const lastName = parts.join(" ");
+  return { firstName, lastName };
+}
+
+function mapSessionToUser(session: any): User | null {
+  const email =
+    (session?.user?.email as string | undefined) ||
+    (session?.session?.user?.email as string | undefined) ||
+    "";
+  if (!email) return null;
+  const name =
+    (session?.user?.name as string | undefined) ||
+    (session?.session?.user?.name as string | undefined) ||
+    "";
+  const { firstName, lastName } = splitName(name || email.split("@")[0]);
+
+  return {
+    userId: session?.user?.id || email,
+    orgId: "neon-auth",
+    role: "pending",
+    email,
+    firstName: firstName || "User",
+    lastName: lastName,
+  };
+}
 
 function devUserForCredentials(email: string, password?: string): User | null {
   const normalized = email.toLowerCase().trim();
@@ -111,85 +136,41 @@ function devUserForCredentials(email: string, password?: string): User | null {
   };
 }
 
-// Part 3: Exchange Neon token -> Netlify httpOnly cookie session, and return user
-type ExchangeResult = { user: User | null };
-
-async function exchangeSession(): Promise<User | null> {
-  const session = await authClient.getSession();
-  const token = session.data?.session?.token || null;
-  if (!token) return null;
-
-  const res = await fetch("/.netlify/functions/auth-exchange", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-    credentials: "include",
-  });
-
-  let data: ExchangeResult | null = null;
+async function ensureUserRecord(email: string, role: UserRole = "pending", firstName?: string, lastName?: string) {
   try {
-    data = (await res.json()) as ExchangeResult;
+    const existing = await usersApi.getByEmail(email);
+    if (existing) return existing;
+    const created = await usersApi.create({
+      email,
+      role,
+      firstName,
+      lastName,
+      isActive: true,
+      emailVerified: false,
+    });
+    return created;
   } catch {
-    data = null;
+    return null;
   }
-
-  if (!res.ok) return null;
-  return data?.user ?? null;
 }
 
-// Part 4: Provider
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [status, setStatus] = useState<AuthStatus>("checking");
 
-  // Neon session hook
-  const session = authClient.useSession();
-
-  // Prevent overlapping refresh calls
   const refreshInFlight = useRef<Promise<void> | null>(null);
-  const devLoginActiveRef = useRef(false);
-  const devUserRef = useRef<User | null>(null);
 
   const logout = useCallback(async () => {
-    devLoginActiveRef.current = false;
-    devUserRef.current = null;
-    try {
-      if (typeof window !== "undefined") {
-        (window as any).__hfTestLoginActive = false;
-      }
-    } catch {
-      // ignore
-    }
-
-    // Update UI first for safety and responsiveness
-    setUser(null);
-    setStatus("unauthenticated");
-
     try {
       await authClient.signOut();
     } catch {
       // ignore
     }
-
-    try {
-      await fetch("/.netlify/functions/auth-logout", {
-        method: "POST",
-        credentials: "include",
-      });
-    } catch {
-      // ignore
-    }
+    setUser(null);
+    setStatus("unauthenticated");
   }, []);
 
   const refresh = useCallback(async () => {
-    if (devLoginActiveRef.current) {
-      const me = devUserRef.current;
-      setUser(me);
-      setStatus(me ? "authenticated" : "unauthenticated");
-      return;
-    }
-
     if (refreshInFlight.current) {
       await refreshInFlight.current;
       return;
@@ -198,12 +179,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const p = (async () => {
       setStatus("checking");
       try {
-        const me = await exchangeSession();
-        devUserRef.current = null;
-        setUser(me);
-        setStatus(me ? "authenticated" : "unauthenticated");
+        const session = await authClient.getSession();
+        const base = mapSessionToUser(session?.data);
+        if (!base || base.role === "customer") {
+          setUser(null);
+          setStatus("unauthenticated");
+          return;
+        }
+        const record = await ensureUserRecord(base.email, base.role, base.firstName, base.lastName);
+        const role: UserRole = (record?.role as UserRole) || base.role || "pending";
+        const userObj: User = {
+          ...base,
+          role,
+          firstName: record?.firstName || base.firstName,
+          lastName: record?.lastName || base.lastName,
+          userId: record?.id ? String(record.id) : base.userId,
+        };
+        if (role === "customer") {
+          setUser(null);
+          setStatus("unauthenticated");
+          return;
+        }
+        setUser(userObj);
+        setStatus("authenticated");
       } catch {
-        devUserRef.current = null;
         setUser(null);
         setStatus("unauthenticated");
       }
@@ -219,20 +218,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = useCallback(
     async (email: string, password: string) => {
-      devLoginActiveRef.current = false;
-      devUserRef.current = null;
-      try {
-        if (typeof window !== "undefined") {
-          (window as any).__hfTestLoginActive = false;
-        }
-      } catch {
-        // ignore
-      }
-
       setStatus("checking");
-
       try {
+        const devUser = devUserForCredentials(email, password);
+        if (devUser) {
+          if (devUser.role === "customer") throw new Error("customer_not_allowed");
+          setUser(devUser);
+          setStatus("authenticated");
+          return "ok";
+        }
+
         await authClient.signIn.email({ email, password });
+        await refresh();
+        return "ok";
+      } catch (err: any) {
+        setUser(null);
+        setStatus("unauthenticated");
+        return "invalid";
+      }
+    },
+    [refresh]
+  );
+
+  const signUp = useCallback(
+    async ({ email, password, firstName, lastName }: { email: string; password: string; firstName: string; lastName: string }) => {
+      setStatus("checking");
+      try {
+        await authClient.signUp.email({
+          email,
+          password,
+          name: `${firstName} ${lastName}`.trim(),
+        });
+        await ensureUserRecord(email, "pending", firstName, lastName);
         await refresh();
         return "ok";
       } catch {
@@ -244,51 +261,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     [refresh]
   );
 
-  // Part 5: Initial restore after Neon session resolves
+  const requestPasswordReset = useCallback(async (email: string, redirectTo?: string) => {
+    setStatus("checking");
+    try {
+      await authClient.requestPasswordReset({
+        email,
+        ...(redirectTo ? { redirectTo } : {}),
+      } as any);
+      setStatus(user ? "authenticated" : "unauthenticated");
+      return "ok";
+    } catch {
+      setStatus(user ? "authenticated" : "unauthenticated");
+      return "invalid";
+    }
+  }, [user]);
+
+  // Initial restore
   useEffect(() => {
-    if (session.isPending) return;
+    refresh();
+  }, [refresh]);
 
-    let active = true;
-
-    (async () => {
-      try {
-        setStatus("checking");
-
-        if (devLoginActiveRef.current) {
-          const devUser = devUserRef.current;
-          if (!active) return;
-          setUser(devUser);
-          setStatus(devUser ? "authenticated" : "unauthenticated");
-          return;
-        }
-
-        // No Neon session => unauthenticated
-        if (!session.data) {
-          if (!active) return;
-          setUser(null);
-          setStatus("unauthenticated");
-          return;
-        }
-
-        // Neon session exists => exchange to Netlify cookie session and load user
-        const me = await exchangeSession();
-        if (!active) return;
-
-        setUser(me);
-        setStatus(me ? "authenticated" : "unauthenticated");
-      } catch {
-        if (!active) return;
-        setUser(null);
-        setStatus("unauthenticated");
-      }
-    })();
-
-    return () => {
-      active = false;
-    };
-  }, [session.isPending, session.data]);
-
-  // Part 6: Idle logout (30 minutes)
+  // Idle logout (30 minutes)
   useEffect(() => {
     if (!user) return;
 
@@ -299,7 +292,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (timeoutId) window.clearTimeout(timeoutId);
       timeoutId = window.setTimeout(async () => {
         await logout();
-        // Alert after logout so UI state is already consistent
         window.setTimeout(() => {
           alert("You were logged out due to inactivity.");
         }, 0);
@@ -324,40 +316,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, [user, logout]);
 
-  useEffect(() => {
-    if (!import.meta.env.DEV || typeof window === "undefined") return;
-
-    (window as any).__hfTestLogin = (email: string, password?: string) => {
-      const me = devUserForCredentials(email, password);
-      try {
-        (window as any).__hfTestLoginActive = Boolean(me);
-      } catch {
-        // ignore
-      }
-      devLoginActiveRef.current = Boolean(me);
-      devUserRef.current = me;
-      setUser(me);
-      setStatus(me ? "authenticated" : "unauthenticated");
-      return Boolean(me);
-    };
-
-    try {
-      (window as any).__hfTestLoginActive = devLoginActiveRef.current;
-    } catch {
-      // ignore
-    }
-
-    return () => {
-      try {
-        delete (window as any).__hfTestLogin;
-        delete (window as any).__hfTestLoginActive;
-      } catch {
-        // ignore
-      }
-    };
-  }, []);
-
-  // Part 7: authFetch auto-logs out on 401/403
   const authFetch = useCallback(
     async <T,>(
       url: string,
@@ -377,11 +335,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       status,
       loading: status === "checking",
       login,
+      signUp,
+      requestPasswordReset,
       logout,
       refresh,
       authFetch,
     };
-  }, [user, status, login, logout, refresh, authFetch]);
+  }, [user, status, login, signUp, requestPasswordReset, logout, refresh, authFetch]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

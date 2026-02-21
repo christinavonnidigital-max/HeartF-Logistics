@@ -466,7 +466,7 @@ const FleetAssistant: React.FC<FleetAssistantProps> = ({ contextData, contextTyp
         contextData,
         contextType,
         location,
-        { functionDeclarations: assistantTools, toolConfig: { functionCallingConfig: { mode: 'AUTO' } } }
+        { functionDeclarations: assistantTools, toolConfig: { functionCallingConfig: { mode: 'AUTO' as any } } }
       );
 
       const candidate = response.candidates?.[0];

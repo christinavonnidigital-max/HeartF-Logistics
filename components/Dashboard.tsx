@@ -366,7 +366,7 @@ const Dashboard: React.FC<DashboardProps> = ({ data, settings, userRole }) => {
 
       <div className="space-y-10">
         {/* Operations Pulse */}
-        <section className="grid grid-cols-1 xl:grid-cols-[1.2fr_0.8fr] gap-8">
+        <section className="grid grid-cols-1 lg:grid-cols-[1.2fr_0.8fr] gap-6 lg:gap-8">
           <div className="rounded-2xl bg-white border border-slate-200 shadow-sm p-7 space-y-6 min-w-0">
             <div className="flex items-center justify-between">
               <div>
@@ -376,7 +376,7 @@ const Dashboard: React.FC<DashboardProps> = ({ data, settings, userRole }) => {
               <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-100 px-2 py-1 rounded-lg">Live</span>
             </div>
 
-            <div className="grid sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               <div className="rounded-lg border border-slate-100 bg-slate-50 p-3">
                 <p className="text-[10px] font-bold uppercase tracking-wider text-slate-700">Fleet Utilization</p>
                 <p className="text-2xl font-bold text-slate-900 mt-1">{utilizationPct}%</p>
@@ -427,7 +427,7 @@ const Dashboard: React.FC<DashboardProps> = ({ data, settings, userRole }) => {
                   <h3 className="text-sm font-bold text-slate-900">Revenue pulse</h3>
                   <span className="text-xs text-slate-500">Currency: {settings.currency}</span>
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                   {[
                     { label: 'Paid', value: revenuePaid },
                     { label: 'Outstanding', value: revenueOutstanding },
@@ -479,7 +479,7 @@ const Dashboard: React.FC<DashboardProps> = ({ data, settings, userRole }) => {
         </section>
 
         {/* Top stats */}
-        <section className={`grid gap-6 ${isCustomer ? 'md:grid-cols-3' : 'md:grid-cols-2 xl:grid-cols-4'}`}>
+        <section className={`grid gap-6 ${isCustomer ? 'md:grid-cols-2 lg:grid-cols-3' : 'md:grid-cols-2 xl:grid-cols-4'}`}>
             {!isCustomer && (
                 <StatCard
                 label="Fleet Size"
@@ -518,7 +518,7 @@ const Dashboard: React.FC<DashboardProps> = ({ data, settings, userRole }) => {
 
         {/* Revenue summary */}
         {settings.showFinancialSummary && (
-            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
                 <section className="xl:col-span-1">
                     <RevenueCard
                     totalInvoiced={invoicedAmount}
@@ -529,7 +529,7 @@ const Dashboard: React.FC<DashboardProps> = ({ data, settings, userRole }) => {
                     />
                 </section>
                 
-                <section className="xl:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 min-w-0">
+                <section className="xl:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-6 min-w-0">
                     <RevenueTrendChart 
                         invoices={invoices || []} 
                         currency={settings.currency} 
@@ -545,7 +545,7 @@ const Dashboard: React.FC<DashboardProps> = ({ data, settings, userRole }) => {
         )}
 
         {/* Recent activity */}
-        <section className={`grid gap-6 ${isCustomer ? 'grid-cols-1' : 'lg:grid-cols-2'}`}>
+        <section className={`grid gap-6 ${isCustomer ? 'grid-cols-1' : 'md:grid-cols-2'}`}>
             {/* Leads - HIDDEN FOR CUSTOMERS */}
             {!isCustomer && (
                 <div className="rounded-2xl bg-white shadow-md border border-slate-200/60 overflow-hidden min-w-0">

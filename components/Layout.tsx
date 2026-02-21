@@ -2,10 +2,12 @@
 import React, { useState } from "react";
 import Sidebar from "./Sidebar";
 import { MenuIcon } from "./icons"; // Updated import path
+import NotificationsBell from "./NotificationsBell";
 import AiAssistant from "./FleetAssistant";
 import { AppSettings, View } from "../App";
 import { useAuth } from "../auth/AuthContext";
 import SupportChatWidget from "./SupportChatWidget";
+import Breadcrumbs from "./Breadcrumbs";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -91,11 +93,11 @@ const Layout: React.FC<LayoutProps> = ({
         setIsOpen={setIsSidebarOpen}
       />
 
-      <div className="relative flex h-dvh min-h-0 flex-col bg-background text-foreground md:pl-64 transition-all duration-300 z-0">
+      <div className="relative flex min-h-0 flex-col bg-background text-foreground md:pl-64 transition-all duration-300 z-0">
         {/* Top bar */}
         <header className="sticky top-0 z-20 border-b border-border bg-card/60 backdrop-blur-md shadow-sm">
           <div className="flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3 sm:gap-4">
               <button
                 className="inline-flex items-center justify-center rounded-lg border border-border bg-card p-2 text-foreground shadow-sm hover:bg-muted md:hidden"
                 onClick={() => setIsSidebarOpen(true)}
@@ -104,31 +106,25 @@ const Layout: React.FC<LayoutProps> = ({
                 <MenuIcon className="h-5 w-5" />
               </button>
 
-              <img
-                src="/heartfledge-logo.svg"
-                alt="Heartfledge Logistics"
-                className="hidden h-8 w-auto object-contain md:block"
-                onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
-              />
-
-              <div>
-                <h1 className="text-base font-semibold capitalize text-foreground sm:text-lg md:text-xl leading-tight">
+              <div className="min-w-0">
+                <h1 className="text-base font-semibold capitalize text-foreground sm:text-lg md:text-xl leading-tight truncate">
                   {viewTitles[activeView]}
                 </h1>
                 {viewSubtitles[activeView] && (
-                  <p className="mt-0.5 text-xs text-foreground-muted sm:text-sm hidden sm:block">
+                  <p className="mt-0.5 text-xs text-foreground-muted sm:text-sm hidden sm:block truncate">
                     {viewSubtitles[activeView]}
                   </p>
                 )}
               </div>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <NotificationsBell />
               {user && (
                 <>
-                  <div className="hidden text-right text-xs sm:block">
-                    <p className="font-semibold text-foreground">{displayName}</p>
-                    <p className="text-[11px] capitalize text-foreground-muted">
+                  <div className="hidden text-right text-xs sm:block min-w-[120px]">
+                    <p className="font-semibold text-foreground truncate">{displayName}</p>
+                    <p className="text-[11px] capitalize text-foreground-muted truncate">
                       {user.role.replace("_", " ")}
                     </p>
                   </div>
@@ -145,7 +141,7 @@ const Layout: React.FC<LayoutProps> = ({
 
               <button
                 onClick={logout}
-                className="ml-2 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted shadow-sm"
+                className="ml-1 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted shadow-sm"
               >
                 Log out
               </button>
@@ -154,8 +150,9 @@ const Layout: React.FC<LayoutProps> = ({
         </header>
 
         {/* Main content */}
-        <main className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-5 py-5 sm:px-8 sm:py-7 lg:px-10 lg:py-9 text-[15px] leading-relaxed custom-scrollbar bg-[var(--app-bg)]">
+        <main className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-4 py-5 sm:px-6 sm:py-7 lg:px-10 lg:py-9 text-[15px] leading-relaxed custom-scrollbar bg-[var(--app-bg)]">
           <div className="mx-auto max-w-7xl space-y-6 relative">
+            <Breadcrumbs activeView={activeView} onNavigate={setActiveView} />
             {children}
           </div>
         </main>

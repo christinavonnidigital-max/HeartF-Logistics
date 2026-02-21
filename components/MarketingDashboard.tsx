@@ -168,7 +168,18 @@ const MarketingDashboard: React.FC = () => {
             />
         </div>
         <div className="overflow-x-auto">
-            <table className="min-w-full text-sm text-left">
+            <div className="sm:hidden space-y-2 p-2">
+                {activeCampaigns.map((campaign) => (
+                    <div key={campaign.id} className="rounded-xl border border-slate-200 bg-white p-3">
+                        <div className="flex items-center justify-between">
+                            <div className="text-sm font-semibold text-slate-900">{campaign.name}</div>
+                            <StatusPill label={campaign.status} tone={getStatusTone(campaign.status)} />
+                        </div>
+                        <div className="text-xs text-slate-500 mt-1">{campaign.total_leads} leads • {campaign.emails_sent} sent</div>
+                    </div>
+                ))}
+            </div>
+            <table className="min-w-full text-sm text-left hidden sm:table">
                 <thead className="bg-slate-50 text-xs uppercase font-medium text-slate-500">
                     <tr>
                         <th className="px-6 py-3">Campaign</th>

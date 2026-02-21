@@ -128,6 +128,14 @@ body {
   }
 }
 
+/* --- Accessibility contrast overrides (after Neon imports) --- */
+:root {
+  --muted-foreground: #4a5568; /* slate-600, contrast > 4.5:1 on white */
+}
+.text-muted-foreground { color: #4a5568 !important; }
+.placeholder\:text-muted-foreground::placeholder { color: #4a5568 !important; opacity: 1; }
+.text-muted-foreground * { color: inherit !important; }
+
 /* ---- Dark mode form controls fix ---- */
 /* Prevent "white inputs with light text" */
 .dark input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),

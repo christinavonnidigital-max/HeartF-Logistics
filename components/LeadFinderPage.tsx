@@ -5,6 +5,7 @@ import { ProspectDetailsModal, LeadFinderResult } from "./ProspectDetailsModal";
 import { OutreachEmailModal, SavedDraft } from "./OutreachEmailModal";
 import { useData } from "../contexts/DataContext";
 import { Lead, LeadSource, LeadStatus, CompanySize, Industry } from "../types";
+import { searchLeadFinder } from "../src/services/leadFinderApi";
 
 type SearchBody = {
   industry: string;
@@ -13,13 +14,6 @@ type SearchBody = {
   companySize?: string;
   excludeIndustries?: string;
   excludeKeywords?: string;
-};
-
-type SearchResponse = {
-  ok?: boolean;
-  results?: LeadFinderResult[];
-  cached?: boolean;
-  reasonHints?: string[];
 };
 
 const companySizeOptions = [
@@ -180,15 +174,6 @@ const LeadFinderPage: React.FC = () => {
     window.setTimeout(() => setToast(null), 3500);
   };
 
-  const safeJson = async (res: Response) => {
-    const text = await res.text();
-    try {
-      return JSON.parse(text);
-    } catch {
-      throw new Error("Unexpected response. Make sure Netlify functions are running (netlify dev).");
-    }
-  };
-
   const handleSearch = async (opts?: { forceRefresh?: boolean }) => {
     setLoading(true);
     setError(null);
@@ -198,22 +183,11 @@ const LeadFinderPage: React.FC = () => {
     setReasonHints([]);
 
     try {
-      const res = await fetch("/.netlify/functions/lead-finder-search", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-          ...form,
-          forceRefresh: Boolean(opts?.forceRefresh),
-          excludeIndustries: form.excludeIndustries || "",
-          excludeKeywords: form.excludeKeywords || "",
-        }),
+      const data = await searchLeadFinder<LeadFinderResult>({
+        ...form,
+        forceRefresh: Boolean(opts?.forceRefresh),
       });
-
-      const data: SearchResponse = await safeJson(res);
-      if (!res.ok || !data?.ok) throw new Error((data as any)?.error || "Search failed");
-
-      const list = Array.isArray(data.results) ? data.results : [];
+      const list = data.results || [];
       setResults(list);
       setCached(Boolean(data.cached));
       setReasonHints(Array.isArray(data.reasonHints) ? data.reasonHints : []);

@@ -209,7 +209,9 @@ const DriversPage: React.FC<DriversPageProps> = ({ data }) => {
         {loading ? (
           <div className="space-y-2 pt-1">
             {Array.from({ length: 8 }).map((_, i) => (
-              <Skeleton key={i} className="h-14 w-full" />
+              <div key={i}>
+                <Skeleton className="h-14 w-full" />
+              </div>
             ))}
           </div>
         ) : filteredDrivers.length > 0 ? (

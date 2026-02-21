@@ -25,7 +25,23 @@ const CampaignAnalyticsPage: React.FC = () => {
       </div>
       
       <div className="flex-1 overflow-x-auto p-2">
-        <table className="min-w-full text-sm text-left">
+        <div className="sm:hidden space-y-2">
+          {mockCampaigns.map((campaign) => {
+            const replyRate = campaign.emails_sent > 0 ? Math.round((campaign.emails_replied / campaign.emails_sent) * 100) : 0;
+            return (
+            <div key={campaign.id} className="rounded-xl border border-slate-200 bg-white p-3">
+              <div className="text-sm font-semibold text-slate-900">{campaign.campaign_name}</div>
+              <div className="text-xs text-slate-500">{campaign.status}</div>
+              <div className="mt-2 grid grid-cols-2 gap-2 text-xs text-slate-600">
+                <div>Leads: {campaign.total_leads}</div>
+                <div>Sent: {campaign.emails_sent}</div>
+                <div>Delivered: {campaign.emails_delivered}</div>
+                <div>Reply: {replyRate}%</div>
+              </div>
+            </div>
+          )})}
+        </div>
+        <table className="min-w-full text-sm text-left hidden sm:table">
             <thead className="bg-slate-50 text-xs uppercase font-medium text-slate-500">
                 <tr>
                     <th className="px-6 py-3 rounded-l-lg">Campaign Name</th>

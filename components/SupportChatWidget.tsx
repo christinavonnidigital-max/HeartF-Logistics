@@ -14,11 +14,9 @@ export const SupportChatWidget: React.FC<{
   selectedEntity?: { type: string; id: string | number } | null;
 }> = ({ module = "App", selectedEntity = null }) => {
   const [open, setOpen] = useState(false);
-  const [threadId, setThreadId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const listRef = useRef<HTMLDivElement | null>(null);
 
@@ -30,15 +28,6 @@ export const SupportChatWidget: React.FC<{
     }),
     [module, selectedEntity]
   );
-
-  const safeJson = async (res: Response) => {
-    const text = await res.text();
-    try {
-      return JSON.parse(text);
-    } catch {
-      throw new Error("Unexpected response. Ensure Netlify functions are running (netlify dev).");
-    }
-  };
 
   useEffect(() => {
     if (!open) return;
@@ -54,82 +43,40 @@ export const SupportChatWidget: React.FC<{
     });
   }, [messages.length]);
 
-  async function ensureThread() {
-    if (threadId) return threadId;
-
-    const res = await fetch("/.netlify/functions/chat-thread", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify({ title: "Support" }),
-    });
-
-    const data = await safeJson(res);
-    if (!res.ok) throw new Error(data?.error || "Failed to create thread");
-
-    setThreadId(data.threadId);
-    return data.threadId as string;
-  }
-
-  async function loadMessages(tid: string) {
-    const res = await fetch(`/.netlify/functions/chat-messages?threadId=${encodeURIComponent(tid)}`, {
-      credentials: "include",
-    });
-    const data = await safeJson(res);
-    if (!res.ok) throw new Error(data?.error || "Failed to load messages");
-    setMessages(data.messages || []);
-  }
-
-  async function onOpen() {
+  function onOpen() {
     setOpen(true);
-    setError(null);
-    try {
-      const tid = await ensureThread();
-      await loadMessages(tid);
-      if ((messages?.length || 0) === 0) {
-        setMessages([
-          {
-            role: "assistant",
-            content:
-              "Hi, I’m your support agent. Tell me what you’re trying to do, or paste the error message you’re seeing.",
-          },
-        ]);
-      }
-    } catch (e: any) {
-      setError(e?.message || "Could not open chat");
+    if (messages.length === 0) {
+      setMessages([
+        {
+          role: "assistant",
+          content: "Hi, I’m your support agent. Paste an error message or tell me what you’re trying to do.",
+        },
+      ]);
     }
   }
 
   async function send() {
     const text = input.trim();
     if (!text || loading) return;
-
     setInput("");
-    setError(null);
     setLoading(true);
 
-    const optimistic: Msg = { role: "user", content: text };
+    const optimistic: Msg = { role: "user", content: text, created_at: new Date().toISOString() };
     setMessages((m) => [...m, optimistic]);
 
-    try {
-      const tid = await ensureThread();
+    // Offline echo/assistant
+    const reply = [
+      "I’m running in offline mode (Netlify functions removed).",
+      "Here’s what I got from you:",
+      `"${text}"`,
+      `Context: ${context.module || "App"} ${context.route || ""}`,
+      "If you need deeper help, share steps to reproduce and I’ll suggest next actions.",
+    ].join("\n");
 
-      const res = await fetch("/.netlify/functions/chat-send", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ threadId: tid, message: text, context }),
-      });
-
-      const data = await safeJson(res);
-      if (!res.ok || data?.error) throw new Error(data?.error || "Send failed");
-
-      setMessages((m) => [...m, { role: "assistant", content: data.reply }]);
-    } catch (e: any) {
-      setError(e?.message || "Send failed");
-    } finally {
+    setTimeout(() => {
+      setMessages((m) => [...m, { role: "assistant", content: reply, created_at: new Date().toISOString() }]);
       setLoading(false);
-    }
+    }, 300);
   }
 
   function onKeyDown(e: React.KeyboardEvent) {
@@ -163,10 +110,7 @@ export const SupportChatWidget: React.FC<{
                 Context: {module} • {context.route}
               </div>
             </div>
-            <button
-              className="text-xs font-semibold text-slate-600 hover:text-slate-900"
-              onClick={() => setOpen(false)}
-            >
+            <button className="text-xs font-semibold text-slate-600 hover:text-slate-900" onClick={() => setOpen(false)}>
               Close
             </button>
           </div>
@@ -178,44 +122,34 @@ export const SupportChatWidget: React.FC<{
                 className={cx(
                   "max-w-[90%] rounded-2xl px-3 py-2 text-sm whitespace-pre-wrap",
                   m.role === "user"
-                    ? "ml-auto bg-orange-600 text-white"
-                    : "mr-auto bg-white border border-slate-200 text-slate-900"
+                    ? "ml-auto bg-orange-500 text-white"
+                    : "mr-auto bg-white text-slate-900 border border-slate-200"
                 )}
               >
                 {m.content}
               </div>
             ))}
-
-            {loading && (
-              <div className="mr-auto bg-white border border-slate-200 text-slate-600 rounded-2xl px-3 py-2 text-sm">
-                Typing…
-              </div>
-            )}
           </div>
 
-          {error && (
-            <div className="px-4 py-2 text-xs text-rose-700 bg-rose-50 border-t border-rose-100">
-              {error}
-            </div>
-          )}
-
-          <div className="p-3 border-t border-slate-200 bg-white">
+          <div className="border-t border-slate-200 p-3 bg-white">
             <textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={onKeyDown}
               rows={2}
-              placeholder="Type a message. Enter to send, Shift+Enter for a new line."
-              className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+              className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+              placeholder="Ask a quick question…"
+              disabled={loading}
             />
             <div className="mt-2 flex justify-between items-center">
-              <div className="text-[11px] text-slate-500">Saved to Neon. Private to your account.</div>
+              <div className="text-xs text-slate-500">Offline assistant (no Netlify backend)</div>
               <button
+                type="button"
                 onClick={send}
-                disabled={!input.trim() || loading}
-                className="h-9 px-3 rounded-xl bg-orange-600 text-white text-sm font-bold disabled:opacity-60 disabled:cursor-not-allowed hover:bg-orange-700 transition"
+                disabled={loading || !input.trim()}
+                className="px-3 py-2 rounded-lg bg-orange-500 text-white text-sm font-semibold disabled:opacity-60"
               >
-                Send
+                {loading ? "Sending…" : "Send"}
               </button>
             </div>
           </div>

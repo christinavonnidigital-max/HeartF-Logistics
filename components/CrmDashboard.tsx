@@ -124,7 +124,7 @@ const CrmDashboard: React.FC = () => {
         let failed = 0;
         rows.forEach((row, index) => {
             try {
-                const payload: Omit<Lead, 'id' | 'created_at' | 'updated_at' | 'lead_score'> = {
+                const payload: any = {
                     first_name: row.first_name || '',
                     last_name: row.last_name || '',
                     email: row.email || '',

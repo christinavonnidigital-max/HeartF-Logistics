@@ -8,6 +8,7 @@ import { IllustrationMapIcon } from './icons';
 import EmptyState from './EmptyState';
 import AddRouteModal from './AddRouteModal';
 import { ShellCard, SectionHeader, StatusPill } from "./UiKit";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
 const RoutesDashboard: React.FC = () => {
   const [routes, setRoutes] = useState<Route[]>(mockRoutes);
@@ -132,7 +133,45 @@ const RoutesDashboard: React.FC = () => {
         </ShellCard>
 
         {/* Right column - details */}
-        <div className="flex flex-col">
+        <div className="flex flex-col gap-6">
+          <ShellCard className="p-4">
+            <SectionHeader title="Route efficiency" subtitle="Distance, duration, and toll exposure" />
+            <div className="mt-3 grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <div className="h-48 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={filteredRoutes.map((r) => ({
+                      name: `${r.origin_city}-${r.destination_city}`,
+                      kmPerHr: r.estimated_duration_hours ? Math.round(r.distance_km / r.estimated_duration_hours) : 0,
+                    }))}
+                  >
+                    <XAxis dataKey="name" hide />
+                    <YAxis />
+                    <Tooltip />
+                    <Bar dataKey="kmPerHr" fill="#f97316" radius={[6, 6, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="space-y-2 text-sm text-slate-700">
+                {filteredRoutes.slice(0, 5).map((r) => (
+                  <div key={r.id} className="flex items-center justify-between rounded-lg border border-slate-200 px-3 py-2">
+                    <div className="min-w-0">
+                      <div className="font-semibold text-slate-900 truncate">
+                        {r.origin_city} → {r.destination_city}
+                      </div>
+                      <div className="text-xs text-slate-500">
+                        {r.distance_km} km · {r.estimated_duration_hours}h · ${r.total_toll_cost} tolls
+                      </div>
+                    </div>
+                    <div className="text-sm font-semibold text-slate-900">
+                      {r.estimated_duration_hours ? Math.round(r.distance_km / r.estimated_duration_hours) : 0} km/h
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </ShellCard>
+
           {selectedRoute ? (
             <RouteDetails route={selectedRoute} />
           ) : (

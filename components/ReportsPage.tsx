@@ -10,10 +10,8 @@ import {
 import { DownloadIcon, TruckIcon, CreditCardIcon, BriefcaseIcon } from './icons';
 
 class ReportsErrorBoundary extends React.Component<{ children: React.ReactNode }, { error: Error | null }> {
-    constructor(props: { children: React.ReactNode }) {
-        super(props);
-        this.state = { error: null };
-    }
+    props!: { children: React.ReactNode };
+    state: { error: Error | null } = { error: null };
     static getDerivedStateFromError(error: Error) {
         return { error };
     }

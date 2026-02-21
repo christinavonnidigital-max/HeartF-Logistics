@@ -27,15 +27,6 @@ const AuditLogModal: React.FC<AuditLogModalProps> = ({ isOpen, onClose }) => {
   const [error, setError] = useState<string | null>(null);
   const [useLocalEntries, setUseLocalEntries] = useState(false);
 
-  const safeJson = async (res: Response) => {
-    const text = await res.text();
-    try {
-      return JSON.parse(text);
-    } catch {
-      throw new Error('Unexpected response. Make sure Netlify functions are running.');
-    }
-  };
-
   const localEntries = useMemo(() => {
     return (auditLog || []).map((entry) => ({
       id: entry.id,
@@ -52,51 +43,10 @@ const AuditLogModal: React.FC<AuditLogModalProps> = ({ isOpen, onClose }) => {
 
   useEffect(() => {
     if (!isOpen) return;
-    let active = true;
-
-    const shouldUseLocal =
-      import.meta.env.DEV && typeof window !== 'undefined' && (window as any).__hfTestLoginActive;
-    if (shouldUseLocal) {
-      setUseLocalEntries(true);
-      setError(null);
-      setEntries(localEntries);
-      setLoading(false);
-      return () => {
-        active = false;
-      };
-    }
-
-    const fetchAudit = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const res = await fetch('/.netlify/functions/audit-log?limit=50', {
-          credentials: 'include',
-        });
-        const data = await safeJson(res);
-        if (!res.ok || !data?.ok) throw new Error(data?.error || 'Failed to load audit log');
-        if (!active) return;
-        setEntries(data.entries || []);
-      } catch (err: any) {
-        if (!active) return;
-        if (import.meta.env.DEV) {
-          setUseLocalEntries(true);
-          setError(null);
-          setEntries(localEntries);
-        } else {
-          setError(err?.message || 'Failed to load audit log');
-          setEntries([]);
-        }
-      } finally {
-        if (active) setLoading(false);
-      }
-    };
-
-    fetchAudit();
-
-    return () => {
-      active = false;
-    };
+    setUseLocalEntries(true);
+    setError(null);
+    setEntries(localEntries);
+    setLoading(false);
   }, [isOpen, localEntries]);
 
   useEffect(() => {

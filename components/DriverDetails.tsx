@@ -20,9 +20,9 @@ const DetailSection: React.FC<{ title: string; icon: React.ReactNode; children: 
 );
 
 const DetailItem: React.FC<{ label: string; value?: React.ReactNode }> = ({ label, value }) => (
-    <div className="grid grid-cols-3 gap-2 py-1">
-        <span className="text-slate-500 font-medium col-span-1">{label}</span>
-        <span className="text-slate-900 col-span-2 wrap-break-word">{value || 'N/A'}</span>
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 py-1">
+        <span className="text-slate-500 font-medium">{label}</span>
+        <span className="text-slate-900 sm:col-span-2 wrap-break-word break-words">{value || 'N/A'}</span>
     </div>
 );
 
@@ -99,8 +99,21 @@ const DriverDetails: React.FC<DriverDetailsProps> = ({ driver, assignments }) =>
             <span className="ml-2">Assignment History</span>
         </h3>
         <SubtleCard className="overflow-hidden">
-            <div className="overflow-x-auto">
-                <table className="min-w-full text-sm text-left">
+            <div className="sm:hidden space-y-2 p-3">
+                {sortedAssignments.length > 0 ? (
+                    sortedAssignments.map((item) => (
+                        <div key={item.id} className="rounded-xl border border-slate-200 bg-white p-3">
+                            <div className="text-sm font-semibold text-slate-900">{item.assignment_name}</div>
+                            <div className="text-xs text-slate-500">{item.assignment_type}</div>
+                            <div className="text-xs text-slate-500 mt-1">{item.status}</div>
+                        </div>
+                    ))
+                ) : (
+                    <div className="text-sm text-slate-500">No assignments yet.</div>
+                )}
+            </div>
+            <div className="overflow-x-auto hidden sm:block">
+                <table className="min-w-full text-sm text-left hidden sm:table">
                     <thead className="bg-slate-50 border-b border-slate-100">
                         <tr>
                             <th className="px-4 py-3 font-medium text-slate-500">Assignment</th>
