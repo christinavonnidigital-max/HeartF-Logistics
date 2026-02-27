@@ -5,56 +5,70 @@ type LeadFinderApiResponse<T> = {
   cached?: boolean;
   reasonHints?: string[];
   results?: T[];
+  warningCode?: string;
+  warningMessage?: string;
 };
 
-const asList = (value: unknown): string[] => {
-  if (Array.isArray(value)) return value.map((v) => String(v || "").trim()).filter(Boolean);
-  if (typeof value === "string") {
-    return value
-      .split(",")
-      .map((s) => s.trim())
-      .filter(Boolean);
+type LeadFinderErrorCode =
+  | "lead_finder_key_missing"
+  | "lead_finder_key_restricted"
+  | "lead_finder_failed"
+  | string;
+
+export class LeadFinderRequestError extends Error {
+  status: number;
+  code: LeadFinderErrorCode;
+  detail: string;
+
+  constructor(message: string, opts: { status: number; code?: LeadFinderErrorCode; detail?: string }) {
+    super(message);
+    this.name = "LeadFinderRequestError";
+    this.status = opts.status;
+    this.code = opts.code || "lead_finder_failed";
+    this.detail = opts.detail || "";
   }
-  return [];
+}
+
+export const isLeadFinderServerConfigError = (err: unknown) => {
+  const e = err as Partial<LeadFinderRequestError> | undefined;
+  const code = String(e?.code || "");
+  const message = String((e as any)?.message || err || "").toLowerCase();
+  const detail = String(e?.detail || "").toLowerCase();
+  return (
+    code === "lead_finder_key_missing" ||
+    code === "lead_finder_key_restricted" ||
+    message.includes("not configured on the server") ||
+    message.includes("server-side gemini_api_key") ||
+    detail.includes("api_key_http_referrer_blocked")
+  );
 };
 
-const norm = (value: unknown) => String(value || "").trim();
+const toUserFacingError = (status: number, data: LeadFinderApiResponse<unknown>) => {
+  const detail = String(data.detail || "");
+  const error = String(data.error || "");
+  const serverText = `${error} ${detail}`;
 
-const normalizeBrowserCriteria = (payload: Record<string, any>) => {
-  const query = norm(payload.query);
-  const geography = norm(payload.geography);
-  const industryFocus = norm(payload.industryFocus);
-  const intentFocus = norm(payload.intentFocus);
-  const minHeadcount = norm(payload.minHeadcount);
+  if (serverText.includes("API_KEY_HTTP_REFERRER_BLOCKED")) {
+    return "Lead Finder AI key is blocked by HTTP referrer policy. Configure a server-side GEMINI_API_KEY (not browser-referrer restricted) and restart the API server.";
+  }
 
-  const legacyIndustry = norm(payload.industry);
-  const legacyLocation = norm(payload.location);
-  const legacyKeywords = norm(payload.keywords);
-  const legacyCompanySize = norm(payload.companySize);
+  if (serverText.toLowerCase().includes("not configured on the server")) {
+    return "Lead Finder AI is not configured on the server. Set GEMINI_API_KEY in backend env and restart.";
+  }
 
-  return {
-    query:
-      query ||
-      [legacyIndustry, legacyLocation, legacyKeywords]
-        .filter(Boolean)
-        .join(" ")
-        .trim(),
-    geography: geography || legacyLocation,
-    industryFocus: industryFocus || legacyIndustry,
-    intentFocus: intentFocus || legacyKeywords,
-    minHeadcount: minHeadcount || legacyCompanySize,
-  };
-};
+  if (status === 401 || status === 403) {
+    return "Lead Finder AI authorization failed. Check backend Gemini API key restrictions and permissions.";
+  }
 
-const containsAny = (haystack: string, needles: string[]) => {
-  const h = String(haystack || "").toLowerCase();
-  return needles.some((n) => n && h.includes(n.toLowerCase()));
+  return error || detail || `Lead Finder request failed with status ${status}.`;
 };
 
 export async function searchLeadFinder<T>(payload: Record<string, any>): Promise<{
   results: T[];
   cached: boolean;
   reasonHints: string[];
+  warningCode?: string;
+  warningMessage?: string;
 }> {
   const response = await fetch("/api/lead-finder-search", {
     method: "POST",
@@ -64,61 +78,18 @@ export async function searchLeadFinder<T>(payload: Record<string, any>): Promise
 
   const data: LeadFinderApiResponse<T> = await response.json().catch(() => ({}));
   if (!response.ok || data.ok === false) {
-    const detail = String(data.detail || "");
-    const blockedByReferrer = detail.includes("API_KEY_HTTP_REFERRER_BLOCKED");
-    if (blockedByReferrer) {
-      try {
-        const { findPotentialLeads } = await import("../../services/geminiService");
-        const criteria = normalizeBrowserCriteria(payload);
-        const excludeIndustries = asList(payload.excludeIndustries).map((s) => s.toLowerCase());
-        const excludeKeywords = asList(payload.excludeKeywords).map((s) => s.toLowerCase());
-        const raw = await findPotentialLeads(criteria as any);
-
-        const reasonHints: string[] = [];
-        const filtered = (raw || []).filter((lead: any) => {
-          const industry = norm(lead?.industry).toLowerCase();
-          const haystack = [
-            lead?.companyName,
-            lead?.summary,
-            lead?.intentSignal,
-            lead?.website,
-            lead?.sourceUrl,
-            lead?.industry,
-          ]
-            .map((v) => norm(v).toLowerCase())
-            .join(" ");
-
-          if (excludeIndustries.length && containsAny(industry, excludeIndustries)) {
-            reasonHints.push(`Excluded "${lead?.companyName || "lead"}" due to industry exclusion.`);
-            return false;
-          }
-          if (excludeKeywords.length && containsAny(haystack, excludeKeywords)) {
-            reasonHints.push(`Excluded "${lead?.companyName || "lead"}" due to keyword exclusion.`);
-            return false;
-          }
-          return true;
-        });
-
-        return {
-          results: filtered as T[],
-          cached: false,
-          reasonHints: reasonHints.slice(0, 20),
-        };
-      } catch {
-        // fall through to original error
-      }
-    }
-
-    const message =
-      data.error ||
-      data.detail ||
-      `Lead Finder request failed with status ${response.status}.`;
-    throw new Error(message);
+    throw new LeadFinderRequestError(toUserFacingError(response.status, data), {
+      status: response.status,
+      code: String(data.error || "lead_finder_failed"),
+      detail: String(data.detail || ""),
+    });
   }
 
   return {
     results: Array.isArray(data.results) ? data.results : [],
     cached: Boolean(data.cached),
     reasonHints: Array.isArray(data.reasonHints) ? data.reasonHints : [],
+    warningCode: data.warningCode ? String(data.warningCode) : undefined,
+    warningMessage: data.warningMessage ? String(data.warningMessage) : undefined,
   };
 }

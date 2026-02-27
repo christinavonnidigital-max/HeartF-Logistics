@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Lead, LeadSource, LeadStatus, CompanySize, Industry } from "../types";
-import { searchLeadFinder } from "../src/services/leadFinderApi";
+import { isLeadFinderServerConfigError, searchLeadFinder } from "../src/services/leadFinderApi";
 import {
   CloseIcon,
   SparklesIcon,
@@ -43,7 +43,13 @@ type LeadProspect = {
 
 async function findPotentialLeads(
   criteria: LeadProspectingCriteria
-): Promise<{ results: LeadProspect[]; cached?: boolean; reasonHints?: string[] }> {
+): Promise<{
+  results: LeadProspect[];
+  cached?: boolean;
+  reasonHints?: string[];
+  warningCode?: string;
+  warningMessage?: string;
+}> {
   return searchLeadFinder<LeadProspect>(criteria as any);
 }
 
@@ -60,11 +66,11 @@ const SUGGESTED_QUERIES = [
 ];
 
 const INITIAL_FORM: LeadProspectingCriteria = {
-  query: "Logistics freight forwarding",
-  geography: "Harare",
-  industryFocus: "Logistics",
-  intentFocus: "freight forwarding",
-  minHeadcount: "sme",
+  query: "",
+  geography: "",
+  industryFocus: "",
+  intentFocus: "",
+  minHeadcount: "",
 };
 
 type LeadTier = "verified" | "high" | "candidate";
@@ -110,7 +116,7 @@ const parseLocation = (location?: string) => {
   if (!location) return { city: "", country: "" };
   const parts = location.split(",").map((t) => t.trim()).filter(Boolean);
   if (!parts.length) return { city: "", country: "" };
-  if (parts.length === 1) return { city: parts[0], country: parts[0] };
+  if (parts.length === 1) return { city: parts[0], country: "Zimbabwe" };
   const country = parts.pop() || "";
   const city = parts.join(", ");
   return { city, country };
@@ -136,8 +142,8 @@ const prospectToLeadPayload = (prospect: LeadProspect): Omit<Lead, "id" | "creat
     address: "",
     city: location.city,
     country: location.country,
-    logistics_needs: prospect.intentSignal || prospect.summary || "High-potential logistics buyer discovered via lead finder.",
-    notes: prospect.sourceUrl ? `Grounded via Google Search → ${prospect.sourceUrl}` : "Grounded via Google Search",
+    logistics_needs: prospect.intentSignal || prospect.summary || "High-potential Zimbabwe/SADC logistics buyer discovered via lead finder.",
+    notes: prospect.sourceUrl ? `Grounded via Google Search -> ${prospect.sourceUrl}` : "Grounded via Google Search",
     tags: ["prospected", "lead-finder"].filter(Boolean),
     custom_fields: {
       ai_confidence: prospect.confidence ?? null,
@@ -241,14 +247,24 @@ const LeadFinderModal: React.FC<LeadFinderModalProps> = ({ onClose, onImport }) 
       setReasonHints(out.reasonHints || []);
       setProspects(out.results || []);
 
-      if (!out.results || out.results.length === 0) {
+      if (out.warningMessage) {
+        setError(out.warningMessage);
+        showToast(out.warningMessage);
+      } else if (!out.results || out.results.length === 0) {
         setError("No results found. Try broadening your keywords or location.");
       }
     } catch (err: any) {
       const msg = err?.message || String(err);
-      if (msg.toLowerCase().includes("unauth")) setError("You are not logged in. Please log in and try again.");
-      else if (msg.includes("429")) setError("Rate limit reached. Wait a moment and try again.");
-      else setError(msg || "Search failed.");
+      if (msg.toLowerCase().includes("unauth")) {
+        setError("You are not logged in. Please log in and try again.");
+      } else if (msg.includes("429")) {
+        setError("Rate limit reached. Wait a moment and try again.");
+      } else {
+        setError(msg || "Search failed.");
+      }
+      if (isLeadFinderServerConfigError(err)) {
+        showToast("Lead Finder AI is not configured on the backend. Set GEMINI_API_KEY and restart the API server.");
+      }
     } finally {
       setIsSearching(false);
     }
@@ -325,7 +341,7 @@ const LeadFinderModal: React.FC<LeadFinderModalProps> = ({ onClose, onImport }) 
                     value={form.query}
                     onChange={(e) => setForm((p) => ({ ...p, query: e.target.value }))}
                     className="w-full h-10 px-3 rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-orange-500"
-                    placeholder="e.g. Freight forwarding companies"
+                    placeholder="e.g. Cross-border freight buyers in Zimbabwe and Zambia"
                   />
                 </div>
 
@@ -337,7 +353,7 @@ const LeadFinderModal: React.FC<LeadFinderModalProps> = ({ onClose, onImport }) 
                     value={form.geography || ""}
                     onChange={(e) => setForm((p) => ({ ...p, geography: e.target.value }))}
                     className="w-full h-10 px-3 rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-orange-500"
-                    placeholder="Harare, Zimbabwe"
+                    placeholder="Harare, Zimbabwe; Lusaka, Zambia; Gaborone, Botswana"
                   />
                 </div>
 
@@ -620,3 +636,4 @@ const LeadFinderModal: React.FC<LeadFinderModalProps> = ({ onClose, onImport }) 
 };
 
 export default LeadFinderModal;
+

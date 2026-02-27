@@ -28,6 +28,7 @@
     "dotenv": "^17.3.1",
     "drizzle-orm": "^0.45.1",
     "express": "^4.19.2",
+    "jspdf": "^4.2.0",
     "leaflet": "1.9.4",
     "lucide-react": "^0.463.0",
     "nodemailer": "^6.9.14",

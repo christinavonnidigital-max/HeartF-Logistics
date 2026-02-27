@@ -11,11 +11,24 @@ interface ExpenseListProps {
 }
 
 const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onAddExpenseClick }) => {
+  const formatDateGB = (value: string) => {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '—';
+    return date.toLocaleDateString('en-GB', { timeZone: 'Africa/Harare' });
+  };
+
+  const formatMoneyZW = (value: number, currency: string) =>
+    new Intl.NumberFormat('en-ZW', {
+      style: 'currency',
+      currency,
+      maximumFractionDigits: 2,
+    }).format(value || 0);
+
   return (
     <ShellCard className="p-4">
       <SectionHeader
         title="Recent Expenses"
-        subtitle="All operational costs"
+        subtitle="Operating costs across Zimbabwe and regional routes"
         actions={
            <button 
             className="p-2 rounded-lg bg-orange-500 text-white hover:bg-orange-600 transition shrink-0"
@@ -33,11 +46,11 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onAddExpenseClick }
               <div className="flex items-center justify-between">
                 <div className="text-sm font-semibold text-slate-900">{expense.expense_type}</div>
                 <div className="text-sm font-semibold text-slate-900">
-                  {new Intl.NumberFormat(undefined, { style: "currency", currency: expense.currency }).format(expense.amount)}
+                  {formatMoneyZW(expense.amount, expense.currency)}
                 </div>
               </div>
               <div className="text-xs text-slate-500">{expense.description}</div>
-              <div className="text-xs text-slate-500 mt-1">{new Date(expense.expense_date).toLocaleDateString()}</div>
+              <div className="text-xs text-slate-500 mt-1">{formatDateGB(expense.expense_date)}</div>
             </div>
           ))}
         </div>
@@ -58,8 +71,8 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onAddExpenseClick }
                     {expense.expense_category.replace(/_/g, ' ')}
                 </td>
                 <td className="px-3 py-3 text-slate-600">{expense.description}</td>
-                <td className="px-3 py-3 text-slate-600">{new Date(expense.expense_date + 'T00:00:00').toLocaleDateString()}</td>
-                <td className="px-3 py-3 text-slate-800 font-medium text-right">{new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD' }).format(expense.amount_in_base_currency)}</td>
+                <td className="px-3 py-3 text-slate-600">{formatDateGB(expense.expense_date)}</td>
+                <td className="px-3 py-3 text-slate-800 font-medium text-right">{formatMoneyZW(expense.amount_in_base_currency, 'USD')}</td>
                 <td className="px-3 py-3 text-center">
                     {expense.receipt_url ? (
                     <a href={expense.receipt_url} target="_blank" rel="noopener noreferrer" className="text-orange-500 hover:text-orange-700 inline-block" aria-label="View receipt">

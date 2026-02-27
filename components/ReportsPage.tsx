@@ -408,10 +408,24 @@ const ReportsPage: React.FC<ReportsPageProps> = ({ data }) => {
     } else if (activeTab === 'financials') {
         columns = [
             { header: 'Invoice #', getValue: (i) => i.invoice_number },
-            { header: 'Date', getValue: (i) => i.issue_date },
+            { header: 'Issue Date', getValue: (i) => new Date(i.issue_date).toLocaleDateString('en-GB', { timeZone: 'Africa/Harare' }) },
+            { header: 'Due Date', getValue: (i) => new Date(i.due_date).toLocaleDateString('en-GB', { timeZone: 'Africa/Harare' }) },
+            { header: 'Invoice Type', getValue: (i) => i.invoice_type },
+            { header: 'Currency', getValue: (i) => i.currency },
+            { header: 'Subtotal', getValue: (i) => i.subtotal },
+            { header: 'Tax / VAT', getValue: (i) => i.tax_amount },
+            { header: 'Discount', getValue: (i) => i.discount_amount },
             { header: 'Total', getValue: (i) => i.total_amount },
+            { header: 'Amount Paid', getValue: (i) => i.amount_paid },
+            { header: 'Balance Due', getValue: (i) => i.balance_due },
             { header: 'Status', getValue: (i) => i.status },
-            { header: 'Customer', getValue: (i) => i.customer_id }
+            { header: 'Customer ID', getValue: (i) => i.customer_id },
+            { header: 'Booking ID', getValue: (i) => i.booking_id ?? '' },
+            { header: 'Payment Terms (Days)', getValue: (i) => i.payment_terms ?? '' },
+            { header: 'Reminder Date', getValue: (i) => i.reminder_at ? new Date(i.reminder_at).toLocaleDateString('en-GB', { timeZone: 'Africa/Harare' }) : '' },
+            { header: 'Last Reminder Sent', getValue: (i) => i.last_reminder_at ? new Date(i.last_reminder_at).toLocaleString('en-GB', { timeZone: 'Africa/Harare' }) : '' },
+            { header: 'Notes', getValue: (i) => i.notes ?? '' },
+            { header: 'Client Notes', getValue: (i) => i.customer_notes ?? '' },
         ];
         dataset = data.financials.invoices;
         fileName = 'financial_report';

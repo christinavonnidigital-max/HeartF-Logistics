@@ -1,11 +1,12 @@
 import React, { useMemo, useState } from "react";
-import { ShellCard, Button, SectionHeader, StatusPill, Input, Select } from "./UiKit";
+import { ShellCard, Button, StatusPill, Input, Select } from "./UiKit";
 import { SearchIcon, UploadIcon } from "./icons";
-import { ProspectDetailsModal, LeadFinderResult } from "./ProspectDetailsModal";
+import { ProspectDetailsModal, LeadFinderResult, DisqualifyReason } from "./ProspectDetailsModal";
 import { OutreachEmailModal, SavedDraft } from "./OutreachEmailModal";
 import { useData } from "../contexts/DataContext";
 import { Lead, LeadSource, LeadStatus, CompanySize, Industry } from "../types";
-import { searchLeadFinder } from "../src/services/leadFinderApi";
+import { isLeadFinderServerConfigError, searchLeadFinder } from "../src/services/leadFinderApi";
+import { LeadWorkspaceHeader } from "./leads/LeadWorkspaceShared";
 
 type SearchBody = {
   industry: string;
@@ -17,6 +18,7 @@ type SearchBody = {
 };
 
 const companySizeOptions = [
+  { value: "", label: "Select size (optional)" },
   { value: "any", label: "Any" },
   { value: "micro", label: "Micro" },
   { value: "sme", label: "SME" },
@@ -51,7 +53,7 @@ const parseLocation = (location?: string) => {
   if (!location) return { city: "", country: "" };
   const parts = location.split(",").map((t) => t.trim()).filter(Boolean);
   if (!parts.length) return { city: "", country: "" };
-  if (parts.length === 1) return { city: parts[0], country: parts[0] };
+  if (parts.length === 1) return { city: parts[0], country: "Zimbabwe" };
   const country = parts.pop() || "";
   const city = parts.join(", ");
   return { city, country };
@@ -91,7 +93,7 @@ function buildDraftNote(draft: SavedDraft, prospect: LeadFinderResult) {
 
   return [
     "-----",
-    `Outreach draft (AI) • ${when}`,
+    `Outreach draft (AI) - ${when}`,
     metaLine,
     url ? `Source: ${url}` : "",
     "",
@@ -108,10 +110,10 @@ const LeadFinderPage: React.FC = () => {
   const { addLead } = useData();
 
   const [form, setForm] = useState<SearchBody>({
-    industry: "Logistics",
-    location: "Harare",
-    keywords: "freight forwarding",
-    companySize: "sme",
+    industry: "",
+    location: "",
+    keywords: "",
+    companySize: "",
     excludeIndustries: "",
     excludeKeywords: "",
   });
@@ -125,6 +127,7 @@ const LeadFinderPage: React.FC = () => {
   const [cached, setCached] = useState<boolean>(false);
   const [reasonHints, setReasonHints] = useState<string[]>([]);
   const [toast, setToast] = useState<string | null>(null);
+  const [disqualifiedById, setDisqualifiedById] = useState<Record<string, DisqualifyReason>>({});
 
   const [draftsByProspectId, setDraftsByProspectId] = useState<Record<string, SavedDraft>>({});
 
@@ -135,19 +138,6 @@ const LeadFinderPage: React.FC = () => {
   const onChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setForm((f) => ({ ...f, [name]: value }));
-  };
-
-  const allSelected = useMemo(() => {
-    if (results.length === 0) return false;
-    return results.every((r) => selected.has(r.id));
-  }, [results, selected]);
-
-  const toggleSelectAll = () => {
-    setSelected(() => {
-      if (results.length === 0) return new Set();
-      if (allSelected) return new Set();
-      return new Set(results.map((r) => r.id));
-    });
   };
 
   const toggleSelect = (id: string) => {
@@ -181,6 +171,7 @@ const LeadFinderPage: React.FC = () => {
     setSelected(new Set());
     setCached(false);
     setReasonHints([]);
+    setDisqualifiedById({});
 
     try {
       const data = await searchLeadFinder<LeadFinderResult>({
@@ -192,10 +183,20 @@ const LeadFinderPage: React.FC = () => {
       setCached(Boolean(data.cached));
       setReasonHints(Array.isArray(data.reasonHints) ? data.reasonHints : []);
 
-      if (!list.length) setError("No results found. Try changing keywords, industry, or location.");
-      else showToast(`Found ${list.length} companies`);
+      if (data.warningMessage) {
+        setError(data.warningMessage);
+        showToast(data.warningMessage);
+      } else if (!list.length) {
+        setError("No results found. Try changing keywords, industry, or location.");
+      } else {
+        showToast(`Found ${list.length} companies`);
+      }
     } catch (e: any) {
-      setError(String(e?.message || e));
+      const message = String(e?.message || e);
+      setError(message);
+      if (isLeadFinderServerConfigError(e)) {
+        showToast("Lead Finder AI is not configured on the backend. Set GEMINI_API_KEY and restart the API server.");
+      }
     } finally {
       setLoading(false);
     }
@@ -212,6 +213,31 @@ const LeadFinderPage: React.FC = () => {
     });
     return list;
   }, [results]);
+
+  const visibleResults = useMemo(
+    () => sortedResults.filter((r) => !disqualifiedById[r.id]),
+    [sortedResults, disqualifiedById],
+  );
+
+  const disqualifiedResults = useMemo(
+    () => sortedResults.filter((r) => Boolean(disqualifiedById[r.id])),
+    [sortedResults, disqualifiedById],
+  );
+
+  const disqualifiedCount = useMemo(() => Object.keys(disqualifiedById).length, [disqualifiedById]);
+
+  const allSelected = useMemo(() => {
+    if (visibleResults.length === 0) return false;
+    return visibleResults.every((r) => selected.has(r.id));
+  }, [visibleResults, selected]);
+
+  const toggleSelectAll = () => {
+    setSelected(() => {
+      if (visibleResults.length === 0) return new Set();
+      if (allSelected) return new Set();
+      return new Set(visibleResults.map((r) => r.id));
+    });
+  };
 
   const prospectToLeadPayload = (p: LeadFinderResult, draft?: SavedDraft): Omit<Lead, "id" | "created_at" | "updated_at"> => {
     const contact = p.contact || {};
@@ -256,7 +282,7 @@ const LeadFinderPage: React.FC = () => {
   };
 
   const importProspects = (ids: string[]) => {
-    const list = sortedResults.filter((r) => ids.includes(r.id));
+    const list = sortedResults.filter((r) => ids.includes(r.id) && !disqualifiedById[r.id]);
     if (!list.length) return;
 
     list.forEach((p) => {
@@ -271,7 +297,28 @@ const LeadFinderPage: React.FC = () => {
 
   const importSelected = () => {
     if (selected.size === 0) return;
-    importProspects(Array.from(selected));
+    const visibleIds = new Set(visibleResults.map((r) => r.id));
+    const importable = Array.from(selected).filter((id) => visibleIds.has(id));
+    if (!importable.length) return;
+    importProspects(importable);
+  };
+
+  const restoreDisqualified = (id: string) => {
+    setDisqualifiedById((prev) => {
+      if (!prev[id]) return prev;
+      const next = { ...prev };
+      delete next[id];
+      return next;
+    });
+    const restored = sortedResults.find((r) => r.id === id);
+    if (restored?.companyName) {
+      showToast(`Restored ${restored.companyName}`);
+    }
+  };
+
+  const restoreAllDisqualified = () => {
+    setDisqualifiedById({});
+    showToast("Restored disqualified prospects.");
   };
 
   const saveDraftForImport = (prospectId: string, draft: SavedDraft) => {
@@ -293,6 +340,16 @@ const LeadFinderPage: React.FC = () => {
         isOpen={detailsOpen}
         prospect={activeProspect}
         onClose={() => setDetailsOpen(false)}
+        onDisqualify={(prospect, reason) => {
+          setDisqualifiedById((prev) => ({ ...prev, [prospect.id]: reason }));
+          setSelected((prev) => {
+            const next = new Set(prev);
+            next.delete(prospect.id);
+            return next;
+          });
+          setDetailsOpen(false);
+          showToast(`${prospect.companyName} disqualified: ${reason}`);
+        }}
         onDraftEmail={(p) => {
           setDetailsOpen(false);
           openDraftEmail(p);
@@ -306,43 +363,41 @@ const LeadFinderPage: React.FC = () => {
         onSaveDraftForImport={saveDraftForImport}
       />
 
+      <LeadWorkspaceHeader
+        title="Lead Discovery"
+        subtitle="Find Zimbabwe and SADC prospects with grounded search, draft outreach, and direct CRM import."
+      >
+        {cached ? <StatusPill tone="info" label="cached" /> : null}
+        <Button variant="secondary" onClick={() => handleSearch({ forceRefresh: true })} disabled={loading}>
+          Fresh
+        </Button>
+        <Button variant="primary" onClick={() => handleSearch()} disabled={loading}>
+          <SearchIcon className="w-4 h-4" />
+          {loading ? "Searching..." : "Search"}
+        </Button>
+      </LeadWorkspaceHeader>
+
       <ShellCard className="p-5">
-        <div className="flex items-start justify-between gap-4 flex-wrap">
-          <SectionHeader
-            title="Lead Finder"
-            subtitle="Search real companies with grounding, exclude junk, draft outreach, and import into CRM."
-          />
-          <div className="flex items-center gap-2">
-            {cached ? <StatusPill tone="info" label="cached" /> : null}
-            <Button variant="secondary" onClick={() => handleSearch({ forceRefresh: true })} disabled={loading}>
-              Fresh
-            </Button>
-            <Button variant="primary" onClick={() => handleSearch()} disabled={loading}>
-              <SearchIcon className="w-4 h-4" />
-              {loading ? "Searching..." : "Search"}
-            </Button>
-          </div>
-        </div>
 
         <div className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1">Industry</label>
-            <Input name="industry" value={form.industry} onChange={onChange} placeholder="Logistics, Mining, FMCG..." />
+            <Input name="industry" value={form.industry} onChange={onChange} placeholder="Logistics, Mining, FMCG, Agriculture..." />
           </div>
 
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1">Location</label>
-            <Input name="location" value={form.location} onChange={onChange} placeholder="Harare, Zimbabwe" />
+            <Input name="location" value={form.location} onChange={onChange} placeholder="Zimbabwe, Zambia, Botswana, Mozambique" />
           </div>
 
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1">Keywords</label>
-            <Input name="keywords" value={form.keywords || ""} onChange={onChange} placeholder="freight, distribution..." />
+            <Input name="keywords" value={form.keywords || ""} onChange={onChange} placeholder="cross-border, Beitbridge corridor, last-mile..." />
           </div>
 
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1">Company size</label>
-            <Select name="companySize" value={form.companySize || "any"} onChange={onChange}>
+            <Select name="companySize" value={form.companySize || ""} onChange={onChange}>
               {companySizeOptions.map((opt) => (
                 <option key={opt.value} value={opt.value}>{opt.label}</option>
               ))}
@@ -370,7 +425,7 @@ const LeadFinderPage: React.FC = () => {
               name="excludeKeywords"
               value={form.excludeKeywords || ""}
               onChange={onChange}
-              placeholder="e.g. jobs, careers, recruitment, internship"
+              placeholder="e.g. jobs, careers, recruitment, internship, training"
             />
             <div className="mt-1 text-[11px] text-muted-foreground">
               Leads will be filtered out if the company/summary matches any excluded keyword.
@@ -395,8 +450,8 @@ const LeadFinderPage: React.FC = () => {
       <ShellCard className="p-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h3 className="text-sm font-semibold text-slate-900">Results</h3>
-            <p className="text-xs text-slate-500">Draft outreach and attach it to import to save it into lead notes.</p>
+            <h3 className="text-sm font-semibold text-slate-900">Prospects Feed</h3>
+            <p className="text-xs text-slate-500">Draft outreach and import only qualified Zimbabwe/SADC prospects into notes.</p>
           </div>
 
           <div className="flex items-center gap-2">
@@ -409,14 +464,26 @@ const LeadFinderPage: React.FC = () => {
               <UploadIcon className="w-4 h-4" />
               Import selected
             </Button>
+            {disqualifiedCount > 0 ? (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={restoreAllDisqualified}
+              >
+                Restore filtered ({disqualifiedCount})
+              </Button>
+            ) : null}
           </div>
         </div>
 
         <div className="mt-4 space-y-3">
-          {loading && results.length === 0 ? <div className="text-sm text-slate-500">Searching…</div> : null}
+          {loading && results.length === 0 ? <div className="text-sm text-slate-500">Searching...</div> : null}
           {!loading && results.length === 0 ? <div className="text-sm text-slate-500">No results yet. Run a search.</div> : null}
+          {!loading && results.length > 0 && visibleResults.length === 0 ? (
+            <div className="text-sm text-slate-500">All results are currently disqualified. Use Restore filtered to review again.</div>
+          ) : null}
 
-          {sortedResults.map((r) => {
+          {visibleResults.map((r) => {
             const tier = getTier(r);
             const conf = confidencePct(r.confidence);
             const link = r.website || r.sourceUrl || "";
@@ -472,6 +539,42 @@ const LeadFinderPage: React.FC = () => {
               </div>
             );
           })}
+
+          {disqualifiedResults.length > 0 ? (
+            <div className="mt-2 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <h4 className="text-sm font-semibold text-slate-900">Disqualified</h4>
+                  <p className="text-xs text-slate-600">Kept out of import and feed until restored.</p>
+                </div>
+                <Button variant="ghost" size="sm" onClick={restoreAllDisqualified}>
+                  Restore all
+                </Button>
+              </div>
+
+              <div className="mt-3 space-y-2">
+                {disqualifiedResults.slice(0, 6).map((r) => (
+                  <div key={r.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2">
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-slate-900 truncate">{r.companyName || "Untitled company"}</p>
+                      <p className="text-xs text-slate-600">Reason: {disqualifiedById[r.id] || "Disqualified"}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button variant="secondary" size="sm" onClick={() => openDetails(r)}>
+                        Review
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => restoreDisqualified(r.id)}>
+                        Undo
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+                {disqualifiedResults.length > 6 ? (
+                  <p className="text-xs text-slate-500">Showing 6 of {disqualifiedResults.length} disqualified prospects.</p>
+                ) : null}
+              </div>
+            </div>
+          ) : null}
         </div>
       </ShellCard>
     </div>

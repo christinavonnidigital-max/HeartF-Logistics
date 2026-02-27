@@ -70,7 +70,7 @@ type RevenueCardProps = {
   totalInvoiced: number;
   openInvoices: number;
   paidInvoices: number;
-  currency: 'USD' | 'ZWL';
+  currency: 'USD' | 'ZWL' | 'ZIG';
   isCustomer?: boolean;
 };
 
@@ -214,9 +214,9 @@ const processRevenueByCategoryData = (invoices: Invoice[]) => {
     return Object.entries(dataByCategory).map(([name, value]) => ({ name, value }));
 };
 
-const RevenueTrendChart = ({ invoices, currency, title }: { invoices: Invoice[], currency: 'USD' | 'ZWL', title?: string }) => {
+const RevenueTrendChart = ({ invoices, currency, title }: { invoices: Invoice[], currency: 'USD' | 'ZWL' | 'ZIG', title?: string }) => {
   const data = processRevenueTrendData(invoices);
-  const currencySymbol = currency === 'ZWL' ? 'Z$' : '$';
+  const currencySymbol = currency === 'ZWL' ? 'ZWL ' : currency === 'ZIG' ? 'ZiG ' : '$';
 
   return (
     <div className="rounded-2xl bg-white p-5 shadow-md border border-slate-200/60 h-80 flex flex-col min-w-0">
@@ -238,7 +238,7 @@ const RevenueTrendChart = ({ invoices, currency, title }: { invoices: Invoice[],
   );
 };
 
-const RevenueByCategoryChart = ({ invoices, currency, title }: { invoices: Invoice[], currency: 'USD' | 'ZWL', title?: string }) => {
+const RevenueByCategoryChart = ({ invoices, currency, title }: { invoices: Invoice[], currency: 'USD' | 'ZWL' | 'ZIG', title?: string }) => {
     const data = processRevenueByCategoryData(invoices);
     const COLORS = ['#6366f1', '#ec4899', '#10b981', '#f59e0b', '#0ea5e9'];
 

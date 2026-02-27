@@ -207,7 +207,7 @@ export enum BackgroundCheckStatus {
 
 export interface Driver {
     id: number;
-    user_id: number; // foreign key → users.id
+    user_id: number | string; // foreign key → users.id
     license_number: string;
     license_type: string;
     license_expiry_date: string;

@@ -2,6 +2,9 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import crypto from "crypto";
+import fs from "fs/promises";
+import path from "path";
+import { fileURLToPath } from "url";
 import pg from "pg";
 import { MailService } from "@sendgrid/mail";
 import { GoogleGenAI } from "@google/genai";
@@ -28,6 +31,8 @@ const pool = new pg.Pool({
 const USER_ROLE_BASE = ["admin", "ops_manager", "dispatcher", "finance", "customer", "driver", "marketing", "pending"];
 let usersRoleCheckEnsurePromise = null;
 let defaultOrgIdPromise = null;
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const escapeSqlLiteral = (value) => `'${String(value).replace(/'/g, "''")}'`;
 
@@ -98,11 +103,16 @@ const normalizeIdValue = (id) => {
 const sg = new MailService();
 if (SENDGRID_API_KEY) sg.setApiKey(SENDGRID_API_KEY);
 
-const leadFinderApiKey =
-  process.env.GEMINI_API_KEY ||
-  process.env.API_KEY ||
-  process.env.GOOGLE_GENAI_API_KEY ||
-  "";
+const leadFinderApiKeySource = process.env.LEAD_FINDER_GEMINI_API_KEY
+  ? "LEAD_FINDER_GEMINI_API_KEY"
+  : process.env.GEMINI_API_KEY
+  ? "GEMINI_API_KEY"
+  : process.env.API_KEY
+  ? "API_KEY"
+  : process.env.GOOGLE_GENAI_API_KEY
+  ? "GOOGLE_GENAI_API_KEY"
+  : "";
+const leadFinderApiKey = leadFinderApiKeySource ? process.env[leadFinderApiKeySource] : "";
 const leadFinderAi = leadFinderApiKey ? new GoogleGenAI({ apiKey: String(leadFinderApiKey).trim() }) : null;
 
 const LEAD_FINDER_CACHE_TTL_MS = 15 * 60 * 1000;
@@ -330,7 +340,88 @@ const normalizeLeadFinderList = (payload, input) => {
 
 const app = express();
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: "20mb" }));
+
+const UPLOAD_ROOT = path.resolve(__dirname, "uploads");
+const MAX_UPLOAD_BYTES = 8 * 1024 * 1024;
+const MIME_EXTENSIONS = {
+  "image/jpeg": "jpg",
+  "image/jpg": "jpg",
+  "image/png": "png",
+  "image/webp": "webp",
+  "application/pdf": "pdf",
+};
+
+const sanitizePathSegment = (value, fallback = "general") => {
+  const safe = String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9-_]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+  return safe || fallback;
+};
+
+const sanitizeBaseName = (value, fallback = "file") => {
+  const safe = String(value || "")
+    .trim()
+    .replace(/[^a-zA-Z0-9-_]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "")
+    .slice(0, 80);
+  return safe || fallback;
+};
+
+app.use("/api/uploads", express.static(UPLOAD_ROOT));
+
+app.post("/api/files/upload", async (req, res) => {
+  try {
+    const { fileName, mimeType, base64Data, category } = req.body || {};
+    if (!fileName || !mimeType || !base64Data) {
+      return res.status(400).json({ error: "fileName, mimeType, and base64Data are required" });
+    }
+
+    const normalizedMimeType = String(mimeType).toLowerCase().trim();
+    const fromMimeExtension = MIME_EXTENSIONS[normalizedMimeType] || "";
+    const originalExt = path.extname(String(fileName)).replace(/^\./, "").toLowerCase();
+    const extension = sanitizePathSegment(originalExt || fromMimeExtension || "bin");
+
+    const base64Payload = String(base64Data).replace(/^data:[^;]+;base64,/, "");
+    let buffer;
+    try {
+      buffer = Buffer.from(base64Payload, "base64");
+    } catch {
+      return res.status(400).json({ error: "invalid_base64" });
+    }
+
+    if (!buffer?.length) return res.status(400).json({ error: "empty_file" });
+    if (buffer.length > MAX_UPLOAD_BYTES) {
+      return res.status(413).json({ error: "file_too_large", maxBytes: MAX_UPLOAD_BYTES });
+    }
+
+    const safeCategory = sanitizePathSegment(category, "general");
+    const folder = path.join(UPLOAD_ROOT, safeCategory);
+    await fs.mkdir(folder, { recursive: true });
+
+    const sourceBaseName = path.basename(String(fileName), path.extname(String(fileName)));
+    const storedName = `${Date.now()}-${crypto.randomBytes(4).toString("hex")}-${sanitizeBaseName(sourceBaseName)}.${extension}`;
+    const absolutePath = path.join(folder, storedName);
+    await fs.writeFile(absolutePath, buffer);
+
+    return res.status(201).json({
+      ok: true,
+      file: {
+        name: String(fileName),
+        mimeType: normalizedMimeType,
+        sizeBytes: buffer.length,
+        url: `/api/uploads/${safeCategory}/${storedName}`,
+      },
+    });
+  } catch (error) {
+    console.error("Upload error:", error);
+    return res.status(500).json({ error: "upload_failed" });
+  }
+});
 
 const columnCache = new Map();
 
@@ -497,7 +588,16 @@ dbRoutes.forEach(({ path, table, options }) => {
 app.post("/api/lead-finder-search", async (req, res) => {
   try {
     if (!leadFinderAi) {
-      return res.status(500).json({ ok: false, error: "Lead Finder AI is not configured on the server." });
+      const warningMessage =
+        "Lead Finder AI is not configured on the server. Set GEMINI_API_KEY (or LEAD_FINDER_GEMINI_API_KEY) and restart the API server.";
+      return res.status(200).json({
+        ok: true,
+        cached: false,
+        results: [],
+        reasonHints: [warningMessage],
+        warningCode: "lead_finder_key_missing",
+        warningMessage,
+      });
     }
 
     const input = normalizeLeadFinderInput(req.body || {});
@@ -551,7 +651,32 @@ app.post("/api/lead-finder-search", async (req, res) => {
     return res.json({ ok: true, cached: false, results, reasonHints });
   } catch (e) {
     console.error("lead finder search error", e);
-    return res.status(500).json({ ok: false, error: "lead_finder_failed", detail: String(e?.message || e) });
+    const message = String(e?.message || e || "");
+    const serialized = (() => {
+      try {
+        return JSON.stringify(e);
+      } catch {
+        return "";
+      }
+    })();
+    const errorText = `${message} ${serialized}`.toLowerCase();
+    if (
+      errorText.includes("api_key_http_referrer_blocked") ||
+      errorText.includes("requests from referer") ||
+      errorText.includes("permission_denied")
+    ) {
+      const warningMessage =
+        "Lead Finder server key is blocked by HTTP referrer policy. Use a server-side GEMINI_API_KEY (or LEAD_FINDER_GEMINI_API_KEY) without browser referrer restriction.";
+      return res.status(200).json({
+        ok: true,
+        cached: false,
+        results: [],
+        reasonHints: [warningMessage],
+        warningCode: "lead_finder_key_restricted",
+        warningMessage,
+      });
+    }
+    return res.status(500).json({ ok: false, error: "lead_finder_failed", detail: message });
   }
 });
 
@@ -818,6 +943,18 @@ ensurePendingUserRoleEnum().catch(() => {
 
 app.listen(PORT, () => {
   console.log(`Magic link API listening on :${PORT}`);
+  if (leadFinderApiKeySource) {
+    console.log(`[LeadFinder] Gemini key loaded from ${leadFinderApiKeySource}.`);
+  } else {
+    console.warn(
+      "[LeadFinder] Gemini key missing. Set LEAD_FINDER_GEMINI_API_KEY or GEMINI_API_KEY."
+    );
+  }
+  if (process.env.VITE_GEMINI_API_KEY) {
+    console.warn(
+      "[LeadFinder] VITE_GEMINI_API_KEY is set. Lead Finder runs backend-only; keep browser key unset unless needed for other client AI features."
+    );
+  }
 });
 
 // Notification dispatch (queued -> SendGrid)

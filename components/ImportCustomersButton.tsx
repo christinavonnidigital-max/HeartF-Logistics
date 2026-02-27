@@ -200,7 +200,7 @@ const ImportCustomersButton: React.FC<ImportCustomersButtonProps> = ({ buttonLab
       { key: "address", label: "Address", required: false },
       { key: "city", label: "City", required: false },
       { key: "country", label: "Country", required: false },
-      { key: "preferred_currency", label: "Preferred Currency", required: false, helper: 'Examples: "USD", "ZWL"' },
+      { key: "preferred_currency", label: "Preferred Currency", required: false, helper: 'Examples: "USD", "ZiG", "ZWL"' },
       { key: "loyalty_points", label: "Loyalty Points", required: false },
     ],
     []

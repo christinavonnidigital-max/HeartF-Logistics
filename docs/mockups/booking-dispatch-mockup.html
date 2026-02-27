@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bookings Dispatch Mockup</title>
+  <style>
+    :root { --bg:#f5f6f8; --card:#fff; --border:#e2e8f0; --text:#0f172a; --muted:#64748b; --accent:#f59e0b; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: ui-sans-serif, -apple-system, Segoe UI, Roboto, Arial; background:var(--bg); color:var(--text); }
+    .wrap { max-width:1240px; margin:0 auto; padding:24px; }
+    .row { display:flex; justify-content:space-between; align-items:center; gap:12px; }
+    .card { background:#fff; border:1px solid var(--border); border-radius:16px; }
+    .kpis { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin-top:12px; }
+    .kpi { padding:16px; }
+    .layout { display:grid; grid-template-columns:minmax(0,1fr) 320px; gap:12px; margin-top:12px; }
+    .tabs { display:flex; gap:20px; padding:14px 16px; border-bottom:1px solid var(--border); }
+    table { width:100%; border-collapse: collapse; }
+    th,td { padding:13px 16px; border-top:1px solid var(--border); text-align:left; }
+    th { font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; background:#f8fafc; }
+    .pill { border-radius:999px; padding:4px 10px; font-size:12px; font-weight:700; background:#e0f2fe; color:#0369a1; }
+    .assist { padding:16px; }
+    .driver { border:1px solid var(--border); border-radius:14px; padding:12px; margin-top:10px; }
+    .btn { width:100%; border:0; background:var(--accent); color:#fff; border-radius:999px; padding:10px; font-weight:700; }
+    .muted { color:var(--muted); font-size:13px; }
+    @media (max-width:1000px){ .kpis{grid-template-columns:1fr;} .layout{grid-template-columns:1fr;} }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="row">
+      <h1 style="margin:0;font-size:36px;">Bookings and Dispatch</h1>
+      <input style="padding:11px 12px;border:1px solid #e2e8f0;border-radius:999px;width:380px;" placeholder="Search Order ID, customer, or driver..." />
+    </div>
+
+    <div class="kpis">
+      <div class="card kpi"><div class="muted">Today's Total Bookings</div><div style="font-size:44px;font-weight:700;">128</div><div style="color:#16a34a;">+12% vs yesterday</div></div>
+      <div class="card kpi" style="border-color:#fdba74;"><div class="muted">Pending Dispatch</div><div style="font-size:44px;font-weight:700;">14</div><div style="color:#c2410c;">Requires immediate attention</div></div>
+      <div class="card kpi"><div class="muted">Shipments In Transit</div><div style="font-size:44px;font-weight:700;">42</div><div class="muted">On schedule</div></div>
+    </div>
+
+    <div class="layout">
+      <div class="card">
+        <div class="tabs"><strong style="color:#d97706;border-bottom:2px solid #f59e0b; padding-bottom:8px;">All Bookings</strong><span>New Orders</span><span>Awaiting Dispatch</span><span>In Transit</span><span>Completed</span></div>
+        <table>
+          <thead><tr><th>Order ID</th><th>Customer</th><th>Route</th><th>Type</th><th>Scheduled Time</th></tr></thead>
+          <tbody>
+            <tr><td><strong>#BK-5402</strong></td><td>Global Tech Solutions</td><td>New York -> Boston</td><td><span class="pill">Temp Controlled</span></td><td>Today, 10:30 AM</td></tr>
+            <tr><td><strong>#BK-5403</strong></td><td>Aero Logistics</td><td>Chicago -> Detroit</td><td><span class="pill" style="background:#f1f5f9;color:#334155;">Standard</span></td><td>Today, 11:15 AM</td></tr>
+            <tr><td><strong>#BK-5404</strong></td><td>Steel Works</td><td>Austin -> Dallas</td><td><span class="pill" style="background:#f3e8ff;color:#7c3aed;">Oversized</span></td><td>Today, 12:00 PM</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card assist">
+        <h3 style="margin:0;">Dispatch Assistant</h3>
+        <div class="driver" style="background:#fff7ed;border-color:#fdba74;">
+          <strong>Sarah Williams</strong>
+          <div class="muted">0.8 miles away</div>
+          <p>Truck Type: Reefer 53'</p>
+          <p>Hours Left: 11.5 hrs</p>
+          <button class="btn">Assign to Order</button>
+        </div>
+        <div class="driver"><strong>David Chen</strong><div class="muted">2.4 miles away</div><p>Truck Type: Dry Van 53'</p></div>
+        <div class="driver"><strong>Marcus Thorne</strong><div class="muted">5.1 miles away</div><p>Truck Type: Flatbed</p></div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

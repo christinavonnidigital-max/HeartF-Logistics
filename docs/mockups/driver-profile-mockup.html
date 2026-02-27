@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Driver Profile Mockup</title>
+  <style>
+    :root {
+      --bg: #f4f5f7;
+      --card: #fff;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --muted: #64748b;
+      --accent: #f59e0b;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: ui-sans-serif, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background: var(--bg); color: var(--text); }
+    .wrap { max-width: 1220px; margin: 0 auto; padding: 24px; }
+    .card { border: 1px solid var(--border); border-radius: 16px; background: var(--card); }
+    .head { padding: 16px 20px; }
+    .row { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .name { font-size: 52px; font-weight: 700; margin: 0; }
+    .chip { border-radius: 999px; background: #ffedd5; color: #9a3412; padding: 6px 10px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
+    .btn { border: 0; background: var(--accent); color: #fff; border-radius: 12px; padding: 12px 18px; font-weight: 600; }
+    .muted { color: var(--muted); }
+    .kpis { margin-top: 12px; display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; }
+    .kpi { border: 1px solid var(--border); border-radius: 14px; background: #fff; padding: 16px; }
+    .v { font-size: 56px; font-weight: 700; line-height: 1; margin-top: 8px; }
+    .grid { margin-top: 12px; display: grid; grid-template-columns: minmax(0,1.9fr) minmax(0,.9fr); gap: 12px; }
+    .section { padding: 16px; }
+    .h3 { font-size: 36px; margin: 0 0 12px 0; font-weight: 700; }
+    .bars { display: grid; grid-template-columns: repeat(6,minmax(0,1fr)); gap: 10px; }
+    .barwrap { border-radius: 12px; background: #f1f5f9; height: 190px; display: flex; align-items: end; justify-content: center; padding: 10px; }
+    .bar { width: 16px; border-radius: 999px; background: #f59e0b; }
+    .incident { border: 1px solid var(--border); background: #f8fafc; border-radius: 12px; padding: 12px; margin-top: 8px; display: flex; justify-content: space-between; }
+    .fb { border-bottom: 1px solid var(--border); padding: 10px 0; }
+    @media (max-width: 1050px) {
+      .name { font-size: 36px; }
+      .kpis, .grid { grid-template-columns: 1fr; }
+      .h3 { font-size: 26px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div class="head">
+        <div class="muted">Drivers > Marcus Chen</div>
+        <div class="row" style="margin-top:10px">
+          <div>
+            <div class="row" style="justify-content:flex-start">
+              <h1 class="name">Marcus Chen</h1>
+              <span class="chip">Senior Driver</span>
+            </div>
+            <div class="muted" style="margin-top:8px">ID #4492 • m.chen@logistics.com • +1 (555) 012-3456</div>
+          </div>
+          <button class="btn">Download Report</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="kpis">
+      <div class="kpi"><div class="muted">Overall Safety Score</div><div class="v">94/100</div></div>
+      <div class="kpi"><div class="muted">On-Time Delivery Rate</div><div class="v">98.2%</div></div>
+      <div class="kpi"><div class="muted">Fuel Efficiency</div><div class="v">3.2 <span class="muted">MPG</span></div></div>
+    </div>
+
+    <div class="grid">
+      <div>
+        <div class="card section">
+          <h2 class="h3">Monthly Performance Trend</h2>
+          <div class="bars">
+            <div><div class="barwrap"><div class="bar" style="height:120px"></div></div><div class="muted" style="text-align:center;margin-top:6px">JAN</div></div>
+            <div><div class="barwrap"><div class="bar" style="height:132px"></div></div><div class="muted" style="text-align:center;margin-top:6px">FEB</div></div>
+            <div><div class="barwrap"><div class="bar" style="height:142px"></div></div><div class="muted" style="text-align:center;margin-top:6px">MAR</div></div>
+            <div><div class="barwrap"><div class="bar" style="height:156px"></div></div><div class="muted" style="text-align:center;margin-top:6px">APR</div></div>
+            <div><div class="barwrap"><div class="bar" style="height:150px"></div></div><div class="muted" style="text-align:center;margin-top:6px">MAY</div></div>
+            <div><div class="barwrap"><div class="bar" style="height:146px"></div></div><div class="muted" style="text-align:center;margin-top:6px">JUN</div></div>
+          </div>
+        </div>
+
+        <div class="card section" style="margin-top:12px">
+          <h2 class="h3">Recent Safety Incidents</h2>
+          <div class="incident"><div><strong>Hard Braking</strong><div class="muted">2 events detected</div></div><div class="chip">Moderate</div></div>
+          <div class="incident"><div><strong>Speeding</strong><div class="muted">No events detected</div></div><div class="chip" style="background:#dcfce7;color:#166534">Excellent</div></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="card section">
+          <h2 class="h3">Customer Feedback</h2>
+          <div class="fb">★★★★★<div style="margin-top:6px">“Arrived early and very professional.”</div><div class="muted" style="margin-top:6px">Yesterday</div></div>
+          <div class="fb">★★★★★<div style="margin-top:6px">“Very polite and followed all safety protocols.”</div><div class="muted" style="margin-top:6px">3 days ago</div></div>
+          <div class="fb" style="border-bottom:0">★★★★★<div style="margin-top:6px">“Top-tier service as always.”</div><div class="muted" style="margin-top:6px">Oct 12</div></div>
+        </div>
+
+        <div class="card section" style="margin-top:12px">
+          <h2 class="h3">Training Certifications</h2>
+          <div style="border:1px solid var(--border);border-radius:12px;padding:10px;background:#f8fafc;margin-top:8px"><strong>Defensive Driving</strong><div class="muted">Expires: June 2025</div></div>
+          <div style="border:1px solid var(--border);border-radius:12px;padding:10px;background:#f8fafc;margin-top:8px"><strong>Class A CDL</strong><div class="muted">Expires: Jan 2026</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

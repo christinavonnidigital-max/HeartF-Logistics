@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Booking Wizard Step 1 Mockup</title>
+  <style>
+    :root { --bg:#f5f6f8; --card:#fff; --border:#e2e8f0; --text:#0f172a; --muted:#64748b; --accent:#f59e0b; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: ui-sans-serif, -apple-system, Segoe UI, Roboto, Arial; background:var(--bg); color:var(--text); }
+    .wrap { max-width:1200px; margin:0 auto; padding:24px; }
+    .card { background:var(--card); border:1px solid var(--border); border-radius:16px; }
+    .step { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; padding:12px; }
+    .dot { width:30px; height:30px; border-radius:50%; display:grid; place-items:center; font-weight:700; }
+    .active{ background:var(--accent); color:#fff; } .off{ background:#e2e8f0; color:#64748b; }
+    .grid { margin-top:12px; display:grid; grid-template-columns:minmax(0,1fr) 300px; gap:12px; }
+    .section { padding:16px; }
+    .title { font-size:36px; font-weight:700; margin:0; }
+    .row { display:flex; justify-content:space-between; align-items:center; gap:10px; }
+    .search { border:1px solid var(--border); border-radius:12px; padding:11px 12px; width:100%; }
+    .chips { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:10px; }
+    .chip { border:1px solid var(--border); background:#f8fafc; border-radius:12px; padding:10px; text-align:center; font-weight:600; }
+    .chip.active { border-color:#fbbf24; background:#fff7ed; color:#9a3412; }
+    textarea,input { width:100%; border:1px solid var(--border); border-radius:12px; padding:10px; }
+    textarea { min-height:90px; }
+    .summary { padding:16px; }
+    .muted { color:var(--muted); font-size:13px; }
+    .cost { font-size:34px; font-weight:700; color:#c2410c; }
+    @media (max-width:1000px){ .grid{grid-template-columns:1fr;} .chips{grid-template-columns:1fr 1fr;} .title{font-size:28px;} }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1 class="title">Create New Booking</h1>
+    <p class="muted">Step 1 of 4: Shipment Details</p>
+
+    <div class="card step">
+      <div class="row"><div class="dot active">1</div><strong>Details</strong></div>
+      <div class="row"><div class="dot off">2</div><span class="muted">Route</span></div>
+      <div class="row"><div class="dot off">3</div><span class="muted">Assignment</span></div>
+      <div class="row"><div class="dot off">4</div><span class="muted">Review</span></div>
+    </div>
+
+    <div class="grid">
+      <div>
+        <div class="card section">
+          <div class="row"><h3>Customer Information</h3><button>Add New</button></div>
+          <input class="search" placeholder="Search existing customers..." />
+        </div>
+
+        <div class="card section" style="margin-top:12px;">
+          <h3>Cargo Information</h3>
+          <div class="chips">
+            <div class="chip active">General</div>
+            <div class="chip">Hazmat</div>
+            <div class="chip">Cold Chain</div>
+            <div class="chip">Oversized</div>
+          </div>
+          <textarea placeholder="Describe the items being shipped..."></textarea>
+          <div class="row" style="margin-top:10px;">
+            <input placeholder="Total Weight (kg)" />
+            <input placeholder="Dimensions (LxWxH cm)" />
+          </div>
+        </div>
+      </div>
+
+      <div class="card summary">
+        <h3>Live Summary</h3>
+        <p class="muted">Customer</p>
+        <p>No customer selected yet</p>
+        <p class="muted">Cargo Type</p>
+        <p>General Cargo</p>
+        <p class="muted">Total Weight</p>
+        <p>18,500 kg</p>
+        <hr style="border:0;border-top:1px solid #e2e8f0; margin:14px 0;" />
+        <p class="muted">Estimated Cost</p>
+        <p class="cost">$3,420</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

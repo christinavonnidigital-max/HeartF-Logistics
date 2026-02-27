@@ -60,7 +60,7 @@ const CampaignDetailsStep: React.FC<CampaignDetailsStepProps> = ({ data, updateD
                             name="campaign_name"
                             id="campaign_name"
                             className="mt-1 block w-full rounded-md border border-gray-300 bg-white text-gray-900 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm"
-                            placeholder="e.g., FMCG Retailers Q1 2025"
+                            placeholder="e.g., Zimbabwe FMCG Lane Outreach Q3"
                             value={data.campaign_name || ''}
                             onChange={handleChange}
                         />
@@ -78,7 +78,7 @@ const CampaignDetailsStep: React.FC<CampaignDetailsStepProps> = ({ data, updateD
                             name="campaign_goal"
                             id="campaign_goal"
                             className="mt-1 block w-full rounded-md border border-gray-300 bg-white text-gray-900 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm"
-                            placeholder="e.g., Schedule 20 introductory calls"
+                            placeholder="e.g., Schedule 20 discovery calls for Harare-Lusaka lane freight"
                              value={data.campaign_goal || ''}
                             onChange={handleChange}
                         />
@@ -96,12 +96,12 @@ const CampaignDetailsStep: React.FC<CampaignDetailsStepProps> = ({ data, updateD
                             name="target_audience"
                             rows={3}
                             className="mt-1 block w-full rounded-md border border-gray-300 bg-white text-gray-900 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm"
-                            placeholder="e.g., Logistics and procurement managers at large FMCG companies in Zimbabwe and South Africa."
+                            placeholder="e.g., Logistics and procurement managers in Zimbabwe, Zambia, Botswana, Mozambique, and South Africa."
                             value={data.target_audience || ''}
                             onChange={handleChange}
                         ></textarea>
                     </div>
-                    <p className="mt-2 text-sm text-gray-500">Briefly describe the ideal recipient for this campaign's emails.</p>
+                    <p className="mt-2 text-sm text-gray-500">Briefly describe the ideal recipient for this campaign emails. Dates in this workspace use dd/mm/yyyy.</p>
                 </div>
 
                 <div className="space-y-4">

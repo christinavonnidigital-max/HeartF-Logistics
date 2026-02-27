@@ -1,48 +1,45 @@
-import React, { useEffect, useMemo, useState } from "react";
+﻿import React, { useEffect, useMemo, useState } from "react";
 import {
   Vehicle,
   VehicleExpense,
-  ExpenseType,
   VehicleDocument,
   DocumentType,
   VehicleMaintenance,
   VehicleStatus,
+  Booking,
 } from "../types";
 import { mockGpsLocations } from "../data/mockData";
 import {
-  CurrencyDollarIcon,
   GaugeIcon,
-  RoadIcon,
   WrenchIcon,
   FuelIcon,
   ShieldCheckIcon,
-  DocumentDuplicateIcon,
   TrashIcon,
   DocumentTextIcon,
-  CalendarDaysIcon,
   MapPinIcon,
   ClipboardDocumentIcon,
   TicketIcon,
   UploadIcon,
+  TruckIcon,
+  UserCircleIcon,
 } from "./icons";
-import { ShellCard, SubtleCard, StatusPill, Button, IconButton, ModalShell, Input, Label } from "./UiKit";
+import { StatusPill, Button, IconButton, ModalShell, Input, Label, Select } from "./UiKit";
 import AddDocumentModal from "./AddDocumentModal";
 import ConfirmModal from "./ConfirmModal";
-import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
-import * as L from "leaflet";
 import { useData } from "../contexts/DataContext";
+import { downloadCsv } from "../dataIO/toCsv";
 
 interface VehicleDetailsProps {
   vehicle: Vehicle;
   maintenance: VehicleMaintenance[];
   expenses: VehicleExpense[];
   onAddExpenseClick: () => void;
+  onDownloadProfile?: () => void;
   onDeleteVehicle: () => void;
   onArchiveVehicle: () => void;
   onUpdateOdometer: (nextKm: number) => void;
+  onUpdateVehicleDetails?: (next: Vehicle) => void;
 }
-
-type TabKey = "overview" | "tracking" | "maintenance" | "expenses" | "documents";
 
 const toTitle = (v: string) =>
   String(v)
@@ -70,102 +67,70 @@ const formatExpiryLabel = (expiry?: string | null) => {
 
   const now = new Date();
   const diffDays = Math.ceil((d.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-  const pretty = d.toLocaleDateString();
 
-  if (diffDays < 0) return `Expired ${pretty}`;
-  if (diffDays === 0) return `Expires today (${pretty})`;
-  if (diffDays === 1) return `Expires tomorrow (${pretty})`;
-  if (diffDays <= 30) return `Expires in ${diffDays}d (${pretty})`;
-  return `Expires ${pretty}`;
+  if (diffDays < 0) return `Expired ${Math.abs(diffDays)}d ago`;
+  if (diffDays === 0) return "Expires today";
+  if (diffDays === 1) return "Expires tomorrow";
+  if (diffDays <= 30) return `Expires in ${diffDays}d`;
+  return `Valid until ${d.toLocaleDateString()}`;
 };
 
-const getExpenseTypeUI = (type: ExpenseType) => {
-  switch (type) {
-    case ExpenseType.FUEL:
-      return {
-        icon: <FuelIcon className="w-4 h-4" />,
-        badge: "Fuel",
-        tone: "warn" as const,
-      };
-    case ExpenseType.MAINTENANCE:
-      return {
-        icon: <WrenchIcon className="w-4 h-4" />,
-        badge: "Maintenance",
-        tone: "info" as const,
-      };
-    case ExpenseType.INSURANCE:
-      return {
-        icon: <ShieldCheckIcon className="w-4 h-4" />,
-        badge: "Insurance",
-        tone: "success" as const,
-      };
-    default:
-      return {
-        icon: <DocumentDuplicateIcon className="w-4 h-4" />,
-        badge: "Other",
-        tone: "neutral" as const,
-      };
-  }
+const getHeaderStatusTone = (status: VehicleStatus) => {
+  if (status === VehicleStatus.ACTIVE) return "success" as const;
+  if (status === VehicleStatus.MAINTENANCE) return "warn" as const;
+  if (status === VehicleStatus.OUT_OF_SERVICE) return "danger" as const;
+  return "neutral" as const;
 };
 
-const StatLine: React.FC<{ icon: React.ReactNode; label: string; value: string }> = ({ icon, label, value }) => (
-  <div className="flex items-center justify-between gap-3 py-2">
-    <div className="flex items-center gap-2 min-w-0">
-      <div className="h-8 w-8 rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-center text-slate-700 shrink-0">
-        {icon}
-      </div>
-      <div className="min-w-0">
-        <div className="text-xs font-semibold text-slate-600">{label}</div>
-      </div>
-    </div>
-    <div className="text-sm font-semibold text-slate-900 truncate" title={value}>
-      {value}
-    </div>
-  </div>
-);
+const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n));
 
-const TabButton: React.FC<{
-  active: boolean;
-  onClick: () => void;
-  icon?: React.ReactNode;
-  label: string;
-}> = ({ active, onClick, icon, label }) => (
-  <button
-    type="button"
-    onClick={onClick}
-    className={
-      "inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold transition " +
-      (active
-        ? "bg-slate-900 text-white border-slate-900"
-        : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50")
-    }
-  >
-    {icon ? <span className="opacity-90">{icon}</span> : null}
-    <span>{label}</span>
-  </button>
-);
+const formatEta = (deliveryDate?: string) => {
+  if (!deliveryDate) return "ETA unavailable";
+  const eta = new Date(deliveryDate);
+  if (Number.isNaN(eta.getTime())) return "ETA unavailable";
+
+  const diffMs = eta.getTime() - Date.now();
+  const diffHours = Math.round(diffMs / (1000 * 60 * 60));
+
+  if (diffHours <= 0) return "ETA due";
+  if (diffHours < 24) return `ETA: ${diffHours}h`;
+
+  const days = Math.ceil(diffHours / 24);
+  return `ETA: ${days}d`;
+};
 
 const VehicleDetails: React.FC<VehicleDetailsProps> = ({
   vehicle,
   maintenance = [],
   expenses = [],
   onAddExpenseClick,
+  onDownloadProfile,
   onDeleteVehicle,
   onArchiveVehicle = () => {},
   onUpdateOdometer,
+  onUpdateVehicleDetails,
 }) => {
-  const [tab, setTab] = useState<TabKey>("overview");
-
   const [isAddDocumentModalOpen, setIsAddDocumentModalOpen] = useState(false);
   const [isDeleteVehicleModalOpen, setIsDeleteVehicleModalOpen] = useState(false);
   const [documentToDelete, setDocumentToDelete] = useState<number | null>(null);
 
-  const { gpsLocations } = useData();
+  const { gpsLocations, bookings } = useData();
+
   const [isOdometerModalOpen, setIsOdometerModalOpen] = useState(false);
   const [odometerValue, setOdometerValue] = useState(String(vehicle.current_km ?? ""));
   const [odometerError, setOdometerError] = useState("");
-
-  const [docTypeFilter, setDocTypeFilter] = useState<DocumentType | "all">("all");
+  const [isEditVehicleOpen, setIsEditVehicleOpen] = useState(false);
+  const [vehicleFormError, setVehicleFormError] = useState("");
+  const [vehicleForm, setVehicleForm] = useState({
+    registration_number: vehicle.registration_number || "",
+    make: vehicle.make || "",
+    model: vehicle.model || "",
+    year: String(vehicle.year || ""),
+    status: vehicle.status,
+    next_service_due_km: String(vehicle.next_service_due_km || ""),
+    license_disc_expiry: vehicle.license_disc_expiry || "",
+    insurance_expiry_date: vehicle.insurance_expiry_date || "",
+  });
 
   const maintenanceHistory = useMemo(() => {
     return maintenance
@@ -173,7 +138,7 @@ const VehicleDetails: React.FC<VehicleDetailsProps> = ({
       .sort((a, b) => new Date(b.service_date).getTime() - new Date(a.service_date).getTime());
   }, [maintenance, vehicle.id]);
 
-  const filteredExpenses = useMemo(() => {
+  const vehicleExpenses = useMemo(() => {
     return expenses
       .filter((e) => e.vehicle_id === vehicle.id)
       .sort((a, b) => new Date(b.expense_date).getTime() - new Date(a.expense_date).getTime());
@@ -181,89 +146,42 @@ const VehicleDetails: React.FC<VehicleDetailsProps> = ({
 
   const gpsData = gpsLocations[vehicle.id] || mockGpsLocations.find((g) => g.vehicle_id === vehicle.id);
 
-  const MapUpdater: React.FC<{ lat: number; lng: number }> = ({ lat, lng }) => {
-    const map = useMap();
-    useEffect(() => {
-      map.setView([lat, lng]);
-    }, [map, lat, lng]);
-    return null;
-  };
-
-  const vehicleMarkerIcon = useMemo(() => {
-    return L.divIcon({
-      html: `<div class="flex items-center justify-center w-8 h-8 bg-slate-900 text-white rounded-full border-2 border-white shadow-md">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-             stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4">
-          <rect x="3" y="9" width="10" height="5" rx="1" />
-          <path d="M13 11h3.5L20 13.5V16" />
-          <circle cx="7" cy="17" r="1.7" />
-          <circle cx="17" cy="17" r="1.7" />
-          <path d="M3 17h2" />
-          <path d="M9 17h6" />
-          <path d="M3 9V7h8" />
-        </svg>
-      </div>`,
-      className: "",
-      iconSize: [32, 32],
-      iconAnchor: [16, 16],
-    });
-  }, []);
-
-  const estimatedServiceDate = useMemo(() => {
-    if (vehicle.next_service_due_date) return new Date(vehicle.next_service_due_date).toLocaleDateString();
-    return "Calculated on usage";
-  }, [vehicle]);
-
-  const nextServiceRemainingKm = useMemo(() => {
-    const due = Number(vehicle.next_service_due_km ?? 0);
-    const curr = Number(vehicle.current_km ?? 0);
-    if (!Number.isFinite(due) || !Number.isFinite(curr)) return 0;
-    return Math.max(0, due - curr);
-  }, [vehicle.current_km, vehicle.next_service_due_km]);
-
-  const headerStatusTone = useMemo(() => {
-    if (vehicle.status === VehicleStatus.ACTIVE) return "success" as const;
-    if (vehicle.status === VehicleStatus.MAINTENANCE) return "warn" as const;
-    if (vehicle.status === VehicleStatus.OUT_OF_SERVICE) return "danger" as const;
-    return "neutral" as const;
-  }, [vehicle.status]);
-
   const initialDocs = useMemo(() => {
     const docs: VehicleDocument[] = [];
-    let idCounter = 1;
+    let idCounter = vehicle.id * 100000;
 
     if (vehicle.insurance_expiry_date) {
       docs.push({
         id: idCounter++,
         vehicle_id: vehicle.id,
         document_type: DocumentType.INSURANCE,
-        document_name: "Insurance policy",
+        document_name: "Insurance Policy.pdf",
         file_url: "#",
         expiry_date: vehicle.insurance_expiry_date,
         uploaded_at: vehicle.updated_at,
         uploaded_by: 1,
       });
     }
-    if ((vehicle as any).fitness_certificate_expiry) {
+    if (vehicle.fitness_certificate_expiry) {
       docs.push({
         id: idCounter++,
         vehicle_id: vehicle.id,
         document_type: DocumentType.FITNESS,
-        document_name: "Fitness certificate",
+        document_name: "Fitness Certificate.pdf",
         file_url: "#",
-        expiry_date: (vehicle as any).fitness_certificate_expiry,
+        expiry_date: vehicle.fitness_certificate_expiry,
         uploaded_at: vehicle.updated_at,
         uploaded_by: 1,
       });
     }
-    if ((vehicle as any).license_disc_expiry) {
+    if (vehicle.license_disc_expiry) {
       docs.push({
         id: idCounter++,
         vehicle_id: vehicle.id,
         document_type: DocumentType.LICENSE_DISC,
-        document_name: "License disc",
+        document_name: "Registration.pdf",
         file_url: "#",
-        expiry_date: (vehicle as any).license_disc_expiry,
+        expiry_date: vehicle.license_disc_expiry,
         uploaded_at: vehicle.updated_at,
         uploaded_by: 1,
       });
@@ -274,20 +192,53 @@ const VehicleDetails: React.FC<VehicleDetailsProps> = ({
 
   const [documents, setDocuments] = useState<VehicleDocument[]>(initialDocs);
 
-  const filteredDocuments = useMemo(() => {
-    const base = documents.filter((d) => d.vehicle_id === vehicle.id);
-    const subset = docTypeFilter === "all" ? base : base.filter((d) => d.document_type === docTypeFilter);
-
-    return [...subset].sort((a, b) => {
-      const aExp = a.expiry_date ? new Date(a.expiry_date).getTime() : Infinity;
-      const bExp = b.expiry_date ? new Date(b.expiry_date).getTime() : Infinity;
-      if (aExp !== bExp) return aExp - bExp;
-
-      const aUp = a.uploaded_at ? new Date(a.uploaded_at).getTime() : 0;
-      const bUp = b.uploaded_at ? new Date(b.uploaded_at).getTime() : 0;
-      return bUp - aUp;
+  useEffect(() => {
+    setDocuments((prev) => {
+      if (prev.some((d) => d.vehicle_id === vehicle.id)) return prev;
+      return [...prev, ...initialDocs];
     });
-  }, [documents, vehicle.id, docTypeFilter]);
+  }, [vehicle.id, initialDocs]);
+
+  useEffect(() => {
+    if (isOdometerModalOpen) {
+      setOdometerValue(String(vehicle.current_km ?? ""));
+      setOdometerError("");
+    }
+  }, [isOdometerModalOpen, vehicle.current_km]);
+
+  useEffect(() => {
+    setVehicleForm({
+      registration_number: vehicle.registration_number || "",
+      make: vehicle.make || "",
+      model: vehicle.model || "",
+      year: String(vehicle.year || ""),
+      status: vehicle.status,
+      next_service_due_km: String(vehicle.next_service_due_km || ""),
+      license_disc_expiry: vehicle.license_disc_expiry || "",
+      insurance_expiry_date: vehicle.insurance_expiry_date || "",
+    });
+    setVehicleFormError("");
+  }, [
+    vehicle.id,
+    vehicle.registration_number,
+    vehicle.make,
+    vehicle.model,
+    vehicle.year,
+    vehicle.status,
+    vehicle.next_service_due_km,
+    vehicle.license_disc_expiry,
+    vehicle.insurance_expiry_date,
+  ]);
+
+  const handleSaveOdometer = () => {
+    const nextKm = Number(odometerValue);
+    if (!Number.isFinite(nextKm) || nextKm < 0) {
+      setOdometerError("Enter a valid odometer reading.");
+      return;
+    }
+    onUpdateOdometer(nextKm);
+    setIsOdometerModalOpen(false);
+  };
 
   const handleAddDocument = (doc: Omit<VehicleDocument, "id" | "vehicle_id" | "uploaded_at" | "uploaded_by">) => {
     const newDoc: VehicleDocument = {
@@ -301,490 +252,458 @@ const VehicleDetails: React.FC<VehicleDetailsProps> = ({
     setIsAddDocumentModalOpen(false);
   };
 
-  useEffect(() => {
-    if (isOdometerModalOpen) {
-      setOdometerValue(String(vehicle.current_km ?? ""));
-      setOdometerError("");
-    }
-  }, [isOdometerModalOpen, vehicle.current_km]);
-
-  const handleSaveOdometer = () => {
-    const nextKm = Number(odometerValue);
-    if (!Number.isFinite(nextKm) || nextKm < 0) {
-      setOdometerError("Enter a valid odometer reading.");
+  const handleSaveVehicleDetails = () => {
+    if (!onUpdateVehicleDetails) {
+      setIsEditVehicleOpen(false);
       return;
     }
-    onUpdateOdometer(nextKm);
-    setIsOdometerModalOpen(false);
+
+    if (!vehicleForm.registration_number.trim() || !vehicleForm.make.trim() || !vehicleForm.model.trim()) {
+      setVehicleFormError("Registration, make, and model are required.");
+      return;
+    }
+
+    const year = Number(vehicleForm.year);
+    const nextServiceKm = Number(vehicleForm.next_service_due_km);
+
+    if (!Number.isFinite(year) || year < 1980 || year > 2100) {
+      setVehicleFormError("Enter a valid vehicle year.");
+      return;
+    }
+
+    if (!Number.isFinite(nextServiceKm) || nextServiceKm < 0) {
+      setVehicleFormError("Enter a valid next service kilometer.");
+      return;
+    }
+
+    const updated: Vehicle = {
+      ...vehicle,
+      registration_number: vehicleForm.registration_number.trim(),
+      make: vehicleForm.make.trim(),
+      model: vehicleForm.model.trim(),
+      year,
+      status: vehicleForm.status as VehicleStatus,
+      next_service_due_km: nextServiceKm,
+      license_disc_expiry: vehicleForm.license_disc_expiry || undefined,
+      insurance_expiry_date: vehicleForm.insurance_expiry_date || undefined,
+      updated_at: new Date().toISOString(),
+    };
+
+    onUpdateVehicleDetails(updated);
+    setIsEditVehicleOpen(false);
   };
 
-  const header = (
-    <div className="border-b border-slate-200 bg-white p-5">
-      <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <div className="text-xs font-mono px-2 py-1 rounded-lg border border-slate-200 bg-slate-50 text-slate-700">
-              {vehicle.registration_number}
-            </div>
-            <StatusPill label={toTitle(String(vehicle.status))} tone={headerStatusTone} />
-            <div className="text-xs text-slate-500">
-              {vehicle.year} • {toTitle(String(vehicle.vehicle_type))} • {toTitle(String(vehicle.fuel_type))}
-            </div>
-          </div>
+  const currentVehicleDocs = useMemo(() => {
+    const docs = documents.filter((d) => d.vehicle_id === vehicle.id);
+    return [...docs].sort((a, b) => {
+      const aExp = a.expiry_date ? new Date(a.expiry_date).getTime() : Infinity;
+      const bExp = b.expiry_date ? new Date(b.expiry_date).getTime() : Infinity;
+      return aExp - bExp;
+    });
+  }, [documents, vehicle.id]);
 
-          <div className="mt-2 text-xl font-semibold tracking-tight text-slate-900 truncate">
-            {vehicle.make} {vehicle.model}
-          </div>
+  const activeBooking = useMemo(() => {
+    const byVehicle = (bookings || [])
+      .filter((b) => b.vehicle_id === vehicle.id)
+      .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
 
-          <div className="mt-2 flex flex-wrap gap-2">
-            <TabButton
-              active={tab === "overview"}
-              onClick={() => setTab("overview")}
-              icon={<ClipboardDocumentIcon className="w-3.5 h-3.5" />}
-              label="Overview"
-            />
-            <TabButton
-              active={tab === "tracking"}
-              onClick={() => setTab("tracking")}
-              icon={<MapPinIcon className="w-3.5 h-3.5" />}
-              label="Tracking"
-            />
-            <TabButton
-              active={tab === "maintenance"}
-              onClick={() => setTab("maintenance")}
-              icon={<WrenchIcon className="w-3.5 h-3.5" />}
-              label="Maintenance"
-            />
-            <TabButton
-              active={tab === "expenses"}
-              onClick={() => setTab("expenses")}
-              icon={<CurrencyDollarIcon className="w-3.5 h-3.5" />}
-              label="Expenses"
-            />
-            <TabButton
-              active={tab === "documents"}
-              onClick={() => setTab("documents")}
-              icon={<DocumentTextIcon className="w-3.5 h-3.5" />}
-              label="Documents"
-            />
-          </div>
-        </div>
+    return (
+      byVehicle.find((b) => ["pending", "scheduled", "confirmed", "dispatched", "in_transit"].includes(b.status)) ||
+      byVehicle[0] ||
+      null
+    );
+  }, [bookings, vehicle.id]);
 
-        <div className="flex items-center gap-2 shrink-0">
-          <Button variant="secondary" size="sm" onClick={() => setIsOdometerModalOpen(true)}>
-            <GaugeIcon className="w-4 h-4" />
-            Odometer
-          </Button>
-          <Button variant="secondary" size="sm" onClick={onArchiveVehicle}>
-            <DocumentTextIcon className="w-4 h-4" />
-            Archive
-          </Button>
-          <IconButton
-            onClick={() => setIsDeleteVehicleModalOpen(true)}
-            title="Delete vehicle"
-            aria-label="Delete vehicle"
-          >
-            <TrashIcon className="w-4 h-4" />
-          </IconButton>
-        </div>
-      </div>
-    </div>
-  );
+  const nextServiceRemainingKm = Math.max(0, Number(vehicle.next_service_due_km ?? 0) - Number(vehicle.current_km ?? 0));
+  const serviceDueLabel = nextServiceRemainingKm <= 0 ? "Overdue" : `In ${new Intl.NumberFormat().format(nextServiceRemainingKm)} km`;
 
-  const overviewTab = (
-    <div className="p-5 space-y-4">
-      <ShellCard className="p-4">
-        <div className="flex items-center justify-between gap-4">
-          <div className="min-w-0">
-            <div className="text-sm font-semibold text-slate-900">Service</div>
-            <div className="mt-1 text-xs text-slate-500">
-              Next due at {new Intl.NumberFormat().format(Number(vehicle.next_service_due_km ?? 0))} km • Estimated {estimatedServiceDate}
-            </div>
-          </div>
-          <div className="text-sm font-semibold text-slate-900">
-            In {new Intl.NumberFormat().format(nextServiceRemainingKm)} km
-          </div>
-        </div>
+  const fuelLevel = clamp(100 - Math.round((nextServiceRemainingKm / Math.max(1, vehicle.next_service_due_km || 1)) * 55), 25, 98);
+  const batteryLevel = clamp(Number(gpsData?.battery_level ?? 94), 40, 100);
+  const pressureOk = vehicle.status !== VehicleStatus.MAINTENANCE;
 
-        <div className="mt-3 h-2 w-full rounded-full bg-slate-100 overflow-hidden">
-          {Number(vehicle.next_service_due_km ?? 0) > 0 ? (
-            <div
-              className="h-full bg-slate-900"
-              style={{
-                width: `${Math.min(
-                  100,
-                  Math.max(
-                    0,
-                    Math.round((Number(vehicle.current_km ?? 0) / Number(vehicle.next_service_due_km ?? 1)) * 100)
-                  )
-                )}%`,
-              }}
-            />
-          ) : (
-            <div className="h-full bg-slate-300 w-[2%]" />
-          )}
-        </div>
-      </ShellCard>
+  const maintenanceCostTotal = maintenanceHistory.reduce((sum, item) => sum + Number(item.cost || 0), 0);
+  const expenseTotal = vehicleExpenses.reduce((sum, item) => sum + Number(item.amount || 0), 0);
 
-      <ShellCard className="p-4">
-        <div className="text-sm font-semibold text-slate-900 mb-2">Key stats</div>
-        <div className="divide-y divide-slate-100">
-          <StatLine
-            icon={<RoadIcon className="w-4 h-4" />}
-            label="Odometer"
-            value={`${new Intl.NumberFormat().format(Number(vehicle.current_km ?? 0))} km`}
-          />
-          <StatLine
-            icon={<GaugeIcon className="w-4 h-4" />}
-            label="Capacity"
-            value={`${Number(vehicle.capacity_tonnes ?? 0)} t`}
-          />
-          <StatLine
-            icon={<CalendarDaysIcon className="w-4 h-4" />}
-            label="Last service date"
-            value={vehicle.last_service_date ? new Date(vehicle.last_service_date).toLocaleDateString() : "Not set"}
-          />
-          <StatLine
-            icon={<FuelIcon className="w-4 h-4" />}
-            label="Fuel"
-            value={toTitle(String(vehicle.fuel_type || "unknown"))}
-          />
-        </div>
-      </ShellCard>
+  const updatedLabel = gpsData?.timestamp
+    ? `${Math.max(1, Math.floor((Date.now() - new Date(gpsData.timestamp).getTime()) / (1000 * 60)))} min ago`
+    : "no live ping";
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <ShellCard className="p-4">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <div className="text-sm font-semibold text-slate-900">Maintenance</div>
-              <div className="text-xs text-slate-500">{maintenanceHistory.length} records</div>
-            </div>
-            <Button variant="secondary" size="sm" onClick={() => setTab("maintenance")}>
-              View
-            </Button>
-          </div>
-
-          <div className="mt-3 space-y-2">
-            {maintenanceHistory.slice(0, 3).map((m) => (
-              <div key={m.id} className="rounded-xl border border-slate-200 bg-white p-3">
-                <div className="text-sm font-semibold text-slate-900">{m.description}</div>
-                <div className="mt-1 text-xs text-slate-500">
-                  {m.service_provider} • {new Date(m.service_date).toLocaleDateString()}
-                </div>
-              </div>
-            ))}
-            {maintenanceHistory.length === 0 ? (
-              <div className="text-sm text-slate-500">No maintenance records yet.</div>
-            ) : null}
-          </div>
-        </ShellCard>
-
-        <ShellCard className="p-4">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <div className="text-sm font-semibold text-slate-900">Recent expenses</div>
-              <div className="text-xs text-slate-500">{filteredExpenses.length} total</div>
-            </div>
-            <div className="flex gap-2">
-              <Button variant="secondary" size="sm" onClick={onAddExpenseClick}>
-                + Add
-              </Button>
-              <Button variant="secondary" size="sm" onClick={() => setTab("expenses")}>
-                View
-              </Button>
-            </div>
-          </div>
-
-          <div className="mt-3 space-y-2">
-            {filteredExpenses.slice(0, 3).map((e) => {
-              const ui = getExpenseTypeUI(e.expense_type);
-              return (
-                <div key={e.id} className="rounded-xl border border-slate-200 bg-white p-3 flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <div className="h-8 w-8 rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-center text-slate-700 shrink-0">
-                      {ui.icon}
-                    </div>
-                    <div className="min-w-0">
-                      <div className="text-sm font-semibold text-slate-900 truncate">{ui.badge}</div>
-                      <div className="text-xs text-slate-500">{new Date(e.expense_date).toLocaleDateString()}</div>
-                    </div>
-                  </div>
-
-                  <div className="text-sm font-semibold text-slate-900">
-                    {new Intl.NumberFormat(undefined, { style: "currency", currency: e.currency }).format(e.amount)}
-                  </div>
-                </div>
-              );
-            })}
-            {filteredExpenses.length === 0 ? <div className="text-sm text-slate-500">No expenses yet.</div> : null}
-          </div>
-        </ShellCard>
-      </div>
-    </div>
-  );
-
-  const trackingTab = (
-    <div className="p-5 space-y-4">
-      <ShellCard className="overflow-hidden">
-        <div className="p-4 border-b border-slate-200 bg-white flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <MapPinIcon className="w-4 h-4 text-slate-600" />
-            <div className="text-sm font-semibold text-slate-900">Live tracking</div>
-          </div>
-
-          {gpsData ? (
-            <div className="text-xs text-slate-500 flex items-center gap-2">
-              <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                Online
-              </span>
-              <span className="hidden sm:inline">Updated {new Date(gpsData.timestamp).toLocaleTimeString()}</span>
-            </div>
-          ) : (
-            <div className="text-xs text-slate-500">No GPS data</div>
-          )}
-        </div>
-
-        <div className="h-64 w-full bg-slate-50">
-          {gpsData ? (
-            <MapContainer
-              center={[gpsData.latitude, gpsData.longitude]}
-              zoom={13}
-              style={{ height: "100%", width: "100%" }}
-              attributionControl={false}
-            >
-              <MapUpdater lat={gpsData.latitude} lng={gpsData.longitude} />
-              <TileLayer
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              />
-              <Marker position={[gpsData.latitude, gpsData.longitude]} icon={vehicleMarkerIcon}>
-                <Popup>
-                  <div className="text-sm font-medium">
-                    <div>{vehicle.registration_number}</div>
-                    <div className="text-xs text-slate-600">Speed: {gpsData.speed} km/h</div>
-                  </div>
-                </Popup>
-              </Marker>
-            </MapContainer>
-          ) : (
-            <div className="h-full w-full flex items-center justify-center text-sm text-slate-500">
-              GPS is unavailable for this vehicle.
-            </div>
-          )}
-        </div>
-
-        {gpsData ? (
-          <div className="p-3 border-t border-slate-200 bg-white text-xs text-slate-600 flex items-center justify-between">
-            <span>
-              Lat {gpsData.latitude.toFixed(4)} • Lng {gpsData.longitude.toFixed(4)}
-            </span>
-            <span>Speed {gpsData.speed} km/h</span>
-          </div>
-        ) : null}
-      </ShellCard>
-    </div>
-  );
-
-  const maintenanceTab = (
-    <div className="p-5 space-y-3">
-      <ShellCard className="p-4">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <div className="text-sm font-semibold text-slate-900">Maintenance log</div>
-            <div className="text-xs text-slate-500">{maintenanceHistory.length} records</div>
-          </div>
-        </div>
-
-        <div className="mt-3 space-y-2">
-          {maintenanceHistory.length === 0 ? (
-            <div className="text-sm text-slate-500">No maintenance records found.</div>
-          ) : (
-            maintenanceHistory.map((m) => (
-              <div key={m.id} className="rounded-xl border border-slate-200 bg-white p-3 flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <div className="text-sm font-semibold text-slate-900">{m.description}</div>
-                  <div className="mt-1 text-xs text-slate-500">
-                    {m.service_provider} • {new Date(m.service_date).toLocaleDateString()}
-                  </div>
-                </div>
-                <div className="text-sm font-semibold text-slate-900">
-                  {new Intl.NumberFormat(undefined, { style: "currency", currency: "USD" }).format(Number(m.cost ?? 0))}
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-      </ShellCard>
-    </div>
-  );
-
-  const expensesTab = (
-    <div className="p-5 space-y-3">
-      <ShellCard className="p-4">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <div className="text-sm font-semibold text-slate-900">Expenses</div>
-            <div className="text-xs text-slate-500">{filteredExpenses.length} entries</div>
-          </div>
-          <Button variant="secondary" size="sm" onClick={onAddExpenseClick}>
-            + Add expense
-          </Button>
-        </div>
-
-        <div className="mt-3 space-y-2">
-          {filteredExpenses.length === 0 ? (
-            <div className="text-sm text-slate-500">No expenses recorded.</div>
-          ) : (
-            filteredExpenses.map((e) => {
-              const ui = getExpenseTypeUI(e.expense_type);
-              return (
-                <div key={e.id} className="rounded-xl border border-slate-200 bg-white p-3 flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <div className="h-8 w-8 rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-center text-slate-700 shrink-0">
-                      {ui.icon}
-                    </div>
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <div className="text-sm font-semibold text-slate-900 truncate">{ui.badge}</div>
-                        <StatusPill label={toTitle(String(e.expense_type))} tone={ui.tone} />
-                      </div>
-                      <div className="text-xs text-slate-500">{new Date(e.expense_date).toLocaleDateString()}</div>
-                    </div>
-                  </div>
-
-                  <div className="text-sm font-semibold text-slate-900">
-                    {new Intl.NumberFormat(undefined, { style: "currency", currency: e.currency }).format(e.amount)}
-                  </div>
-                </div>
-              );
-            })
-          )}
-        </div>
-      </ShellCard>
-    </div>
-  );
-
-  const documentsTab = (
-    <div className="p-5 space-y-3">
-      <ShellCard className="p-4">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-2">
-            <ClipboardDocumentIcon className="w-4 h-4 text-slate-600" />
-            <div className="text-sm font-semibold text-slate-900">Documents</div>
-            <div className="text-xs text-slate-500">{filteredDocuments.length} files</div>
-          </div>
-
-          <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
-            <select
-              value={docTypeFilter}
-              onChange={(e) => setDocTypeFilter((e.target.value as any) ?? "all")}
-              className="h-9 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none focus:ring-2 focus:ring-slate-200"
-            >
-              <option value="all">All types</option>
-              {Object.values(DocumentType).map((t) => (
-                <option key={String(t)} value={String(t)}>
-                  {toTitle(String(t))}
-                </option>
-              ))}
-            </select>
-
-            <Button variant="secondary" size="sm" onClick={() => setIsAddDocumentModalOpen(true)}>
-              <UploadIcon className="w-4 h-4" />
-              Upload
-            </Button>
-          </div>
-        </div>
-
-        <div className="mt-3">
-          {filteredDocuments.length === 0 ? (
-            <div className="h-28 flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50 text-slate-600">
-              <DocumentTextIcon className="w-6 h-6 opacity-60 mb-2" />
-              <div className="text-sm font-semibold text-slate-800">No documents uploaded</div>
-              <div className="text-xs text-slate-500">Add insurance, fitness, license disc, or service records</div>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-              {filteredDocuments.map((doc) => {
-                const tone = getDocTone(doc.expiry_date);
-                const icon =
-                  doc.document_type === DocumentType.INSURANCE ? (
-                    <ShieldCheckIcon className="w-4 h-4" />
-                  ) : doc.document_type === DocumentType.LICENSE_DISC ? (
-                    <TicketIcon className="w-4 h-4" />
-                  ) : doc.document_type === DocumentType.SERVICE_RECORD ? (
-                    <WrenchIcon className="w-4 h-4" />
-                  ) : doc.document_type === DocumentType.FITNESS ? (
-                    <ClipboardDocumentIcon className="w-4 h-4" />
-                  ) : (
-                    <DocumentTextIcon className="w-4 h-4" />
-                  );
-
-                return (
-                  <SubtleCard key={doc.id} className="p-4 flex items-start justify-between gap-3">
-                    <div className="flex items-start gap-3 min-w-0">
-                      <div className="h-9 w-9 rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-center text-slate-700 shrink-0">
-                        {icon}
-                      </div>
-
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <div className="text-sm font-semibold text-slate-900 truncate">{doc.document_name}</div>
-                          <StatusPill label={toTitle(String(doc.document_type))} tone={tone} />
-                        </div>
-
-                        <div className="mt-1 text-xs text-slate-500">{formatExpiryLabel(doc.expiry_date)}</div>
-
-                        {doc.file_url && doc.file_url !== "#" ? (
-                          <a
-                            href={doc.file_url}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="mt-2 inline-flex items-center gap-2 text-xs font-semibold text-slate-900 hover:underline"
-                          >
-                            <UploadIcon className="w-3.5 h-3.5" />
-                            Open file
-                          </a>
-                        ) : null}
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2 shrink-0">
-                      <IconButton
-                        onClick={() => setDocumentToDelete(doc.id)}
-                        title="Delete document"
-                        aria-label="Delete document"
-                      >
-                        <TrashIcon className="w-4 h-4" />
-                      </IconButton>
-                    </div>
-                  </SubtleCard>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      </ShellCard>
-    </div>
-  );
+  const maintenanceCsvColumns = [
+    { key: "service_date", header: "Date" },
+    { key: "maintenance_type", header: "Service Type", format: (v: any) => toTitle(String(v || "")) },
+    { key: "parts_replaced", header: "Parts Replaced" },
+    { key: "cost", header: "Cost" },
+    { key: "notes", header: "Mechanic Notes" },
+  ];
 
   return (
     <div className="vehicle-details-root">
-      <div className="flex flex-col h-full bg-white rounded-2xl overflow-hidden border border-slate-200">
-        {header}
+      <div className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div className="border-b border-slate-200 p-5">
+          <p className="text-sm text-slate-500">Fleet &gt; {vehicle.registration_number}</p>
 
-        <div className="flex-1 overflow-y-auto bg-white">
-          {tab === "overview" ? overviewTab : null}
-          {tab === "tracking" ? trackingTab : null}
-          {tab === "maintenance" ? maintenanceTab : null}
-          {tab === "expenses" ? expensesTab : null}
-          {tab === "documents" ? documentsTab : null}
+          <div className="mt-3 flex flex-wrap items-start justify-between gap-4">
+            <div className="flex items-start gap-3">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-blue-700">
+                <TruckIcon className="h-7 w-7" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-2xl font-semibold tracking-tight text-slate-900">Truck {vehicle.registration_number}</h2>
+                  <StatusPill label={toTitle(String(vehicle.status))} tone={getHeaderStatusTone(vehicle.status)} />
+                </div>
+                <p className="mt-1 text-lg text-slate-600">
+                  {vehicle.make} {vehicle.model} • {vehicle.year}
+                </p>
+                <p className="text-sm text-slate-500">
+                  Last service: {vehicle.last_service_date ? new Date(vehicle.last_service_date).toLocaleDateString() : "Not set"}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              <Button variant="primary" onClick={onAddExpenseClick}>
+                <WrenchIcon className="w-4 h-4" />
+                Schedule Maintenance
+              </Button>
+              <Button variant="secondary" onClick={onDownloadProfile}>
+                Download Profile
+              </Button>
+              <Button variant="secondary" onClick={() => setIsEditVehicleOpen(true)}>
+                Edit Details
+              </Button>
+              <Button variant="secondary" onClick={() => setIsOdometerModalOpen(true)}>
+                <GaugeIcon className="w-4 h-4" />
+                Update Odometer
+              </Button>
+              <Button variant="secondary" onClick={onArchiveVehicle}>
+                Archive
+              </Button>
+              <IconButton onClick={() => setIsDeleteVehicleModalOpen(true)} title="Delete vehicle" aria-label="Delete vehicle">
+                <TrashIcon className="w-4 h-4" />
+              </IconButton>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid gap-5 p-5 xl:grid-cols-[minmax(0,1.7fr)_minmax(0,0.8fr)]">
+          <div className="space-y-5">
+            <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+              <div className="grid gap-0 md:grid-cols-[minmax(0,0.95fr)_minmax(0,1.35fr)]">
+                <div className="relative min-h-[290px] bg-gradient-to-br from-sky-200 via-slate-100 to-sky-50">
+                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_20%,rgba(255,255,255,0.9),transparent_40%)]" />
+                  <div className="absolute inset-0 flex items-center justify-center text-slate-700">
+                    <TruckIcon className="h-40 w-40 opacity-70" />
+                  </div>
+                  <span className="absolute bottom-3 left-3 rounded-full bg-black/60 px-3 py-1 text-xs font-medium text-white">
+                    Updated: {updatedLabel}
+                  </span>
+                </div>
+
+                <div className="p-6">
+                  <div className="flex items-center gap-2">
+                    <ClipboardDocumentIcon className="h-5 w-5 text-orange-500" />
+                    <h3 className="text-xl font-semibold text-slate-900">Vehicle Specifications</h3>
+                  </div>
+
+                  <div className="mt-5 grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Make / Model</p>
+                      <p className="mt-1 font-medium text-slate-900">{vehicle.make} {vehicle.model}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Year</p>
+                      <p className="mt-1 font-medium text-slate-900">{vehicle.year}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">VIN</p>
+                      <p className="mt-1 font-medium text-slate-900">{vehicle.registration_number}-{vehicle.id}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Odometer</p>
+                      <p className="mt-1 font-medium text-slate-900">{new Intl.NumberFormat().format(vehicle.current_km || 0)} km</p>
+                    </div>
+                  </div>
+
+                  <div className="mt-7">
+                    <h4 className="text-lg font-semibold text-slate-900">Live Telematics</h4>
+                    <div className="mt-3 grid grid-cols-3 gap-3">
+                      <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-center">
+                        <FuelIcon className="mx-auto h-5 w-5 text-amber-600" />
+                        <p className="mt-2 text-xl font-semibold text-slate-900">{fuelLevel}%</p>
+                        <p className="text-xs text-slate-600">Fuel Level</p>
+                      </div>
+                      <div className="rounded-xl border border-blue-200 bg-blue-50 p-3 text-center">
+                        <GaugeIcon className="mx-auto h-5 w-5 text-blue-600" />
+                        <p className="mt-2 text-xl font-semibold text-slate-900">{batteryLevel}%</p>
+                        <p className="text-xs text-slate-600">Battery</p>
+                      </div>
+                      <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-center">
+                        <MapPinIcon className="mx-auto h-5 w-5 text-emerald-600" />
+                        <p className="mt-2 text-xl font-semibold text-slate-900">{pressureOk ? "OK" : "Check"}</p>
+                        <p className="text-xs text-slate-600">Pressure</p>
+                      </div>
+                    </div>
+
+                    <div className="mt-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600">
+                      Service due: <span className="font-semibold text-slate-800">{serviceDueLabel}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+              <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+                <div>
+                  <h3 className="text-xl font-semibold text-slate-900">Maintenance History</h3>
+                  <p className="text-xs text-slate-500">{maintenanceHistory.length} records • Total {new Intl.NumberFormat(undefined, { style: "currency", currency: "USD" }).format(maintenanceCostTotal)}</p>
+                </div>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => downloadCsv(maintenanceHistory as any, maintenanceCsvColumns as any, `${vehicle.registration_number}-maintenance`)}
+                >
+                  Export CSV
+                </Button>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="min-w-full text-left text-sm">
+                  <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+                    <tr>
+                      <th className="px-5 py-3 font-medium">Date</th>
+                      <th className="px-5 py-3 font-medium">Service Type</th>
+                      <th className="px-5 py-3 font-medium">Parts Replaced</th>
+                      <th className="px-5 py-3 font-medium">Cost</th>
+                      <th className="px-5 py-3 font-medium">Mechanic Notes</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {maintenanceHistory.length === 0 ? (
+                      <tr>
+                        <td colSpan={5} className="px-5 py-8 text-center text-slate-500">
+                          No maintenance records found.
+                        </td>
+                      </tr>
+                    ) : (
+                      maintenanceHistory.slice(0, 6).map((m) => (
+                        <tr key={m.id} className="border-t border-slate-200 text-slate-800">
+                          <td className="px-5 py-3">{new Date(m.service_date).toLocaleDateString()}</td>
+                          <td className="px-5 py-3">{toTitle(String(m.maintenance_type))}</td>
+                          <td className="px-5 py-3 text-slate-600">{m.parts_replaced || "N/A"}</td>
+                          <td className="px-5 py-3 font-medium">{new Intl.NumberFormat(undefined, { style: "currency", currency: "USD" }).format(Number(m.cost || 0))}</td>
+                          <td className="px-5 py-3 text-slate-600">{m.notes || "-"}</td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="border-t border-slate-200 px-5 py-3 text-sm text-slate-600">
+                Vehicle expenses total: <span className="font-semibold text-slate-900">{new Intl.NumberFormat(undefined, { style: "currency", currency: "USD" }).format(expenseTotal)}</span>
+              </div>
+            </section>
+          </div>
+
+          <div className="space-y-5">
+            <section className="rounded-2xl border border-slate-200 bg-white p-5">
+              <div className="flex items-center gap-2">
+                <MapPinIcon className="h-5 w-5 text-orange-500" />
+                <h3 className="text-xl font-semibold text-slate-900">Current Assignment</h3>
+              </div>
+
+              <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Assigned Driver</p>
+                <div className="mt-2 flex items-center gap-3">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-orange-300 bg-white text-slate-700">
+                    <UserCircleIcon className="h-7 w-7" />
+                  </div>
+                  <div>
+                    <p className="text-lg font-semibold text-slate-900">{activeBooking?.driver_id ? `Driver #${activeBooking.driver_id}` : "Unassigned"}</p>
+                    <p className="text-xs text-slate-500">{activeBooking ? `Booking ${activeBooking.booking_number}` : "No active booking"}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-4 space-y-4">
+                <div className="flex gap-3">
+                  <div className="mt-1 h-2.5 w-2.5 rounded-full bg-blue-500" />
+                  <div>
+                    <p className="text-sm text-slate-600">Origin</p>
+                    <p className="text-lg sm:text-base font-semibold text-slate-900">{activeBooking?.pickup_city || "Not assigned"}</p>
+                    <p className="text-xs text-slate-500">{activeBooking?.pickup_date ? new Date(activeBooking.pickup_date).toLocaleDateString() : "-"}</p>
+                  </div>
+                </div>
+                <div className="ml-[4px] h-7 w-px bg-slate-200" />
+                <div className="flex gap-3">
+                  <div className="mt-1 h-2.5 w-2.5 rounded-full bg-orange-500" />
+                  <div>
+                    <p className="text-sm text-slate-600">Destination</p>
+                    <p className="text-lg sm:text-base font-semibold text-slate-900">{activeBooking?.delivery_city || "Not assigned"}</p>
+                    <p className="mt-1 inline-flex rounded-full bg-orange-100 px-2 py-0.5 text-xs font-medium text-orange-700">
+                      {formatEta(activeBooking?.delivery_date)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                className="mt-5 w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60"
+                disabled={!activeBooking?.driver_id}
+                type="button"
+              >
+                Message Driver
+              </button>
+            </section>
+
+            <section className="rounded-2xl border border-slate-200 bg-white p-5">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <DocumentTextIcon className="h-5 w-5 text-orange-500" />
+                  <h3 className="text-xl font-semibold text-slate-900">Documents</h3>
+                </div>
+                <IconButton onClick={() => setIsAddDocumentModalOpen(true)} title="Upload document" aria-label="Upload document">
+                  <UploadIcon className="w-4 h-4" />
+                </IconButton>
+              </div>
+
+              <div className="mt-4 space-y-3">
+                {currentVehicleDocs.length === 0 ? (
+                  <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-500">No documents uploaded yet.</div>
+                ) : (
+                  currentVehicleDocs.slice(0, 4).map((doc) => {
+                    const tone = getDocTone(doc.expiry_date);
+                    const icon =
+                      doc.document_type === DocumentType.INSURANCE ? (
+                        <ShieldCheckIcon className="w-4 h-4" />
+                      ) : doc.document_type === DocumentType.LICENSE_DISC ? (
+                        <TicketIcon className="w-4 h-4" />
+                      ) : doc.document_type === DocumentType.FITNESS ? (
+                        <ClipboardDocumentIcon className="w-4 h-4" />
+                      ) : (
+                        <DocumentTextIcon className="w-4 h-4" />
+                      );
+
+                    return (
+                      <div key={doc.id} className="flex items-start justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
+                        <div className="flex min-w-0 items-start gap-2">
+                          <div className="mt-0.5 flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700">
+                            {icon}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-semibold text-slate-900">{doc.document_name}</p>
+                            <div className="mt-1 flex items-center gap-2">
+                              <StatusPill label={toTitle(String(doc.document_type))} tone={tone} />
+                              <span className="text-xs text-slate-500">{formatExpiryLabel(doc.expiry_date)}</span>
+                            </div>
+                          </div>
+                        </div>
+                        <IconButton onClick={() => setDocumentToDelete(doc.id)} title="Delete document" aria-label="Delete document">
+                          <TrashIcon className="w-4 h-4" />
+                        </IconButton>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </section>
+
+            <section className="overflow-hidden rounded-2xl border border-slate-900 bg-gradient-to-br from-slate-900 to-slate-800 p-5 text-slate-100 shadow-sm">
+              <p className="text-xs font-semibold uppercase tracking-[0.15em] text-orange-300">Note</p>
+              <p className="mt-2 text-base leading-relaxed">
+                {vehicle.notes?.trim() || "Don't forget to check the alternator belt tension during the next scheduled maintenance."}
+              </p>
+              <div className="mt-4 text-xs text-slate-300">Added by Fleet Admin</div>
+            </section>
+          </div>
         </div>
       </div>
 
       {isAddDocumentModalOpen ? (
         <AddDocumentModal onClose={() => setIsAddDocumentModalOpen(false)} onAddDocument={handleAddDocument} />
       ) : null}
+
+      <ModalShell
+        isOpen={isEditVehicleOpen}
+        onClose={() => setIsEditVehicleOpen(false)}
+        title="Edit Vehicle Details"
+        description="Update core vehicle profile and compliance dates."
+        maxWidthClass="max-w-2xl"
+        footer={
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-xs text-rose-600">{vehicleFormError}</span>
+            <div className="flex gap-2">
+              <Button variant="secondary" type="button" onClick={() => setIsEditVehicleOpen(false)}>
+                Cancel
+              </Button>
+              <Button variant="primary" type="button" onClick={handleSaveVehicleDetails}>
+                Save Changes
+              </Button>
+            </div>
+          </div>
+        }
+      >
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div>
+            <Label>Registration Number</Label>
+            <Input
+              value={vehicleForm.registration_number}
+              onChange={(e) => setVehicleForm((p) => ({ ...p, registration_number: e.target.value }))}
+            />
+          </div>
+          <div>
+            <Label>Status</Label>
+            <Select
+              value={vehicleForm.status}
+              onChange={(e) => setVehicleForm((p) => ({ ...p, status: e.target.value as VehicleStatus }))}
+            >
+              {Object.values(VehicleStatus).map((s) => (
+                <option key={s} value={s}>
+                  {toTitle(String(s))}
+                </option>
+              ))}
+            </Select>
+          </div>
+          <div>
+            <Label>Make</Label>
+            <Input value={vehicleForm.make} onChange={(e) => setVehicleForm((p) => ({ ...p, make: e.target.value }))} />
+          </div>
+          <div>
+            <Label>Model</Label>
+            <Input value={vehicleForm.model} onChange={(e) => setVehicleForm((p) => ({ ...p, model: e.target.value }))} />
+          </div>
+          <div>
+            <Label>Year</Label>
+            <Input type="number" value={vehicleForm.year} onChange={(e) => setVehicleForm((p) => ({ ...p, year: e.target.value }))} />
+          </div>
+          <div>
+            <Label>Next Service Due (km)</Label>
+            <Input
+              type="number"
+              value={vehicleForm.next_service_due_km}
+              onChange={(e) => setVehicleForm((p) => ({ ...p, next_service_due_km: e.target.value }))}
+            />
+          </div>
+          <div>
+            <Label>License Disc Expiry</Label>
+            <Input
+              type="date"
+              value={vehicleForm.license_disc_expiry}
+              onChange={(e) => setVehicleForm((p) => ({ ...p, license_disc_expiry: e.target.value }))}
+            />
+          </div>
+          <div>
+            <Label>Insurance Expiry</Label>
+            <Input
+              type="date"
+              value={vehicleForm.insurance_expiry_date}
+              onChange={(e) => setVehicleForm((p) => ({ ...p, insurance_expiry_date: e.target.value }))}
+            />
+          </div>
+        </div>
+      </ModalShell>
 
       <ModalShell
         isOpen={isOdometerModalOpen}
@@ -818,7 +737,6 @@ const VehicleDetails: React.FC<VehicleDetailsProps> = ({
         onClose={() => setIsDeleteVehicleModalOpen(false)}
         onConfirm={() => {
           onDeleteVehicle();
-          setIsDeleteVehicleModalOpen(false);
         }}
         title="Delete vehicle"
         message="Are you sure? This will permanently remove this vehicle and all its history."
@@ -831,7 +749,6 @@ const VehicleDetails: React.FC<VehicleDetailsProps> = ({
         onConfirm={() => {
           if (documentToDelete) {
             setDocuments((prev) => prev.filter((d) => d.id !== documentToDelete));
-            setDocumentToDelete(null);
           }
         }}
         title="Delete document"
@@ -842,3 +759,4 @@ const VehicleDetails: React.FC<VehicleDetailsProps> = ({
 };
 
 export default VehicleDetails;
+

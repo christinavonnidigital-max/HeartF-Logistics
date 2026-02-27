@@ -17,6 +17,8 @@ const personalizationVariables = [
     { variable: '{{company}}', description: 'Lead\'s company name' },
     { variable: '{{position}}', description: 'Lead\'s job title' },
     { variable: '{{industry}}', description: 'Lead\'s industry' },
+    { variable: '{{city}}', description: 'Lead city (e.g., Harare)' },
+    { variable: '{{country}}', description: 'Lead country (e.g., Zimbabwe)' },
 ];
 
 const EmailComposer: React.FC<EmailComposerProps> = ({ isOpen, onClose, onSave, initialData }) => {
@@ -73,13 +75,13 @@ const EmailComposer: React.FC<EmailComposerProps> = ({ isOpen, onClose, onSave, 
           <div>
             <label className="block text-sm font-medium text-foreground">Subject</label>
             <div className="mt-2">
-              <Input value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="Quick question about your logistics ops" />
+              <Input value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="Quick question on your Harare-Lusaka logistics lane" />
             </div>
           </div>
           <div>
             <label className="block text-sm font-medium text-foreground">Email body</label>
             <div className="mt-2">
-              <Textarea rows={10} value={body} onChange={(e) => setBody(e.target.value)} placeholder={`Hi {{firstName}},\n\n...`} />
+              <Textarea rows={10} value={body} onChange={(e) => setBody(e.target.value)} placeholder={`Hi {{firstName}},\n\nAre you currently moving freight between Zimbabwe and neighboring markets?\n\n...`} />
             </div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

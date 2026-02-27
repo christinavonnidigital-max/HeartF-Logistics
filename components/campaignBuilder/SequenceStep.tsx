@@ -26,7 +26,7 @@ const SequenceStep: React.FC<SequenceStepProps> = ({ sequence, onEdit, onDelete 
                     </div>
                 </div>
                  <div className="flex items-center space-x-2">
-                    <button onClick={onEdit} aria-label="Edit step" title="Edit step" className="p-1.5 text-gray-500 hover:text-blue-600 rounded-full hover:bg-gray-100">
+                    <button onClick={onEdit} aria-label="Edit step" title="Edit step" className="p-1.5 text-gray-500 hover:text-orange-600 rounded-full hover:bg-gray-100">
                         <PencilSquareIcon className="w-5 h-5" />
                     </button>
                      <button onClick={onDelete} aria-label="Delete step" title="Delete step" className="p-1.5 text-gray-500 hover:text-red-600 rounded-full hover:bg-gray-100">

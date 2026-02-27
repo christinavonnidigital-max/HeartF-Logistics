@@ -152,14 +152,13 @@ const LoginPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen">
-      <div className="absolute inset-0 bg-gradient-to-br from-[#0b1020] via-[#121a36] to-[#0b1020]" />
-      <div className="absolute inset-0 opacity-30">
+    <div className="relative min-h-[100dvh] overflow-hidden bg-gradient-to-br from-[#0b1020] via-[#121a36] to-[#0b1020]">
+      <div className="pointer-events-none absolute inset-0 overflow-hidden opacity-30">
         <div className="absolute -top-24 -right-24 h-[280px] sm:h-[380px] w-[280px] sm:w-[380px] rounded-full bg-orange-500/20 blur-3xl" />
         <div className="absolute -bottom-28 -left-28 h-[320px] sm:h-[420px] w-[320px] sm:w-[420px] rounded-full bg-indigo-500/20 blur-3xl" />
       </div>
 
-      <main className="relative z-10 flex min-h-screen flex-col lg:flex-row">
+      <main className="relative z-10 flex min-h-[100dvh] w-full flex-col lg:flex-row">
         <h1 className="sr-only">{srTitle}</h1>
         <div className="hidden lg:flex w-full lg:w-1/2 flex-col justify-between px-6 sm:px-10 lg:px-16 py-10 lg:py-14 text-white">
           <div>

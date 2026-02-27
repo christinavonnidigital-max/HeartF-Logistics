@@ -28,7 +28,7 @@ import WaitingRoom from './components/WaitingRoom';
 import { mockLeadScoringRules, mockSalesReps } from './data/mockCrmData';
 import { mockRoutes, mockWaypoints } from './data/mockRoutesData';
 import { mockCampaigns, mockSalesSequences } from './data/mockMarketingData';
-import { mockDriverAssignments, mockUsersForDrivers } from './data/mockDriversData';
+import { mockDriverAssignments } from './data/mockDriversData';
 import { mockExpenses } from './data/mockData';
 
 
@@ -38,7 +38,7 @@ export type AppSettings = {
   defaultView: View;
   enableAssistant: boolean;
   distanceUnit: 'km' | 'mi';
-  currency: 'USD' | 'ZWL';
+  currency: 'USD' | 'ZWL' | 'ZIG';
   showFinancialSummary: boolean;
   serviceDueSoonKm: number;
   invoiceReminderDays: number;
@@ -82,6 +82,7 @@ const AuthedApp: React.FC = () => {
     invoices,
     expenses,
     drivers,
+    users,
     maintenance,
     leadActivities,
     opportunityActivities,
@@ -200,7 +201,7 @@ const AuthedApp: React.FC = () => {
     drivers: {
       drivers,
       assignments: mockDriverAssignments,
-      users: mockUsersForDrivers,
+      users,
     },
     crm: {
       leads,

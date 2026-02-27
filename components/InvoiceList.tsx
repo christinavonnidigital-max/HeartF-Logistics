@@ -1,10 +1,12 @@
-
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Invoice, InvoiceStatus } from '../types';
 import { PlusIcon } from './icons';
 import { ShellCard, SectionHeader, StatusPill, ModalShell, Button, Input, Label } from './UiKit';
 import { useData } from '../contexts/DataContext';
 import { useAuth } from '../auth/AuthContext';
+import { downloadCsv } from '../dataIO/toCsv';
+import { buildInvoiceCsvColumns } from '../dataIO/invoiceExportColumns';
+import { downloadInvoicePdf } from '../dataIO/invoicePdf';
 
 interface InvoiceListProps {
   invoices: Invoice[];
@@ -12,13 +14,50 @@ interface InvoiceListProps {
   reminderLeadDays: number;
 }
 
+const formatDateGB = (value?: string) => {
+  if (!value) return '-';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '-';
+  return date.toLocaleDateString('en-GB', { timeZone: 'Africa/Harare' });
+};
+
+const formatMoneyZW = (amount: number, currency: string) =>
+  new Intl.NumberFormat('en-ZW', {
+    style: 'currency',
+    currency,
+    maximumFractionDigits: 2,
+  }).format(amount || 0);
+
 const InvoiceList: React.FC<InvoiceListProps> = ({ invoices, onAddInvoiceClick, reminderLeadDays }) => {
-  const { updateInvoice } = useData();
+  const { updateInvoice, customers, bookings } = useData();
   const { user } = useAuth();
   const isCustomer = user?.role === 'customer';
   const [reminderInvoice, setReminderInvoice] = useState<Invoice | null>(null);
   const [reminderDate, setReminderDate] = useState('');
   const [reminderNote, setReminderNote] = useState('');
+
+  const customerById = useMemo(
+    () =>
+      customers.reduce<Record<number, (typeof customers)[number] | undefined>>((acc, customer) => {
+        acc[customer.id] = customer;
+        return acc;
+      }, {}),
+    [customers],
+  );
+
+  const bookingById = useMemo(
+    () =>
+      bookings.reduce<Record<number, (typeof bookings)[number] | undefined>>((acc, booking) => {
+        acc[booking.id] = booking;
+        return acc;
+      }, {}),
+    [bookings],
+  );
+
+  const exportColumns = useMemo(
+    () => buildInvoiceCsvColumns({ customerById, bookingById }),
+    [customerById, bookingById],
+  );
 
   const getStatusTone = (status: InvoiceStatus): "success" | "warn" | "danger" | "info" | "neutral" => {
     switch (status) {
@@ -78,18 +117,34 @@ const InvoiceList: React.FC<InvoiceListProps> = ({ invoices, onAddInvoiceClick, 
     });
   };
 
+  const handleDownloadInvoice = (invoice: Invoice) => {
+    const stamp = new Date().toISOString().slice(0, 10);
+    downloadCsv([invoice], exportColumns as any, `${invoice.invoice_number || 'invoice'}-${stamp}`);
+  };
+
+  const handleDownloadInvoicePdf = (invoice: Invoice) => {
+    downloadInvoicePdf(invoice, {
+      customer: customerById[invoice.customer_id],
+      booking: invoice.booking_id ? bookingById[invoice.booking_id] : undefined,
+      issuerName: 'Heartfledge Logistics',
+      issuerAddress: ['Harare, Zimbabwe', 'SADC Regional Operations'],
+      issuerEmail: 'billing@heartfledge.co.zw',
+      issuerPhone: '+263 24 270 0000',
+    });
+  };
+
   return (
     <ShellCard className="p-4">
       <SectionHeader
         title="Invoices"
-        subtitle="Money owed and money collected"
+        subtitle="Receivables and collections across Zimbabwe and SADC routes"
         actions={
-          <button 
+          <button
             className="p-2 rounded-lg bg-orange-500 text-white hover:bg-orange-600 transition shrink-0"
             onClick={onAddInvoiceClick}
             aria-label="Add new invoice"
           >
-            <PlusIcon className="w-5 h-5"/>
+            <PlusIcon className="w-5 h-5" />
           </button>
         }
       />
@@ -98,15 +153,26 @@ const InvoiceList: React.FC<InvoiceListProps> = ({ invoices, onAddInvoiceClick, 
           {invoices.map((invoice) => (
             <div key={invoice.id} className="rounded-xl border border-slate-200 bg-white p-3">
               <div className="flex items-center justify-between">
-                <div className="text-sm font-semibold text-slate-900">
-                  {invoice.invoice_number}
-                </div>
-                <StatusPill label={invoice.status} tone={invoice.status === "paid" ? "success" : "warn"} />
+                <div className="text-sm font-semibold text-slate-900">{invoice.invoice_number}</div>
+                <StatusPill label={invoice.status} tone={getStatusTone(invoice.status)} />
               </div>
-              <div className="text-xs text-slate-500">Due {new Date(invoice.due_date).toLocaleDateString()}</div>
-              <div className="text-sm font-semibold text-slate-900 mt-1">
-                {new Intl.NumberFormat(undefined, { style: "currency", currency: invoice.currency }).format(invoice.total_amount)}
-              </div>
+              <div className="text-xs text-slate-500 mt-1">{customerById[invoice.customer_id]?.company_name || `Customer #${invoice.customer_id}`}</div>
+              <div className="text-xs text-slate-500">Due {formatDateGB(invoice.due_date)}</div>
+              <div className="text-sm font-semibold text-slate-900 mt-1">{formatMoneyZW(invoice.total_amount, invoice.currency)}</div>
+              <button
+                className="mt-2 rounded-lg border border-slate-200 px-2.5 py-1 text-xs font-semibold text-slate-600 hover:bg-slate-100"
+                onClick={() => handleDownloadInvoice(invoice)}
+                type="button"
+              >
+                Download
+              </button>
+              <button
+                className="mt-2 ml-2 rounded-lg border border-orange-200 bg-orange-50 px-2.5 py-1 text-xs font-semibold text-orange-700 hover:bg-orange-100"
+                onClick={() => handleDownloadInvoicePdf(invoice)}
+                type="button"
+              >
+                PDF
+              </button>
             </div>
           ))}
         </div>
@@ -125,12 +191,19 @@ const InvoiceList: React.FC<InvoiceListProps> = ({ invoices, onAddInvoiceClick, 
           <tbody className="divide-y divide-slate-100">
             {invoices.map((invoice) => (
               <tr key={invoice.id} className="hover:bg-slate-50">
-                <td className="px-3 py-3 font-medium text-slate-900 whitespace-nowrap">
-                  {invoice.invoice_number}
+                <td className="px-3 py-3 font-medium text-slate-900 whitespace-nowrap">{invoice.invoice_number}</td>
+                <td className="px-3 py-3 text-slate-600">
+                  <div>{customerById[invoice.customer_id]?.company_name || `Customer #${invoice.customer_id}`}</div>
+                  {invoice.booking_id ? (
+                    <div className="text-[11px] text-slate-400">
+                      {bookingById[invoice.booking_id]?.booking_number || `Booking #${invoice.booking_id}`}
+                    </div>
+                  ) : null}
                 </td>
-                <td className="px-3 py-3 text-slate-600">{invoice.customer_id}</td>
-                <td className="px-3 py-3 text-slate-600">{new Date(invoice.due_date + 'T00:00:00').toLocaleDateString()}</td>
-                <td className="px-3 py-3 text-slate-800 font-medium text-right">{new Intl.NumberFormat(undefined, { style: 'currency', currency: invoice.currency }).format(invoice.total_amount)}</td>
+                <td className="px-3 py-3 text-slate-600">{formatDateGB(invoice.due_date)}</td>
+                <td className="px-3 py-3 text-slate-800 font-medium text-right">
+                  {formatMoneyZW(invoice.total_amount, invoice.currency)}
+                </td>
                 <td className="px-3 py-3 text-center">
                   <StatusPill
                     label={invoice.status.replace(/_/g, ' ')}
@@ -138,12 +211,10 @@ const InvoiceList: React.FC<InvoiceListProps> = ({ invoices, onAddInvoiceClick, 
                   />
                 </td>
                 <td className="px-3 py-3 text-xs text-slate-600">
-                  <div>
-                    {invoice.reminder_at ? new Date(invoice.reminder_at).toLocaleDateString() : '—'}
-                  </div>
+                  <div>{invoice.reminder_at ? formatDateGB(invoice.reminder_at) : '-'}</div>
                   {invoice.last_reminder_at ? (
                     <div className="text-[11px] text-slate-400">
-                      Sent {new Date(invoice.last_reminder_at).toLocaleDateString()}
+                      Sent {formatDateGB(invoice.last_reminder_at)}
                     </div>
                   ) : null}
                 </td>
@@ -160,6 +231,20 @@ const InvoiceList: React.FC<InvoiceListProps> = ({ invoices, onAddInvoiceClick, 
                       disabled={isCustomer}
                     >
                       Reminder
+                    </button>
+                    <button
+                      className="rounded-lg border border-slate-200 px-2.5 py-1 text-xs font-semibold text-slate-600 hover:bg-slate-100"
+                      onClick={() => handleDownloadInvoice(invoice)}
+                      type="button"
+                    >
+                      Download
+                    </button>
+                    <button
+                      className="rounded-lg border border-orange-200 bg-orange-50 px-2.5 py-1 text-xs font-semibold text-orange-700 hover:bg-orange-100"
+                      onClick={() => handleDownloadInvoicePdf(invoice)}
+                      type="button"
+                    >
+                      PDF
                     </button>
                     {invoice.status !== InvoiceStatus.PAID && (
                       <button
@@ -179,6 +264,13 @@ const InvoiceList: React.FC<InvoiceListProps> = ({ invoices, onAddInvoiceClick, 
                 </td>
               </tr>
             ))}
+            {invoices.length === 0 && (
+              <tr>
+                <td colSpan={7} className="text-center py-8 text-slate-500">
+                  No invoices available yet.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
@@ -188,7 +280,7 @@ const InvoiceList: React.FC<InvoiceListProps> = ({ invoices, onAddInvoiceClick, 
         title="Schedule invoice reminder"
         description={reminderInvoice ? `Invoice ${reminderInvoice.invoice_number}` : undefined}
         maxWidthClass="max-w-md"
-        footer={
+        footer={(
           <div className="flex items-center justify-between gap-3">
             <Button variant="secondary" type="button" onClick={handleLogReminderSent}>
               Log sent now
@@ -202,7 +294,7 @@ const InvoiceList: React.FC<InvoiceListProps> = ({ invoices, onAddInvoiceClick, 
               </Button>
             </div>
           </div>
-        }
+        )}
       >
         <div className="space-y-3">
           <div className="space-y-2">

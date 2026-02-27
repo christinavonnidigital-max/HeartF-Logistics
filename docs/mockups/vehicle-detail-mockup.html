@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Vehicle Detail Mockup</title>
+  <style>
+    :root {
+      --bg: #f4f5f7;
+      --card: #fff;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --muted: #64748b;
+      --accent: #f59e0b;
+      --ok: #16a34a;
+      --warn: #d97706;
+      --danger: #dc2626;
+      --radius: 16px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+    .wrap { max-width: 1220px; margin: 0 auto; padding: 24px; }
+    .top {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--card);
+      padding: 16px 20px;
+    }
+    .row { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .crumb { color: var(--muted); font-size: 14px; }
+    .title { font-size: 40px; line-height: 1.1; font-weight: 700; margin: 0; }
+    .sub { margin-top: 6px; color: var(--muted); }
+    .badge { border: 1px solid #bbf7d0; background: #dcfce7; color: #166534; border-radius: 999px; padding: 5px 10px; font-size: 12px; font-weight: 600; }
+    .btn {
+      border: 0; background: var(--accent); color: #fff;
+      border-radius: 12px; padding: 11px 18px; font-weight: 600;
+    }
+    .grid {
+      margin-top: 16px; display: grid; gap: 16px;
+      grid-template-columns: minmax(0,1.75fr) minmax(0,0.85fr);
+    }
+    .card {
+      border: 1px solid var(--border); border-radius: var(--radius);
+      background: var(--card); overflow: hidden;
+    }
+    .spec {
+      display: grid; grid-template-columns: minmax(0,0.95fr) minmax(0,1.35fr);
+      min-height: 320px;
+    }
+    .photo {
+      position: relative; background: linear-gradient(140deg,#93c5fd,#f8fafc);
+      display: grid; place-items: center; color: #334155; font-size: 92px;
+    }
+    .chip {
+      position: absolute; left: 12px; bottom: 12px;
+      background: rgba(0,0,0,.65); color: #fff;
+      border-radius: 999px; padding: 5px 10px; font-size: 12px;
+    }
+    .spec-body { padding: 22px; }
+    .h3 { font-size: 34px; margin: 0; font-weight: 700; }
+    .meta { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px; margin-top: 16px; }
+    .meta .k { color: var(--muted); font-size: 12px; letter-spacing: .06em; text-transform: uppercase; font-weight: 700; }
+    .meta .v { margin-top: 4px; font-weight: 600; }
+    .tele { margin-top: 18px; display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 10px; }
+    .tile {
+      border-radius: 12px; border: 1px solid var(--border);
+      background: #f8fafc; text-align: center; padding: 10px;
+    }
+    .tile b { display: block; font-size: 31px; margin-top: 4px; }
+    .table-head { display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; border-bottom: 1px solid var(--border); }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 12px 14px; text-align: left; border-bottom: 1px solid var(--border); }
+    th { background: #f8fafc; text-transform: uppercase; color: var(--muted); letter-spacing: .06em; font-size: 12px; }
+    .rail-card { padding: 16px; }
+    .h4 { font-size: 20px; margin: 0; font-weight: 700; }
+    .driver {
+      margin-top: 12px; border: 1px solid var(--border); border-radius: 12px; background: #f8fafc; padding: 12px;
+    }
+    .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 7px; }
+    .doc { margin-top: 10px; border: 1px solid var(--border); border-radius: 12px; padding: 10px; background: #f8fafc; }
+    .note {
+      margin-top: 16px; border: 1px solid #0f172a; border-radius: var(--radius);
+      background: linear-gradient(140deg,#0f172a,#1e293b); color: #fff; padding: 16px;
+    }
+    @media (max-width: 1050px) {
+      .grid { grid-template-columns: 1fr; }
+      .title { font-size: 30px; }
+      .h3 { font-size: 24px; }
+      .spec { grid-template-columns: 1fr; }
+      .photo { min-height: 200px; font-size: 64px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div class="crumb">Fleet > Truck #HF-102</div>
+      <div class="row" style="margin-top:10px">
+        <div>
+          <div class="row" style="justify-content:flex-start">
+            <h1 class="title">Truck #HF-102</h1>
+            <span class="badge">Active</span>
+          </div>
+          <div class="sub">License: 4X8-992 • Long Haul Logistics</div>
+        </div>
+        <button class="btn">Schedule Maintenance</button>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div>
+        <div class="card spec">
+          <div class="photo">
+            🚚
+            <span class="chip">Updated: 2 mins ago</span>
+          </div>
+          <div class="spec-body">
+            <h2 class="h3">Vehicle Specifications</h2>
+            <div class="meta">
+              <div><div class="k">Make / Model</div><div class="v">Volvo VNL 860</div></div>
+              <div><div class="k">Year</div><div class="v">2022</div></div>
+              <div><div class="k">VIN</div><div class="v">1M2AX12C...8842</div></div>
+              <div><div class="k">Odometer</div><div class="v">142,000 mi</div></div>
+            </div>
+            <div style="margin-top:16px;font-weight:700">Live Telematics</div>
+            <div class="tele">
+              <div class="tile"><span>Fuel</span><b>85%</b></div>
+              <div class="tile"><span>Battery</span><b>94%</b></div>
+              <div class="tile"><span>Pressure</span><b>OK</b></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:16px">
+          <div class="table-head">
+            <h3 class="h4">Maintenance History</h3>
+            <span style="color:var(--muted);font-size:14px">Export CSV</span>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th><th>Service Type</th><th>Parts Replaced</th><th>Cost</th><th>Mechanic Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>Oct 12, 2023</td><td>Oil Change</td><td>Filter, Synth Oil</td><td>$250.00</td><td>Routine schedule</td></tr>
+              <tr><td>Aug 05, 2023</td><td>Brake Service</td><td>Pads, Rotors</td><td>$850.00</td><td>Rear brake pads worn</td></tr>
+              <tr><td>Jun 18, 2023</td><td>Tire Rotation</td><td>N/A</td><td>$120.00</td><td>Standard rotation</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div>
+        <div class="card rail-card">
+          <h3 class="h4">Current Assignment</h3>
+          <div class="driver">
+            <div style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:700">Assigned Driver</div>
+            <div style="margin-top:4px;font-size:24px;font-weight:700">Michael R.</div>
+            <div style="margin-top:12px;color:var(--muted)">
+              <div><span class="dot" style="background:#3b82f6"></span>Origin: Chicago DC</div>
+              <div style="margin-top:8px"><span class="dot" style="background:#f59e0b"></span>Destination: Dallas Hub</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card rail-card" style="margin-top:16px">
+          <h3 class="h4">Documents</h3>
+          <div class="doc"><strong>Insurance Policy.pdf</strong><div style="color:#166534">Valid until Dec 2024</div></div>
+          <div class="doc"><strong>Registration.pdf</strong><div style="color:#92400e">Expires in 10 days</div></div>
+          <div class="doc"><strong>Inspection_Log_Sc...</strong><div style="color:var(--muted)">Uploaded Oct 12, 2023</div></div>
+        </div>
+
+        <div class="note">
+          <div style="font-size:12px;color:#fdba74;text-transform:uppercase;letter-spacing:.08em;font-weight:700">Note</div>
+          <p style="margin:10px 0 0 0;line-height:1.5">
+            Don't forget to check the alternator belt tension during the next scheduled maintenance.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

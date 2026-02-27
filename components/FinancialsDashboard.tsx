@@ -8,7 +8,7 @@ import { CurrencyDollarIcon, TrendingUpIcon, DocumentTextIcon, CreditCardIcon } 
 import AddInvoiceModal from './AddInvoiceModal';
 import AddGlobalExpenseModal from './AddGlobalExpenseModal';
 import { useAuth } from '../auth/AuthContext';
-import { SectionHeader, ShellCard, PageHeader, StatCard, Button } from './UiKit';
+import { SectionHeader, ShellCard, PageHeader, Button } from './UiKit';
 import {
   LineChart,
   Line,
@@ -22,16 +22,44 @@ import type { AppSettings } from '../App';
 import { downloadCsv } from '../dataIO/toCsv';
 import { downloadXlsx } from '../dataIO/toXlsx';
 import ImportModal from '../dataIO/ImportModal';
+import { buildInvoiceCsvColumns, buildInvoiceXlsxColumns } from '../dataIO/invoiceExportColumns';
+
+const REPORT_LOCALE = 'en-GB';
+const REPORT_TZ = 'Africa/Harare';
+
+const formatCurrencyZW = (value: number, currencyCode: string): string =>
+    new Intl.NumberFormat('en-ZW', {
+        style: 'currency',
+        currency: currencyCode,
+        maximumFractionDigits: 2,
+    }).format(value || 0);
+
+const toIsoDate = (value?: string): string => {
+    if (!value) return new Date().toISOString().split('T')[0];
+    const raw = value.trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
+    const match = raw.match(/^(\d{2})[\/\-](\d{2})[\/\-](\d{4})$/);
+    if (match) {
+        const [, dd, mm, yyyy] = match;
+        return `${yyyy}-${mm}-${dd}`;
+    }
+    const parsed = new Date(raw);
+    if (Number.isNaN(parsed.getTime())) return new Date().toISOString().split('T')[0];
+    return parsed.toISOString().split('T')[0];
+};
+
+const todayStamp = (): string =>
+    new Date().toLocaleDateString(REPORT_LOCALE, { timeZone: REPORT_TZ }).replace(/\//g, '-');
 
 // Enhanced Stat Card for Financials
-const FinStatCard: React.FC<{ label: string; value: number; icon: React.ReactNode; color: string; trend?: string }> = ({ label, value, icon, color, trend }) => (
+const FinStatCard: React.FC<{ label: string; value: number; icon: React.ReactNode; color: string; trend?: string; currency: string }> = ({ label, value, icon, color, trend, currency }) => (
     <div className="relative overflow-hidden rounded-2xl bg-white p-5 shadow-md border border-slate-100 group min-w-0">
         <div className={`absolute top-0 right-0 -mt-4 -mr-4 h-20 w-20 rounded-full ${color} opacity-10 transition-transform group-hover:scale-110`}></div>
         <div className="relative z-10 flex justify-between items-start">
             <div>
                 <p className="text-xs font-bold uppercase tracking-wider text-slate-700">{label}</p>
                 <p className="mt-2 text-2xl font-bold text-slate-900 tracking-tight">
-                    {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value)}
+                    {formatCurrencyZW(value, currency)}
                 </p>
             </div>
             <div className={`p-3 rounded-xl ${color} bg-opacity-10 text-opacity-100`}>
@@ -53,7 +81,7 @@ interface FinancialsDashboardProps {
 
 const FinancialsDashboard: React.FC<FinancialsDashboardProps> = ({ settings }) => {
     const { user } = useAuth();
-    const { invoices, expenses, customers, addInvoice, addExpense, logAuditEvent } = useData();
+    const { invoices, expenses, customers, bookings, addInvoice, addExpense, logAuditEvent } = useData();
     
     const [filteredInvoices, setFilteredInvoices] = useState<Invoice[]>([]);
     const [filteredExpenses, setFilteredExpenses] = useState<Expense[]>([]);
@@ -62,17 +90,33 @@ const FinancialsDashboard: React.FC<FinancialsDashboardProps> = ({ settings }) =
     const [activeTab, setActiveTab] = useState<'invoices' | 'expenses'>('invoices');
     const [isImportOpen, setIsImportOpen] = useState(false);
 
-    const invoiceColumns = [
-        { key: 'invoice_number', header: 'Invoice #' },
-        { key: 'customer_id', header: 'Customer ID' },
-        { key: 'issue_date', header: 'Issue Date' },
-        { key: 'due_date', header: 'Due Date' },
-        { key: 'total_amount', header: 'Total' },
-        { key: 'balance_due', header: 'Balance Due' },
-        { key: 'status', header: 'Status' },
-    ];
+    const customerById = useMemo(
+        () =>
+            customers.reduce<Record<number, (typeof customers)[number] | undefined>>((acc, customer) => {
+                acc[customer.id] = customer;
+                return acc;
+            }, {}),
+        [customers],
+    );
 
-    const invoiceXlsxColumns = invoiceColumns.map((c) => ({ title: c.header, key: c.key, width: 18 }));
+    const bookingById = useMemo(
+        () =>
+            bookings.reduce<Record<number, (typeof bookings)[number] | undefined>>((acc, booking) => {
+                acc[booking.id] = booking;
+                return acc;
+            }, {}),
+        [bookings],
+    );
+
+    const invoiceCsvColumns = useMemo(
+        () => buildInvoiceCsvColumns({ customerById, bookingById }),
+        [customerById, bookingById],
+    );
+
+    const invoiceXlsxColumns = useMemo(
+        () => buildInvoiceXlsxColumns({ customerById, bookingById }),
+        [customerById, bookingById],
+    );
 
     useEffect(() => {
         if (user?.role === 'customer') {
@@ -96,7 +140,7 @@ const FinancialsDashboard: React.FC<FinancialsDashboardProps> = ({ settings }) =
     // Process chart data for the last 6 months
     const chartData = useMemo(() => {
         const dataByMonth: { [key: string]: number } = {};
-        const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
         filteredInvoices.forEach(invoice => {
             const date = new Date(invoice.issue_date);
@@ -123,8 +167,15 @@ const FinancialsDashboard: React.FC<FinancialsDashboardProps> = ({ settings }) =
         return data;
     }, [filteredInvoices]);
 
-    const handleAddInvoice = (newInvoiceData: any) => {
-        addInvoice({ ...newInvoiceData, id: Date.now(), created_at: new Date().toISOString(), updated_at: new Date().toISOString(), created_by: 1, balance_due: newInvoiceData.total_amount, amount_paid: 0 });
+    const handleAddInvoice = (newInvoiceData: Omit<Invoice, 'id' | 'created_at' | 'updated_at' | 'created_by' | 'balance_due' | 'amount_paid'>) => {
+        const actorId = Number(user?.userId);
+        const createdBy = Number.isFinite(actorId) && actorId > 0 ? actorId : 1;
+        addInvoice({
+            ...newInvoiceData,
+            created_by: createdBy,
+            amount_paid: 0,
+            balance_due: newInvoiceData.total_amount,
+        });
         setIsInvoiceModalOpen(false);
     };
 
@@ -133,8 +184,8 @@ const FinancialsDashboard: React.FC<FinancialsDashboardProps> = ({ settings }) =
         setIsExpenseModalOpen(false);
     };
 
-    const handleExportCsv = () => downloadCsv(filteredInvoices, invoiceColumns as any, 'invoices');
-    const handleExportXlsx = () => downloadXlsx(filteredInvoices, invoiceXlsxColumns as any, 'invoices');
+    const handleExportCsv = () => downloadCsv(filteredInvoices, invoiceCsvColumns as any, `invoices-${todayStamp()}`);
+    const handleExportXlsx = () => downloadXlsx(filteredInvoices, invoiceXlsxColumns as any, `invoices-${todayStamp()}`);
 
     const handleImportInvoices = (rows: Record<string, any>[], meta: { imported: number; failed: number }) => {
         let success = 0;
@@ -146,13 +197,15 @@ const FinancialsDashboard: React.FC<FinancialsDashboardProps> = ({ settings }) =
                     : undefined;
                 const total = Number(row.total_amount) || 0;
                 const balance = row.balance_due !== undefined ? Number(row.balance_due) : total - (Number(row.amount_paid) || 0);
+                const issueDate = toIsoDate(row.issue_date);
+                const dueDate = toIsoDate(row.due_date || row.issue_date);
                 const invoice: Omit<Invoice, 'id' | 'created_at' | 'updated_at'> = {
                     invoice_number: row.invoice_number || `IMP-${Date.now() + success}`,
                     customer_id: row.customer_id ? Number(row.customer_id) : customerByName?.id || 0,
                     booking_id: row.booking_id ? Number(row.booking_id) : undefined,
                     invoice_type: row.invoice_type || 'booking',
-                    issue_date: row.issue_date || new Date().toISOString().split('T')[0],
-                    due_date: row.due_date || row.issue_date || new Date().toISOString().split('T')[0],
+                    issue_date: issueDate,
+                    due_date: dueDate,
                     subtotal: total,
                     tax_amount: Number(row.tax_amount) || 0,
                     discount_amount: Number(row.discount_amount) || 0,
@@ -182,14 +235,14 @@ const FinancialsDashboard: React.FC<FinancialsDashboardProps> = ({ settings }) =
         <>
                 <div className="flex flex-col gap-6 min-w-0">
                     <PageHeader
-                        title="Financials"
-                        subtitle="Invoices, expenses, and profitability"
+                        title="Financials & Invoicing"
+                        subtitle="Zimbabwe and SADC billing, expenses, and profitability"
                         right={(
                             <div className="flex gap-2 flex-wrap">
                                 <Button variant="ghost" onClick={handleExportCsv}>Export CSV</Button>
                                 <Button variant="ghost" onClick={handleExportXlsx}>Export XLSX</Button>
                                 <Button variant="secondary" onClick={() => setIsImportOpen(true)}>Import</Button>
-                                <Button variant="primary" onClick={() => setIsInvoiceModalOpen(true)}>Add invoice</Button>
+                                <Button variant="primary" onClick={() => setIsInvoiceModalOpen(true)}>Generate invoice</Button>
                             </div>
                         )}
                     />
@@ -200,20 +253,23 @@ const FinancialsDashboard: React.FC<FinancialsDashboardProps> = ({ settings }) =
                         icon={<CurrencyDollarIcon />}
                         color="bg-emerald-500"
                         trend="+8.4%"
+                        currency={settings.currency}
                     />
                     {!isCustomer && (
                         <>
                             <FinStatCard 
-                                label="Expenses" 
+                                label="Operating Costs" 
                                 value={totalExpenses}
                                 icon={<CreditCardIcon />}
                                 color="bg-rose-500"
+                                currency={settings.currency}
                             />
                             <FinStatCard 
                                 label="Net Profit" 
                                 value={netProfit}
                                 icon={<DocumentTextIcon />}
                                 color={netProfit >= 0 ? 'bg-indigo-500' : 'bg-amber-500'}
+                                currency={settings.currency}
                             />
                         </>
                     )}
@@ -223,7 +279,7 @@ const FinancialsDashboard: React.FC<FinancialsDashboardProps> = ({ settings }) =
                     <ShellCard className="h-full p-5 flex flex-col min-w-0 overflow-hidden">
                         <SectionHeader 
                             title={isCustomer ? "Spend History" : "Revenue Trend"} 
-                            subtitle="Financial performance over the last 6 months" 
+                            subtitle="Rolling six-month performance (Africa/Harare calendar)" 
                         />
                         <div className="flex-1 mt-4 w-full min-h-0">
                             <ResponsiveContainer width="100%" height="100%">
@@ -240,11 +296,11 @@ const FinancialsDashboard: React.FC<FinancialsDashboardProps> = ({ settings }) =
                                         tick={{ fontSize: 12, fill: '#64748b' }} 
                                         axisLine={false} 
                                         tickLine={false}
-                                        tickFormatter={(value) => `$${value >= 1000 ? `${value/1000}k` : value}`}
+                                        tickFormatter={(value) => `${value >= 1000 ? `${Math.round((value as number) / 1000)}k` : value}`}
                                     />
                                     <Tooltip 
                                         contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                                        formatter={(value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value)}
+                                        formatter={(value: number) => formatCurrencyZW(value, settings.currency)}
                                         itemStyle={{ color: '#10b981', fontWeight: 600 }}
                                     />
                                     <Line 
@@ -285,7 +341,7 @@ const FinancialsDashboard: React.FC<FinancialsDashboardProps> = ({ settings }) =
                                 onClick={() => setIsInvoiceModalOpen(true)}
                                 className="px-3 py-1.5 rounded-lg bg-orange-600 text-white text-sm font-bold shadow-sm hover:bg-orange-700 transition"
                             >
-                                Add Invoice
+                                Generate Invoice
                             </button>
                         )}
                         {!isCustomer && activeTab === 'expenses' && (
@@ -323,17 +379,24 @@ const FinancialsDashboard: React.FC<FinancialsDashboardProps> = ({ settings }) =
                     isOpen={isImportOpen}
                     onClose={() => setIsImportOpen(false)}
                     title="Import invoices"
-                    description="Upload a CSV, map columns to invoice fields, and import."
+                    description="Upload CSV data (DD/MM/YYYY or YYYY-MM-DD accepted), map columns, and import."
                     targetFields={[
                         { key: 'invoice_number', label: 'Invoice #', required: true },
                         { key: 'customer_id', label: 'Customer ID' },
                         { key: 'customer_name', label: 'Customer Name' },
+                        { key: 'booking_id', label: 'Booking ID' },
                         { key: 'issue_date', label: 'Issue Date' },
                         { key: 'due_date', label: 'Due Date' },
+                        { key: 'currency', label: 'Currency' },
+                        { key: 'tax_amount', label: 'Tax / VAT Amount' },
+                        { key: 'discount_amount', label: 'Discount Amount' },
                         { key: 'total_amount', label: 'Total Amount', required: true },
                         { key: 'amount_paid', label: 'Amount Paid' },
                         { key: 'balance_due', label: 'Balance Due' },
+                        { key: 'payment_terms', label: 'Payment Terms (Days)' },
                         { key: 'status', label: 'Status' },
+                        { key: 'notes', label: 'Internal Notes' },
+                        { key: 'customer_notes', label: 'Client Notes' },
                     ]}
                     onImport={handleImportInvoices}
                 />

@@ -40,6 +40,13 @@ const activityIcons: { [key in LeadActivityType]: React.ReactNode } = {
     [LeadActivityType.CAMPAIGN_EMAIL]: <EnvelopeIcon className="w-5 h-5" />,
 };
 
+const formatDateGB = (value?: string) => {
+    if (!value) return 'Not set';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return value;
+    return date.toLocaleDateString('en-GB');
+};
+
 const LeadDetailsModal: React.FC<LeadDetailsModalProps> = ({ lead, salesReps, leadActivities, onClose }) => {
     const { addLeadActivity, updateLead } = useData();
     const [activeTab, setActiveTab] = useState<'details' | 'activity'>('details');
@@ -143,7 +150,7 @@ const LeadDetailsModal: React.FC<LeadDetailsModalProps> = ({ lead, salesReps, le
                                 <DetailItem label="Lead Score" value={lead.lead_score} />
                                 <DetailItem label="Assigned To" value={assignedRep ? `${assignedRep.first_name} ${assignedRep.last_name}` : 'Unassigned'} />
                                 <DetailItem label="Next Action" value={lead.next_action || 'Not set'} />
-                                <DetailItem label="Next Action Date" value={lead.next_action_date ? new Date(lead.next_action_date).toLocaleDateString() : 'Not set'} />
+                                <DetailItem label="Next Action Date" value={formatDateGB(lead.next_action_date)} />
                                 <DetailItem label="Notes" value={lead.notes} />
                             </DetailSection>
                         </div>
@@ -212,7 +219,7 @@ const LeadDetailsModal: React.FC<LeadDetailsModalProps> = ({ lead, salesReps, le
                                                     ) : null}
                                                 </div>
                                                 <div className="whitespace-nowrap text-right text-sm text-gray-500">
-                                                    <time dateTime={activity.created_at}>{new Date(activity.created_at).toLocaleDateString()}</time>
+                                                    <time dateTime={activity.created_at}>{formatDateGB(activity.created_at)}</time>
                                                 </div>
                                                 </div>
                                             </div>

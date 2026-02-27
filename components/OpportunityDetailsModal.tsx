@@ -46,6 +46,16 @@ const getStagePill = (stage: OpportunityStage) => {
     );
 };
 
+const formatDateGB = (value?: string) => {
+    if (!value) return 'Not set';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return value;
+    return date.toLocaleDateString('en-GB');
+};
+
+const formatCurrencyZW = (amount: number, currency: string) =>
+    new Intl.NumberFormat('en-ZW', { style: 'currency', currency }).format(amount);
+
 const OpportunityDetailsModal: React.FC<OpportunityDetailsModalProps> = ({ opportunity, leads, salesReps, opportunityActivities, onClose }) => {
     const { addOpportunityActivity, updateOpportunity } = useData();
     const [activityType, setActivityType] = useState<OpportunityActivityType>(OpportunityActivityType.NOTE);
@@ -111,9 +121,9 @@ const OpportunityDetailsModal: React.FC<OpportunityDetailsModalProps> = ({ oppor
         <main className="p-6 overflow-y-auto flex-1 custom-scrollbar">
           <div className="space-y-6">
             <DetailSection title="Deal Overview" icon={<InfoIcon className="w-5 h-5" />}>
-              <DetailItem label="Expected Value" value={<span className="font-bold text-green-600">{new Intl.NumberFormat('en-US', { style: 'currency', currency: opportunity.currency }).format(opportunity.expected_value)}</span>} />
+              <DetailItem label="Expected Value" value={<span className="font-bold text-green-600">{formatCurrencyZW(opportunity.expected_value, opportunity.currency)}</span>} />
               <DetailItem label="Probability" value={`${opportunity.probability}%`} />
-              <DetailItem label="Close Date" value={new Date(opportunity.expected_close_date + 'T00:00:00').toLocaleDateString()} />
+              <DetailItem label="Close Date" value={formatDateGB(opportunity.expected_close_date)} />
             </DetailSection>
 
             <DetailSection title="Details" icon={<DocumentTextIcon className="w-5 h-5" />}>
@@ -121,7 +131,7 @@ const OpportunityDetailsModal: React.FC<OpportunityDetailsModalProps> = ({ oppor
                 <DetailItem label="Next Step" value={<span className="font-semibold text-orange-700">{opportunity.next_step}</span>} className="grid-cols-1"/>
                 <DetailItem
                     label="Next Action Date"
-                    value={opportunity.next_action_date ? new Date(opportunity.next_action_date).toLocaleDateString() : 'Not set'}
+                    value={formatDateGB(opportunity.next_action_date)}
                     className="grid-cols-1"
                 />
             </DetailSection>
@@ -173,7 +183,7 @@ const OpportunityDetailsModal: React.FC<OpportunityDetailsModalProps> = ({ oppor
                                 <div key={act.id} className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm">
                                     <div className="flex items-center justify-between text-xs text-gray-500">
                                         <span className="uppercase tracking-wide">{act.activity_type.replace(/_/g, ' ')}</span>
-                                        <span>{new Date(act.created_at).toLocaleDateString()}</span>
+                                        <span>{formatDateGB(act.created_at)}</span>
                                     </div>
                                     <p className="mt-1 text-gray-800">{act.description}</p>
                                 </div>

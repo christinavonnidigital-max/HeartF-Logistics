@@ -29,7 +29,7 @@ import {
 import { useAuth } from '../auth/AuthContext';
 import { mockMaintenance } from '../data/mockData';
 import { mockLeadActivities } from '../data/mockCrmData';
-import { mockDrivers } from '../data/mockDriversData';
+import { mockDrivers, mockUsersForDrivers } from '../data/mockDriversData';
 import { mockCustomers } from '../data/mockCrmData';
 import { DEFAULT_PERMISSIONS, PERMISSIONS_STORAGE_KEY, PermissionsMatrix } from '../src/lib/permissions';
 import {
@@ -87,7 +87,7 @@ type DataContextValue = {
     addVehicle: (vehicle: Omit<Vehicle, 'id' | 'created_at' | 'updated_at'>) => Promise<void>;
     updateVehicle: (vehicle: Vehicle) => Promise<void>;
     deleteVehicle: (id: number) => Promise<void>;
-    addDriver: (driver: Omit<Driver, 'id' | 'created_at' | 'updated_at'>) => Promise<void>;
+    addDriver: (driver: Omit<Driver, 'id' | 'created_at' | 'updated_at'>) => Promise<Driver>;
     updateDriver: (driver: Driver) => Promise<void>;
     deleteDriver: (id: number) => Promise<void>;
     addMaintenance: (maintenance: Omit<VehicleMaintenance, 'id' | 'created_at' | 'updated_at'>) => void;
@@ -100,7 +100,7 @@ type DataContextValue = {
 
     addDeliveryProof: (proof: Omit<DeliveryProof, 'id' | 'created_at'>) => void;
 
-    addUser: (user: Omit<User, 'id'>) => Promise<void>;
+    addUser: (user: Omit<User, 'id'>) => Promise<User>;
     updateUser: (user: User) => Promise<void>;
     deleteUser: (id: string | number) => Promise<void>;
     addNotification?: (n: Omit<Notification, 'id' | 'created_at'>) => Promise<void>;
@@ -341,28 +341,28 @@ const toDbBooking = (b: Partial<Booking>) => ({
 
 const fromDbDriver = (d: any): Driver => ({
     id: d.id,
-    user_id: d.userId ?? 0,
-    license_number: d.licenseNumber ?? '',
-    license_type: d.licenseType ?? '',
-    license_expiry_date: d.licenseExpiryDate ?? nowIso(),
-    date_of_birth: d.dateOfBirth ?? nowIso(),
-    national_id: d.nationalId ?? '',
-    emergency_contact_name: d.emergencyContactName ?? '',
-    emergency_contact_phone: d.emergencyContactPhone ?? '',
+    user_id: d.userId ?? d.user_id ?? 0,
+    license_number: d.licenseNumber ?? d.license_number ?? '',
+    license_type: d.licenseType ?? d.license_type ?? '',
+    license_expiry_date: d.licenseExpiryDate ?? d.license_expiry_date ?? nowIso(),
+    date_of_birth: d.dateOfBirth ?? d.date_of_birth ?? nowIso(),
+    national_id: d.nationalId ?? d.national_id ?? '',
+    emergency_contact_name: d.emergencyContactName ?? d.emergency_contact_name ?? '',
+    emergency_contact_phone: d.emergencyContactPhone ?? d.emergency_contact_phone ?? '',
     address: d.address ?? '',
     city: d.city ?? '',
     country: d.country ?? '',
-    hire_date: d.hireDate ?? nowIso(),
-    employment_status: d.employmentStatus ?? 'active',
+    hire_date: d.hireDate ?? d.hire_date ?? nowIso(),
+    employment_status: d.employmentStatus ?? d.employment_status ?? 'active',
     salary: Number(d.salary ?? 0),
-    medical_certificate_expiry: d.medicalCertificateExpiry ?? null,
-    background_check_date: d.backgroundCheckDate ?? null,
-    background_check_status: d.backgroundCheckStatus ?? 'pending',
+    medical_certificate_expiry: d.medicalCertificateExpiry ?? d.medical_certificate_expiry ?? null,
+    background_check_date: d.backgroundCheckDate ?? d.background_check_date ?? null,
+    background_check_status: d.backgroundCheckStatus ?? d.background_check_status ?? 'pending',
     rating: d.rating ?? null,
-    total_deliveries: d.totalDeliveries ?? 0,
+    total_deliveries: d.totalDeliveries ?? d.total_deliveries ?? 0,
     notes: d.notes ?? '',
-    created_at: d.createdAt ?? nowIso(),
-    updated_at: d.updatedAt ?? nowIso(),
+    created_at: d.createdAt ?? d.created_at ?? nowIso(),
+    updated_at: d.updatedAt ?? d.updated_at ?? nowIso(),
 });
 
 const toDbDriver = (d: Partial<Driver>) => ({
@@ -390,39 +390,63 @@ const toDbDriver = (d: Partial<Driver>) => ({
 
 const fromDbLead = (l: any): Lead => ({
     id: l.id,
-    lead_source: l.leadSource ?? 'website',
-    lead_status: l.leadStatus ?? 'new',
-    lead_score: l.leadScore ?? 0,
-    first_name: l.firstName ?? '',
-    last_name: l.lastName ?? '',
+    lead_source: l.leadSource ?? l.lead_source ?? 'website',
+    lead_status: l.leadStatus ?? l.lead_status ?? 'new',
+    lead_score: Number(l.leadScore ?? l.lead_score ?? 0),
+    first_name: l.firstName ?? l.first_name ?? '',
+    last_name: l.lastName ?? l.last_name ?? '',
     email: l.email ?? '',
     phone: l.phone ?? '',
-    company_name: l.companyName ?? '',
-    company_size: l.companySize ?? 'medium',
+    company_name: l.companyName ?? l.company_name ?? '',
+    company_size: l.companySize ?? l.company_size ?? 'medium',
     industry: l.industry ?? 'other',
     position: l.position ?? '',
     website: l.website ?? '',
     address: l.address ?? '',
     city: l.city ?? '',
     country: l.country ?? '',
-    logistics_needs: l.logisticsNeeds ?? '',
-    current_provider: l.currentProvider ?? '',
-    monthly_shipment_volume: l.monthlyShipmentVolume ?? null,
-    preferred_routes: l.preferredRoutes ?? '',
-    assigned_to: l.assignedTo ?? null,
-    next_follow_up_date: l.nextFollowUpDate ?? null,
-    next_action: l.nextAction ?? '',
-    next_action_date: l.nextActionDate ?? null,
-    last_contact_date: l.lastContactDate ?? null,
-    converted_to_customer_id: l.convertedToCustomerId ?? null,
-    converted_at: l.convertedAt ?? null,
-    lost_reason: l.lostReason ?? null,
-    lost_at: l.lostAt ?? null,
+    logistics_needs: l.logisticsNeeds ?? l.logistics_needs ?? '',
+    current_provider: l.currentProvider ?? l.current_provider ?? '',
+    monthly_shipment_volume: l.monthlyShipmentVolume ?? l.monthly_shipment_volume ?? null,
+    preferred_routes: l.preferredRoutes ?? l.preferred_routes ?? '',
+    assigned_to: l.assignedTo ?? l.assigned_to ?? null,
+    next_follow_up_date: l.nextFollowUpDate ?? l.next_follow_up_date ?? null,
+    next_action: l.nextAction ?? l.next_action ?? '',
+    next_action_date: l.nextActionDate ?? l.next_action_date ?? null,
+    last_contact_date: l.lastContactDate ?? l.last_contact_date ?? null,
+    converted_to_customer_id: l.convertedToCustomerId ?? l.converted_to_customer_id ?? null,
+    converted_at: l.convertedAt ?? l.converted_at ?? null,
+    lost_reason: l.lostReason ?? l.lost_reason ?? null,
+    lost_at: l.lostAt ?? l.lost_at ?? null,
     notes: l.notes ?? '',
-    tags: l.tags ?? [],
-    custom_fields: l.customFields ?? {},
-    created_at: l.createdAt ?? nowIso(),
-    updated_at: l.updatedAt ?? nowIso(),
+    tags: (() => {
+        const raw = l.tags;
+        if (Array.isArray(raw)) return raw;
+        if (typeof raw === 'string') {
+            try {
+                const parsed = JSON.parse(raw);
+                if (Array.isArray(parsed)) return parsed;
+            } catch {
+                // fall through
+            }
+            return raw.split(',').map((t) => t.trim()).filter(Boolean);
+        }
+        return [];
+    })(),
+    custom_fields: (() => {
+        const raw = l.customFields ?? l.custom_fields;
+        if (!raw) return {};
+        if (typeof raw === 'string') {
+            try {
+                return JSON.parse(raw);
+            } catch {
+                return {};
+            }
+        }
+        return raw;
+    })(),
+    created_at: l.createdAt ?? l.created_at ?? nowIso(),
+    updated_at: l.updatedAt ?? l.updated_at ?? nowIso(),
 });
 
 const toDbLead = (l: Partial<Lead>) => ({
@@ -461,32 +485,32 @@ const toDbLead = (l: Partial<Lead>) => ({
 
 const fromDbInvoice = (inv: any): Invoice => ({
     id: inv.id,
-    invoice_number: inv.invoiceNumber ?? inv.id,
-    customer_id: inv.customerId ?? 0,
-    booking_id: inv.bookingId ?? null,
-    invoice_type: inv.invoiceType ?? 'booking',
-    issue_date: inv.issueDate ?? nowIso(),
-    due_date: inv.dueDate ?? nowIso(),
-    reminder_at: inv.reminderAt ?? null,
-    reminder_note: inv.reminderNote ?? '',
-    last_reminder_at: inv.lastReminderAt ?? null,
+    invoice_number: inv.invoiceNumber ?? inv.invoice_number ?? `INV-${inv.id ?? 'tmp'}`,
+    customer_id: Number(inv.customerId ?? inv.customer_id ?? 0) || 0,
+    booking_id: inv.bookingId ?? inv.booking_id ?? undefined,
+    invoice_type: inv.invoiceType ?? inv.invoice_type ?? 'booking',
+    issue_date: inv.issueDate ?? inv.issue_date ?? nowIso(),
+    due_date: inv.dueDate ?? inv.due_date ?? nowIso(),
+    reminder_at: inv.reminderAt ?? inv.reminder_at ?? undefined,
+    reminder_note: inv.reminderNote ?? inv.reminder_note ?? '',
+    last_reminder_at: inv.lastReminderAt ?? inv.last_reminder_at ?? undefined,
     subtotal: Number(inv.subtotal ?? 0),
-    tax_amount: Number(inv.taxAmount ?? 0),
-    discount_amount: Number(inv.discountAmount ?? 0),
-    total_amount: Number(inv.totalAmount ?? 0),
-    amount_paid: Number(inv.amountPaid ?? 0),
-    balance_due: Number(inv.balanceDue ?? 0),
+    tax_amount: Number(inv.taxAmount ?? inv.tax_amount ?? 0),
+    discount_amount: Number(inv.discountAmount ?? inv.discount_amount ?? 0),
+    total_amount: Number(inv.totalAmount ?? inv.total_amount ?? 0),
+    amount_paid: Number(inv.amountPaid ?? inv.amount_paid ?? 0),
+    balance_due: Number(inv.balanceDue ?? inv.balance_due ?? 0),
     currency: inv.currency ?? 'USD',
     status: inv.status ?? 'draft',
-    payment_terms: inv.paymentTerms ?? null,
+    payment_terms: Number(inv.paymentTerms ?? inv.payment_terms ?? 0) || undefined,
     notes: inv.notes ?? '',
-    customer_notes: inv.customerNotes ?? '',
-    sent_at: inv.sentAt ?? null,
-    viewed_at: inv.viewedAt ?? null,
-    paid_at: inv.paidAt ?? null,
-    created_by: inv.createdBy ?? 0,
-    created_at: inv.createdAt ?? nowIso(),
-    updated_at: inv.updatedAt ?? nowIso(),
+    customer_notes: inv.customerNotes ?? inv.customer_notes ?? '',
+    sent_at: inv.sentAt ?? inv.sent_at ?? undefined,
+    viewed_at: inv.viewedAt ?? inv.viewed_at ?? undefined,
+    paid_at: inv.paidAt ?? inv.paid_at ?? undefined,
+    created_by: Number(inv.createdBy ?? inv.created_by ?? 0),
+    created_at: inv.createdAt ?? inv.created_at ?? nowIso(),
+    updated_at: inv.updatedAt ?? inv.updated_at ?? nowIso(),
 });
 
 const toDbInvoice = (inv: Partial<Invoice>) => ({
@@ -554,22 +578,22 @@ const toDbExpense = (ex: Partial<Expense>) => ({
 
 const fromDbOpportunity = (o: any): Opportunity => ({
     id: o.id,
-    opportunity_name: o.opportunityName ?? '',
-    lead_id: o.leadId ?? null,
-    customer_id: o.customerId ?? null,
+    opportunity_name: o.opportunityName ?? o.opportunity_name ?? '',
+    lead_id: o.leadId ?? o.lead_id ?? null,
+    customer_id: o.customerId ?? o.customer_id ?? null,
     stage: o.stage ?? 'prospecting',
-    expected_value: Number(o.expectedValue ?? 0),
+    expected_value: Number(o.expectedValue ?? o.expected_value ?? 0),
     currency: o.currency ?? 'USD',
     probability: Number(o.probability ?? 0),
-    expected_close_date: o.expectedCloseDate ?? nowIso(),
-    next_action_date: o.nextActionDate ?? null,
-    actual_close_date: o.actualCloseDate ?? null,
-    assigned_to: o.assignedTo ?? 0,
+    expected_close_date: o.expectedCloseDate ?? o.expected_close_date ?? nowIso(),
+    next_action_date: o.nextActionDate ?? o.next_action_date ?? null,
+    actual_close_date: o.actualCloseDate ?? o.actual_close_date ?? null,
+    assigned_to: o.assignedTo ?? o.assigned_to ?? 0,
     description: o.description ?? '',
-    next_step: o.nextStep ?? '',
-    lost_reason: o.lostReason ?? '',
-    created_at: o.createdAt ?? nowIso(),
-    updated_at: o.updatedAt ?? nowIso(),
+    next_step: o.nextStep ?? o.next_step ?? '',
+    lost_reason: o.lostReason ?? o.lost_reason ?? '',
+    created_at: o.createdAt ?? o.created_at ?? nowIso(),
+    updated_at: o.updatedAt ?? o.updated_at ?? nowIso(),
 });
 
 const toDbOpportunity = (o: Partial<Opportunity>) => ({
@@ -649,7 +673,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [invoices, setInvoices] = useState<Invoice[]>([]);
     const [expenses, setExpenses] = useState<Expense[]>([]);
     const [drivers, setDrivers] = useState<Driver[]>(mockDrivers ?? []);
-    const [users, setUsers] = useState<User[]>([]);
+    const [users, setUsers] = useState<User[]>(mockUsersForDrivers ?? []);
     const [customers, setCustomers] = useState<Customer[]>(mockCustomers ?? []);
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [gpsLocations, setGpsLocations] = useState<Record<number, GpsLocation>>({});
@@ -779,7 +803,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setInvoices([]);
             setExpenses([]);
             setDrivers(mockDrivers ?? []);
-            setUsers([]);
+            setUsers(mockUsersForDrivers ?? []);
             setCustomers(mockCustomers ?? []);
             setAuditLog([]);
             setMaintenance(mockMaintenance ?? []);
@@ -797,7 +821,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setInvoices(persisted?.invoices ?? []);
         setExpenses(persisted?.expenses ?? []);
         setDrivers(persisted?.drivers ?? (mockDrivers ?? []));
-        setUsers(persisted?.users ?? []);
+        setUsers(persisted?.users?.length ? persisted.users : (mockUsersForDrivers ?? []));
         setCustomers(persisted?.customers ?? (mockCustomers ?? []));
         setNotifications(persisted?.notifications ?? []);
         setGpsLocations(persisted?.gpsLocations ?? {});
@@ -1370,7 +1394,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     };
 
-    const addDriver = async (driver: Omit<Driver, 'id' | 'created_at' | 'updated_at'>) => {
+    const addDriver = async (driver: Omit<Driver, 'id' | 'created_at' | 'updated_at'>): Promise<Driver> => {
         const createdAt = nowIso();
         const toSave: Driver = { ...driver, created_at: createdAt, updated_at: createdAt } as Driver;
         try {
@@ -1378,13 +1402,15 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const mapped = fromDbDriver(saved);
             setDrivers((prev) => [mapped, ...prev]);
             emitChange('drivers:add', mapped);
+            return mapped;
         } catch {
+            const nextId = drivers.length ? Math.max(...drivers.map((d) => d.id)) + 1 : 1;
+            const optimistic = { ...toSave, id: nextId };
             setDrivers((prev) => {
-                const id = prev.length ? Math.max(...prev.map((d) => d.id)) + 1 : 1;
-                const optimistic = { ...toSave, id };
                 emitChange('drivers:add', optimistic);
                 return [optimistic, ...prev];
             });
+            return optimistic;
         }
     };
 
@@ -1499,18 +1525,19 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
     };
 
-    const addUser = async (u: Omit<User, 'id'>) => {
+    const addUser = async (u: Omit<User, 'id'>): Promise<User> => {
         const toSave = { ...u, role: (u as any).role || 'pending' };
         try {
             const saved = await usersApi.create(toDbUser(toSave));
             const mapped = fromDbUser(saved);
             setUsers((prev) => [mapped, ...prev]);
             emitChange('users:add', mapped);
+            return mapped;
         } catch {
-            const id = safeId();
-            const optimistic = { ...toSave, id };
+            const optimistic = { ...toSave, id: safeId() } as User;
             setUsers((prev) => [optimistic as any, ...prev]);
             emitChange('users:add', optimistic);
+            return optimistic;
         }
     };
 

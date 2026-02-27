@@ -267,6 +267,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onChangeSettings 
                   className="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm"
                 >
                   <option value="USD">USD</option>
+                  <option value="ZIG">ZiG</option>
                   <option value="ZWL">ZWL</option>
                 </select>
               </div>
