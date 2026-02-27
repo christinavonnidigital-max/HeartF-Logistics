@@ -1,5 +1,6 @@
-﻿import React, { useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useAuth } from "../auth/AuthContext";
+import { hasNeonAuthConfig } from "../src/lib/neonAuth";
 import { Button, Input, Label, ShellCard, StatusPill } from "./UiKit";
 
 function isValidEmail(email: string) {
@@ -230,6 +231,14 @@ const LoginPage: React.FC = () => {
               <StatusPill tone="info" label="Neon Auth workspace credentials" />
               <div>Demo credentials: admin@heartfledge.local / admin123</div>
             </div>
+            {!hasNeonAuthConfig ? (
+              <div className="rounded-2xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                Workspace auth is not configured on this deployment.
+                <div className="mt-1">
+                  Set <code>VITE_NEON_AUTH_URL</code> in Vercel project environment variables and redeploy.
+                </div>
+              </div>
+            ) : null}
 
             <div className="mt-4">
               <div className="text-xs font-semibold text-muted-foreground">How it works</div>

@@ -12,6 +12,7 @@ import React, {
   useState,
 } from "react";
 import { authClient } from "../src/lib/neonAuth";
+import { hasNeonAuthConfig } from "../src/lib/neonAuth";
 import { apiFetch } from "../src/services/apiClient";
 import { usersApi } from "../src/services/dbApi";
 
@@ -226,6 +227,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setUser(devUser);
           setStatus("authenticated");
           return "ok";
+        }
+
+        if (!hasNeonAuthConfig) {
+          setUser(null);
+          setStatus("unauthenticated");
+          return "invalid";
         }
 
         await authClient.signIn.email({ email, password });
