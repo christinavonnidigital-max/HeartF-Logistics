@@ -4,7 +4,7 @@ import "./src/index.css";
 import ReactDOM from "react-dom/client";
 import { NeonAuthUIProvider } from "@neondatabase/auth/react/ui";
 import App from "./App";
-import { authClient } from "./src/lib/neonAuth";
+import { authClient, hasNeonAuthConfig } from "./src/lib/neonAuth";
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
@@ -14,8 +14,12 @@ if (!rootElement) {
 const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
-    <NeonAuthUIProvider authClient={authClient} redirectTo="/">
+    {hasNeonAuthConfig ? (
+      <NeonAuthUIProvider authClient={authClient} redirectTo="/">
+        <App />
+      </NeonAuthUIProvider>
+    ) : (
       <App />
-    </NeonAuthUIProvider>
+    )}
   </React.StrictMode>
 );

@@ -4,7 +4,7 @@ import { NeonAuthUIProvider } from "@neondatabase/auth/react/ui";
 import App from "../App";
 import "./index.css";
 import "leaflet/dist/leaflet.css";
-import { authClient } from "./lib/neonAuth";
+import { authClient, hasNeonAuthConfig } from "./lib/neonAuth";
 
 // Force a light theme on load to avoid a dark-mode fallback.
 try {
@@ -16,8 +16,12 @@ try {
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <NeonAuthUIProvider authClient={authClient} redirectTo="/">
+    {hasNeonAuthConfig ? (
+      <NeonAuthUIProvider authClient={authClient} redirectTo="/">
+        <App />
+      </NeonAuthUIProvider>
+    ) : (
       <App />
-    </NeonAuthUIProvider>
+    )}
   </React.StrictMode>
 );
