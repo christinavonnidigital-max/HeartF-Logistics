@@ -67,8 +67,10 @@ const LoginPage: React.FC = () => {
     setBusy(true);
     try {
       const result = await login(signInEmail.trim(), password);
-      if (result !== "ok") {
-        setError("Invalid email or password.");
+      if (result === "missing_auth_config") {
+        setError("Workspace auth is not configured on this deployment. Only local demo accounts work until Vercel has VITE_NEON_AUTH_URL.");
+      } else if (result !== "ok") {
+        setError("Login failed. Check that the email/password exists in Neon Auth and that the same email has an approved internal role in Settings -> User management.");
       }
     } catch (err) {
       setError(friendlyAuthError(err));
@@ -236,6 +238,9 @@ const LoginPage: React.FC = () => {
                 Workspace auth is not configured on this deployment.
                 <div className="mt-1">
                   Set <code>VITE_NEON_AUTH_URL</code> in Vercel project environment variables and redeploy.
+                </div>
+                <div className="mt-1">
+                  The user directory below only maps emails to roles. It does not create password logins.
                 </div>
               </div>
             ) : null}

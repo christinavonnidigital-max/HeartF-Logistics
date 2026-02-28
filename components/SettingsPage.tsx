@@ -289,9 +289,18 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onChangeSettings 
         </ShellCard>
 
         <ShellCard className="px-5 py-4">
-          <SectionHeader title="User management" subtitle="Database directory that maps emails to roles." />
+          <SectionHeader title="User management" subtitle="Role directory stored in the database. This does not create password logins." />
           {isAdmin ? (
             <div className="space-y-4">
+              <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                <div className="font-semibold">How internal login works</div>
+                <div className="mt-1 text-amber-800">
+                  Internal access requires two records with the same email: a Neon Auth account for password sign-in, and a database user record here for role assignment.
+                </div>
+                <div className="mt-1 text-amber-800">
+                  If the database role stays <span className="font-semibold">pending</span>, the user can sign in but will land in the approval waiting room.
+                </div>
+              </div>
               <form className="grid gap-3 sm:grid-cols-2" onSubmit={handleSaveUser}>
                 <div className="sm:col-span-2">
                   <label className="block text-sm font-medium text-slate-700">Email</label>
@@ -357,7 +366,11 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onChangeSettings 
                         <div>
                           <div className="font-semibold text-slate-900">{u.email}</div>
                           <div className="text-xs text-slate-500">
-                            {(u as any).first_name || (u as any).firstName || ""} {(u as any).last_name || (u as any).lastName || ""} • {u.role}
+                            {(u as any).first_name || (u as any).firstName || ""} {(u as any).last_name || (u as any).lastName || ""} - {u.role}
+                          </div>
+                          <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px]">
+                            <StatusPill tone="info" label="Directory record" />
+                            <span className="text-slate-500">Password login is managed separately in Neon Auth.</span>
                           </div>
                         </div>
                         <button
@@ -375,6 +388,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onChangeSettings 
           ) : (
             <div className="mt-3 space-y-2 text-sm text-slate-600">
               <p>User management is available to admins.</p>
+              <p>This page controls role mapping only. Password sign-in is handled by Neon Auth.</p>
             </div>
           )}
         </ShellCard>
@@ -384,3 +398,4 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onChangeSettings 
 };
 
 export default SettingsPage;
+

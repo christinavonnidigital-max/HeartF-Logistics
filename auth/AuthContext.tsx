@@ -41,7 +41,7 @@ type AuthContextValue = {
   status: AuthStatus;
   loading: boolean;
 
-  login: (email: string, password: string) => Promise<"ok" | "invalid">;
+  login: (email: string, password: string) => Promise<"ok" | "invalid" | "missing_auth_config">;
   signUp: (payload: { email: string; password: string; firstName: string; lastName: string }) => Promise<"ok" | "invalid">;
   requestPasswordReset: (email: string, redirectTo?: string) => Promise<"ok" | "invalid">;
   logout: () => Promise<void>;
@@ -232,7 +232,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (!hasNeonAuthConfig) {
           setUser(null);
           setStatus("unauthenticated");
-          return "invalid";
+          return "missing_auth_config";
         }
 
         await authClient.signIn.email({ email, password });
