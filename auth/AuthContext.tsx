@@ -42,7 +42,7 @@ type AuthContextValue = {
   loading: boolean;
 
   login: (email: string, password: string) => Promise<"ok" | "invalid" | "missing_auth_config">;
-  signUp: (payload: { email: string; password: string; firstName: string; lastName: string }) => Promise<"ok" | "invalid">;
+  signUp: (payload: { email: string; password: string; firstName: string; lastName: string }) => Promise<"ok" | "invalid" | "directory_error">;
   requestPasswordReset: (email: string, redirectTo?: string) => Promise<"ok" | "invalid">;
   logout: () => Promise<void>;
   refresh: () => Promise<void>;
@@ -137,7 +137,13 @@ function devUserForCredentials(email: string, password?: string): User | null {
   };
 }
 
-async function ensureUserRecord(email: string, role: UserRole = "pending", firstName?: string, lastName?: string) {
+async function ensureUserRecord(
+  email: string,
+  role: UserRole = "pending",
+  firstName?: string,
+  lastName?: string,
+  options?: { throwOnError?: boolean }
+) {
   try {
     const existing = await usersApi.getByEmail(email);
     if (existing) return existing;
@@ -150,7 +156,8 @@ async function ensureUserRecord(email: string, role: UserRole = "pending", first
       emailVerified: false,
     });
     return created;
-  } catch {
+  } catch (error) {
+    if (options?.throwOnError) throw error;
     return null;
   }
 }
@@ -256,7 +263,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           password,
           name: `${firstName} ${lastName}`.trim(),
         });
-        await ensureUserRecord(email, "pending", firstName, lastName);
+        try {
+          await ensureUserRecord(email, "pending", firstName, lastName, { throwOnError: true });
+        } catch {
+          setUser(null);
+          setStatus("unauthenticated");
+          return "directory_error";
+        }
         await refresh();
         return "ok";
       } catch {
