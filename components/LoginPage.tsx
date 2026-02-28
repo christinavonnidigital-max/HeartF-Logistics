@@ -107,11 +107,7 @@ const LoginPage: React.FC = () => {
         lastName: lastName.trim(),
       });
       if (result !== "ok") {
-        if (result === "directory_error") {
-          setError("Account was created in auth, but the pending user record could not be saved to the database. Check DATABASE_URL/api on this deployment.");
-        } else {
-          setError("Unable to create account. Try again.");
-        }
+        setError("Unable to create account. Try again.");
       } else {
         setSuccessMessage("Account created. An admin will assign your role shortly.");
         setSignInEmail(signUpEmail.trim());

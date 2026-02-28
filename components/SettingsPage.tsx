@@ -3,8 +3,6 @@ import { ShellCard, SectionHeader, StatusPill } from "./UiKit";
 import { AppSettings, View } from "../App";
 import { useAuth, UserRole } from "../auth/AuthContext";
 import { useData } from "../contexts/DataContext";
-import { hasNeonAuthConfig } from "../src/lib/neonAuth";
-import { usersApi } from "../src/services/dbApi";
 
 interface SettingsPageProps {
   settings: AppSettings;
@@ -63,7 +61,6 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onChangeSettings 
   const { user } = useAuth();
   const { users, addUser, updateUser, deleteUser } = useData();
   const isAdmin = user?.role === "admin";
-  const [directoryUsers, setDirectoryUsers] = useState<any[]>(users);
 
   const [entryEmail, setEntryEmail] = useState("");
   const [entryRole, setEntryRole] = useState<UserRole>("pending");
@@ -71,7 +68,6 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onChangeSettings 
   const [entryLast, setEntryLast] = useState("");
   const [userMessage, setUserMessage] = useState<string | null>(null);
   const [pendingRoleSelection, setPendingRoleSelection] = useState<Record<string, UserRole>>({});
-  const [authCheckEmail, setAuthCheckEmail] = useState("");
 
   const roleOptions: { id: UserRole; label: string }[] = useMemo(
     () => [
@@ -123,38 +119,8 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onChangeSettings 
     onChangeSettings((prev) => ({ ...prev, [name]: Number.isFinite(nextValue) ? nextValue : 0 }));
   };
 
-  const pendingUsers = directoryUsers.filter((u) => u.role === "pending");
-  const otherUsers = directoryUsers.filter((u) => u.role !== "pending");
-  const authCheckUser =
-    directoryUsers.find((u) => u.email.toLowerCase() === authCheckEmail.trim().toLowerCase()) || null;
-  const authCheckRole = authCheckUser?.role || null;
-  const authCheckInternalAccess =
-    authCheckRole && authCheckRole !== "pending" && authCheckRole !== "customer";
-
-  useEffect(() => {
-    setDirectoryUsers(users);
-  }, [users]);
-
-  useEffect(() => {
-    if (!isAdmin || !user) return;
-    let cancelled = false;
-
-    const loadUsers = async () => {
-      try {
-        const fresh = await usersApi.getAll();
-        if (!cancelled) setDirectoryUsers(fresh || []);
-      } catch {
-        // keep current state if refresh fails
-      }
-    };
-
-    loadUsers();
-    const timer = window.setInterval(loadUsers, 15000);
-    return () => {
-      cancelled = true;
-      window.clearInterval(timer);
-    };
-  }, [isAdmin, user?.userId]);
+  const pendingUsers = users.filter((u) => u.role === "pending");
+  const otherUsers = users.filter((u) => u.role !== "pending");
 
   useEffect(() => {
     setPendingRoleSelection((prev) => {
@@ -335,89 +301,6 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onChangeSettings 
                   If the database role stays <span className="font-semibold">pending</span>, the user can sign in but will land in the approval waiting room.
                 </div>
               </div>
-
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
-                <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
-                  <div>
-                    <h3 className="text-sm font-semibold text-slate-900">Auth diagnostics</h3>
-                    <p className="mt-1 text-sm text-slate-600">
-                      Check what this deployment can prove for a login email before debugging credentials.
-                    </p>
-                  </div>
-                  <StatusPill tone={hasNeonAuthConfig ? "success" : "warning"} label={hasNeonAuthConfig ? "Neon auth configured" : "Neon auth missing"} />
-                </div>
-
-                <div className="mt-4 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto]">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700">Email to check</label>
-                    <input
-                      value={authCheckEmail}
-                      onChange={(e) => setAuthCheckEmail(e.target.value)}
-                      placeholder="name@company.com"
-                      className="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm"
-                    />
-                  </div>
-                  <div className="flex items-end">
-                    <button
-                      type="button"
-                      onClick={() => setAuthCheckEmail(authCheckEmail.trim().toLowerCase())}
-                      className="inline-flex justify-center rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:border-slate-400"
-                    >
-                      Check access
-                    </button>
-                  </div>
-                </div>
-
-                {authCheckEmail.trim() && (
-                  <div className="mt-4 grid gap-3 lg:grid-cols-2">
-                    <div className="rounded-xl border border-slate-200 bg-white px-4 py-3">
-                      <div className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Deployment</div>
-                      <div className="mt-3 space-y-2 text-sm">
-                        <div className="flex items-center justify-between gap-3">
-                          <span className="text-slate-600">Neon password auth</span>
-                          <StatusPill tone={hasNeonAuthConfig ? "success" : "warning"} label={hasNeonAuthConfig ? "Configured" : "Missing"} />
-                        </div>
-                        <div className="flex items-center justify-between gap-3">
-                          <span className="text-slate-600">Database role directory</span>
-                          <StatusPill tone={authCheckUser ? "success" : "danger"} label={authCheckUser ? "Record found" : "No record"} />
-                        </div>
-                        <div className="flex items-center justify-between gap-3">
-                          <span className="text-slate-600">Internal dashboard access</span>
-                          <StatusPill
-                            tone={authCheckInternalAccess ? "success" : "warning"}
-                            label={authCheckInternalAccess ? "Approved" : authCheckRole === "pending" ? "Pending approval" : authCheckRole === "customer" ? "Customer only" : "Not ready"}
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="rounded-xl border border-slate-200 bg-white px-4 py-3">
-                      <div className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Lookup result</div>
-                      <div className="mt-3 space-y-2 text-sm text-slate-700">
-                        <div>
-                          <span className="font-semibold text-slate-900">Email:</span> {authCheckEmail.trim().toLowerCase()}
-                        </div>
-                        <div>
-                          <span className="font-semibold text-slate-900">Directory role:</span>{" "}
-                          {authCheckRole ? authCheckRole : "No directory record"}
-                        </div>
-                        <div>
-                          <span className="font-semibold text-slate-900">Neon Auth account:</span>{" "}
-                          {hasNeonAuthConfig
-                            ? "Cannot be verified from the browser. Check Neon Auth dashboard or test sign-in."
-                            : "Cannot be checked because VITE_NEON_AUTH_URL is missing on this deployment."}
-                        </div>
-                        {!authCheckUser && (
-                          <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-amber-900">
-                            This email is not in the app role directory yet. Add it below after the Neon Auth account exists.
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-
               <form className="grid gap-3 sm:grid-cols-2" onSubmit={handleSaveUser}>
                 <div className="sm:col-span-2">
                   <label className="block text-sm font-medium text-slate-700">Email</label>
@@ -474,16 +357,16 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onChangeSettings 
 
               <div>
                 <h3 className="text-sm font-semibold text-slate-800">Directory</h3>
-                {directoryUsers.length === 0 ? (
+                {users.length === 0 ? (
                   <p className="text-sm text-slate-500 mt-1">No users added yet.</p>
                 ) : (
                   <div className="mt-2 divide-y divide-slate-200 border border-slate-200 rounded-xl">
-                    {directoryUsers.map((u) => (
+                    {users.map((u) => (
                       <div key={u.id} className="flex items-center justify-between px-3 py-2 text-sm">
                         <div>
                           <div className="font-semibold text-slate-900">{u.email}</div>
                           <div className="text-xs text-slate-500">
-                            {(u as any).first_name || (u as any).firstName || ""} {(u as any).last_name || (u as any).lastName || ""} | {u.role}
+                            {(u as any).first_name || (u as any).firstName || ""} {(u as any).last_name || (u as any).lastName || ""} - {u.role}
                           </div>
                           <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px]">
                             <StatusPill tone="info" label="Directory record" />
