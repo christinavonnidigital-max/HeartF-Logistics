@@ -5,6 +5,7 @@ import {
   DocumentTextIcon,
   DriverIcon,
   UsersIcon,
+  BriefcaseIcon,
   MapIcon,
   BarChartIcon,
   CampaignIcon,
@@ -78,7 +79,7 @@ const navSections: NavSection[] = [
   {
     title: "CRM",
     items: [
-      { label: "Leads", view: "leads", icon: UsersIcon },
+      { label: "Leads", view: "leads", icon: BriefcaseIcon },
       { label: "Lead Finder", view: "lead-finder", icon: SearchIcon },
       { label: "Customers", view: "customers", icon: UsersIcon },
     ],
@@ -218,7 +219,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-40 transform bg-[#1e2b57] text-white border-r border-white/10 shadow-xl transition-all duration-300 md:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-40 transform bg-[#1e2b57] text-white border-r border-white/10 transition-all duration-300 md:translate-x-0 ${
           isCollapsed ? "w-20" : "w-64"
         } ${
           isOpen ? "translate-x-0" : "-translate-x-full"
@@ -227,7 +228,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         {/* This wrapper is the whole trick: gives nav a real height to scroll inside */}
         <div className="flex h-full flex-col">
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-4 border-b border-white/10">
+          <div className={`flex items-center border-b border-white/10 ${isCollapsed ? "justify-center px-2 py-4 md:justify-between" : "justify-between px-4 py-4"}`}>
             <div className={`flex items-center ${isCollapsed ? "justify-center w-full md:w-auto" : "gap-3"}`}>
               <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-[#f5993b] to-amber-500 flex items-center justify-center text-sm font-semibold shadow-lg shadow-orange-500/25 text-white shrink-0">
                 HF
@@ -240,9 +241,9 @@ const Sidebar: React.FC<SidebarProps> = ({
               )}
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className={`flex items-center gap-2 ${isCollapsed ? "hidden md:flex" : ""}`}>
               <button
-                className="hidden md:inline-flex rounded-lg border border-white/15 p-2 text-white hover:bg-white/10"
+                className="hidden md:inline-flex rounded-lg p-2 text-white/70 hover:bg-white/8 hover:text-white"
                 onClick={toggleCollapse}
                 aria-label={isCollapsed ? "Expand navigation" : "Collapse navigation"}
                 title={isCollapsed ? "Expand navigation" : "Collapse navigation"}
@@ -274,8 +275,8 @@ const Sidebar: React.FC<SidebarProps> = ({
           </div>
 
           {/* Scrollable nav */}
-          <nav className={`min-h-0 flex-1 overflow-y-auto pb-6 pt-3 custom-scrollbar ${isCollapsed ? "px-2" : "px-3"}`}>
-            <div className="space-y-3">
+          <nav className={`min-h-0 flex-1 overflow-y-auto pb-6 pt-4 custom-scrollbar ${isCollapsed ? "px-2" : "px-3"}`}>
+            <div className="space-y-4">
               {sectionMap.map((section) => {
                 const visibleItems = section.items;
                 if (!visibleItems.length) return null;
@@ -284,15 +285,8 @@ const Sidebar: React.FC<SidebarProps> = ({
 
                 if (isCollapsed) {
                   return (
-                    <div
-                      key={section.title}
-                      className={`overflow-hidden rounded-2xl border px-2 py-2 ${
-                        hasActiveItem
-                          ? "border-white/15 bg-white/8"
-                          : "border-white/8 bg-white/[0.03]"
-                      }`}
-                    >
-                      <div className="mb-2 text-center text-[10px] font-semibold uppercase tracking-[0.16em] text-white/45">
+                    <div key={section.title} className="space-y-1">
+                      <div className="mb-1 text-center text-[10px] font-semibold uppercase tracking-[0.18em] text-white/35">
                         {section.title.slice(0, 3)}
                       </div>
                       <div className="space-y-1">
@@ -306,7 +300,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                               className={`flex w-full items-center justify-center rounded-xl px-2 py-2.5 transition ${
                                 isActive
                                   ? "bg-white text-[#1e2b57] shadow-sm"
-                                  : "text-white/80 hover:bg-white/10 hover:text-white"
+                                  : "text-white/75 hover:bg-white/8 hover:text-white"
                               }`}
                               title={item.label}
                               aria-label={item.label}
@@ -325,35 +319,27 @@ const Sidebar: React.FC<SidebarProps> = ({
                 }
 
                 return (
-                  <div
-                    key={section.title}
-                    className={`overflow-hidden rounded-2xl border transition ${
-                      hasActiveItem
-                        ? "border-white/15 bg-white/8"
-                        : "border-white/8 bg-white/[0.03]"
-                    }`}
-                  >
+                  <div key={section.title} className="space-y-1">
                     <button
                       type="button"
                       onClick={() => toggleSection(section.title)}
-                      className="flex w-full items-center gap-3 px-3 py-2.5 text-left"
+                      className={`flex w-full items-center gap-3 px-2 py-1.5 text-left transition ${
+                        hasActiveItem ? "text-white" : "text-white/70 hover:text-white/90"
+                      }`}
                       aria-expanded={isExpanded}
                     >
-                      <span className="text-[11px] uppercase tracking-[0.16em] text-white/60">
+                      <span className="text-[11px] uppercase tracking-[0.18em]">
                         {section.title}
                       </span>
-                      <span className="ml-auto rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-semibold text-white/80">
-                        {visibleItems.length}
-                      </span>
                       <ChevronDownIcon
-                        className={`h-4 w-4 text-white/60 transition-transform ${
+                        className={`ml-auto h-4 w-4 text-white/45 transition-transform ${
                           isExpanded ? "rotate-0" : "-rotate-90"
                         }`}
                       />
                     </button>
 
                     {isExpanded && (
-                      <div className="space-y-1 border-t border-white/8 px-2 py-2">
+                      <div className="space-y-1 pl-1">
                         {visibleItems.map((item) => {
                           const Icon = item.icon;
                           const isActive = activeView === item.view;
@@ -365,7 +351,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                               className={`group flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm font-medium transition ${
                                 isActive
                                   ? "bg-white text-[#1e2b57] shadow-sm"
-                                  : "text-white/80 hover:bg-white/10 hover:text-white"
+                                  : "text-white/78 hover:bg-white/8 hover:text-white"
                               }`}
                             >
                               <Icon
@@ -395,7 +381,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             <div className={`border-t border-white/10 px-3 py-3 ${isCollapsed ? "hidden md:block" : ""}`}>
               {isCollapsed ? (
                 <div
-                  className="flex items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] py-3"
+                  className="flex items-center justify-center py-2"
                   title={`${displayName} (${user.role.replace("_", " ")})`}
                 >
                   <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-xs font-semibold text-white">
@@ -408,7 +394,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                   </div>
                 </div>
               ) : (
-                <div className="rounded-2xl border border-white/10 bg-white/[0.04] px-3 py-3">
+                <div className="rounded-2xl bg-white/[0.04] px-3 py-3">
                   <div className="text-sm font-semibold text-white truncate">{displayName}</div>
                   <div className="mt-0.5 text-xs capitalize text-white/65 truncate">
                     {user.role.replace("_", " ")}

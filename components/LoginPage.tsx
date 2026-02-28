@@ -219,7 +219,7 @@ const LoginPage: React.FC = () => {
                 </div>
                 <div className="mt-1 text-sm text-muted-foreground">
                   {mode === "signin"
-                    ? "Internal teams sign in here. Customers use magic links only."
+                    ? "Sign in to your workspace."
                     : "Create an internal account. An admin will approve and assign your role."}
                 </div>
               </div>
@@ -230,7 +230,6 @@ const LoginPage: React.FC = () => {
             </div>
 
             <div className="mt-4 space-y-2 text-xs text-muted-foreground">
-              <StatusPill tone="info" label="Neon Auth workspace credentials" />
               <div>Demo credentials: admin@heartfledge.local / admin123</div>
             </div>
             {!hasNeonAuthConfig ? (
@@ -244,18 +243,6 @@ const LoginPage: React.FC = () => {
                 </div>
               </div>
             ) : null}
-
-            <div className="mt-4">
-              <div className="text-xs font-semibold text-muted-foreground">How it works</div>
-              <div className="text-sm text-foreground">
-                {mode === "signin" ? "Sign in with workspace credentials" : "Create account -> pending approval -> role assigned"}
-              </div>
-              <div className="text-xs text-muted-foreground mt-1">
-                {mode === "signin"
-                  ? "Forgot your password? Use the reset link below."
-                  : "Sign up with any email. Admins approve new accounts and assign roles."}
-              </div>
-            </div>
 
             <div className="mt-4 flex items-center gap-2 rounded-2xl bg-muted/40 p-1 text-xs">
               <button
