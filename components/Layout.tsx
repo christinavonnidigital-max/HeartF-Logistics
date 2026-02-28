@@ -60,6 +60,13 @@ const Layout: React.FC<LayoutProps> = ({
   settings,
 }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
+    try {
+      return window.localStorage.getItem("hf-sidebar-collapsed") === "true";
+    } catch {
+      return false;
+    }
+  });
   const { user, logout } = useAuth();
   const displayName = user ? [user.firstName, user.lastName].filter(Boolean).join(" ") || user.email : "";
 
@@ -91,9 +98,15 @@ const Layout: React.FC<LayoutProps> = ({
         setActiveView={setActiveView}
         isOpen={isSidebarOpen}
         setIsOpen={setIsSidebarOpen}
+        isCollapsed={isSidebarCollapsed}
+        setIsCollapsed={setIsSidebarCollapsed}
       />
 
-      <div className="relative flex min-h-0 flex-col bg-background text-foreground md:pl-64 transition-all duration-300 z-0">
+      <div
+        className={`relative flex min-h-0 flex-col bg-background text-foreground transition-all duration-300 z-0 ${
+          isSidebarCollapsed ? "md:pl-20" : "md:pl-64"
+        }`}
+      >
         {/* Top bar */}
         <header className="sticky top-0 z-20 border-b border-border bg-card/60 backdrop-blur-md shadow-sm">
           <div className="flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
