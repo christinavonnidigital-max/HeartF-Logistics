@@ -1,6 +1,12 @@
-import { Pool } from "@neondatabase/serverless";
+import pg from "pg";
 
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const pool = new pg.Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false },
+  connectionTimeoutMillis: 5000,
+  idleTimeoutMillis: 10000,
+  max: 1,
+});
 
 const USER_ROLE_BASE = ["admin", "ops_manager", "dispatcher", "finance", "customer", "driver", "marketing", "pending"];
 let columnsPromise: Promise<Set<string>> | null = null;

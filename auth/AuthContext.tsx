@@ -41,11 +41,16 @@ type AuthContextValue = {
   status: AuthStatus;
   loading: boolean;
 
-  login: (email: string, password: string) => Promise<"ok" | "invalid" | "missing_auth_config">;
-  signUp: (payload: { email: string; password: string; firstName: string; lastName: string }) => Promise<"ok" | "invalid">;
+  login: (
+    email: string,
+    password: string
+  ) => Promise<"ok" | "invalid" | "missing_auth_config" | "directory_unavailable">;
+  signUp: (
+    payload: { email: string; password: string; firstName: string; lastName: string }
+  ) => Promise<"ok" | "invalid" | "directory_unavailable">;
   requestPasswordReset: (email: string, redirectTo?: string) => Promise<"ok" | "invalid">;
   logout: () => Promise<void>;
-  refresh: () => Promise<void>;
+  refresh: () => Promise<"authenticated" | "unauthenticated" | "directory_unavailable">;
 
   authFetch: <T>(
     url: string,
@@ -138,28 +143,23 @@ function devUserForCredentials(email: string, password?: string): User | null {
 }
 
 async function ensureUserRecord(email: string, role: UserRole = "pending", firstName?: string, lastName?: string) {
-  try {
-    const existing = await usersApi.getByEmail(email);
-    if (existing) return existing;
-    const created = await usersApi.create({
-      email,
-      role,
-      firstName,
-      lastName,
-      isActive: true,
-      emailVerified: false,
-    });
-    return created;
-  } catch {
-    return null;
-  }
+  const existing = await usersApi.getByEmail(email);
+  if (existing) return existing;
+  return usersApi.create({
+    email,
+    role,
+    firstName,
+    lastName,
+    isActive: true,
+    emailVerified: false,
+  });
 }
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [status, setStatus] = useState<AuthStatus>("checking");
 
-  const refreshInFlight = useRef<Promise<void> | null>(null);
+  const refreshInFlight = useRef<Promise<"authenticated" | "unauthenticated" | "directory_unavailable"> | null>(null);
 
   const logout = useCallback(async () => {
     try {
@@ -171,13 +171,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setStatus("unauthenticated");
   }, []);
 
-  const refresh = useCallback(async () => {
+  const refresh = useCallback(async (): Promise<"authenticated" | "unauthenticated" | "directory_unavailable"> => {
     if (refreshInFlight.current) {
-      await refreshInFlight.current;
-      return;
+      return refreshInFlight.current;
     }
 
-    const p = (async () => {
+    const p = (async (): Promise<"authenticated" | "unauthenticated" | "directory_unavailable"> => {
       setStatus("checking");
       try {
         const session = await authClient.getSession();
@@ -185,7 +184,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (!base || base.role === "customer") {
           setUser(null);
           setStatus("unauthenticated");
-          return;
+          return "unauthenticated";
         }
         const record = await ensureUserRecord(base.email, base.role, base.firstName, base.lastName);
         const role: UserRole = (record?.role as UserRole) || base.role || "pending";
@@ -199,19 +198,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (role === "customer") {
           setUser(null);
           setStatus("unauthenticated");
-          return;
+          return "unauthenticated";
         }
         setUser(userObj);
         setStatus("authenticated");
-      } catch {
+        return "authenticated";
+      } catch (error: any) {
+        const message = String(error?.message || error || "").toLowerCase();
+        const isDirectoryFailure =
+          message.includes("timed out") ||
+          message.includes("database error") ||
+          message.includes("api error") ||
+          message.includes("fetch");
+
+        if (isDirectoryFailure) {
+          try {
+            await authClient.signOut();
+          } catch {
+            // ignore
+          }
+          setUser(null);
+          setStatus("unauthenticated");
+          return "directory_unavailable";
+        }
         setUser(null);
         setStatus("unauthenticated");
+        return "unauthenticated";
       }
     })();
 
     refreshInFlight.current = p;
     try {
-      await p;
+      return await p;
     } finally {
       refreshInFlight.current = null;
     }
@@ -236,8 +254,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
 
         await authClient.signIn.email({ email, password });
-        await refresh();
-        return "ok";
+        const refreshResult = await refresh();
+        if (refreshResult === "authenticated") return "ok";
+        if (refreshResult === "directory_unavailable") return "directory_unavailable";
+        return "invalid";
       } catch (err: any) {
         setUser(null);
         setStatus("unauthenticated");
@@ -257,7 +277,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           name: `${firstName} ${lastName}`.trim(),
         });
         await ensureUserRecord(email, "pending", firstName, lastName);
-        await refresh();
+        const refreshResult = await refresh();
+        if (refreshResult === "directory_unavailable") return "directory_unavailable";
         return "ok";
       } catch {
         setUser(null);

@@ -35,3 +35,4 @@ dev-axe-violations.json
 
 # Local Netlify folder
 .netlify
+.vercel

@@ -69,8 +69,10 @@ const LoginPage: React.FC = () => {
       const result = await login(signInEmail.trim(), password);
       if (result === "missing_auth_config") {
         setError("Workspace auth is not configured on this deployment. Only local demo accounts work until Vercel has VITE_NEON_AUTH_URL.");
+      } else if (result === "directory_unavailable") {
+        setError("Login could not finish because the workspace user directory is unavailable right now. Your credentials may be correct, but the server could not load your app profile.");
       } else if (result !== "ok") {
-        setError("Login failed. Check that the email/password exists in Neon Auth and that the same email has an approved internal role in Settings -> User management.");
+        setError("Invalid email or password, or this account is not set up for internal access.");
       }
     } catch (err) {
       setError(friendlyAuthError(err));
@@ -106,7 +108,9 @@ const LoginPage: React.FC = () => {
         firstName: firstName.trim(),
         lastName: lastName.trim(),
       });
-      if (result !== "ok") {
+      if (result === "directory_unavailable") {
+        setError("Account was created in auth, but the workspace user directory is unavailable right now. Ask an admin to confirm your profile exists in User management.");
+      } else if (result !== "ok") {
         setError("Unable to create account. Try again.");
       } else {
         setSuccessMessage("Account created. An admin will assign your role shortly.");
